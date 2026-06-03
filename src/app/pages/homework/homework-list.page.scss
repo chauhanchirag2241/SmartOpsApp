@@ -1,11 +1,33 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
 }
 
+app-header {
+  flex-shrink: 0;
+}
+
+ion-content {
+  flex: 1;
+}
+
 .hw-list-page {
-  --padding-bottom: 80px;
+  --padding-bottom: 24px;
+}
+
+.hw-create-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+
+  ion-fab-button {
+    --background: var(--so-primary);
+    --color: var(--so-on-primary);
+    --box-shadow: 0 4px 14px rgba(99, 153, 34, 0.35);
+  }
 }
 
 .stats-grid {
@@ -32,7 +54,7 @@
     color: var(--so-primary);
   }
   &.accent strong {
-    color: #b45309;
+    color: var(--so-warning);
   }
   &.ok strong {
     color: var(--so-present);
@@ -102,7 +124,7 @@
     }
   }
   .due.today {
-    color: #b45309;
+    color: var(--so-warning);
     font-weight: 600;
   }
   .due.overdue {
@@ -152,15 +174,15 @@
   border-radius: 4px;
   text-transform: capitalize;
   &.status-active {
-    background: #d9e2ff;
+    background: var(--so-badge-bg);
     color: var(--so-primary);
   }
   &.status-today {
-    background: #fef3c7;
-    color: #b45309;
+    background: var(--so-leave-bg);
+    color: var(--so-warning);
   }
   &.status-overdue {
-    background: #ffdad6;
+    background: var(--so-absent-bg);
     color: var(--so-absent);
   }
   &.status-done {

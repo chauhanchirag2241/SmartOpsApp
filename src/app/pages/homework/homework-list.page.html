@@ -1,8 +1,10 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Homework</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  title="Homework"
+  [showBack]="true"
+  [showFilter]="true"
+  backHref="/tabs/home"
+  searchPlaceholder="Search homework..."
+/>
 
 <ion-content class="so-page hw-list-page">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
@@ -28,32 +30,13 @@
     </div>
   </section>
 
-  <section class="filters">
-    <div class="filter-row">
-      <select class="so-filter-select" [(ngModel)]="classFilter" (ngModelChange)="loadList()">
-        <option value="">All classes</option>
-        @for (c of classes; track c.id) {
-          <option [value]="c.id">{{ c.name }}</option>
-        }
-      </select>
-      <select class="so-filter-select" [(ngModel)]="subjectFilter" (ngModelChange)="loadList()">
-        <option value="">All subjects</option>
-        @for (s of subjects; track s.id) {
-          <option [value]="s.id">{{ subjectLabel(s) }}</option>
-        }
-      </select>
-    </div>
-    <div class="so-search-wrap">
-      <input class="so-search-input" type="search" placeholder="Search homework..." [(ngModel)]="searchQuery" (keyup.enter)="loadList()" />
-    </div>
-    <div class="chip-row">
-      @for (chip of ['all', 'active', 'today', 'overdue', 'done']; track chip) {
-        <button type="button" class="filter-chip" [class.active]="chipFilter === chip" (click)="setChip(chip)">
-          {{ chip === 'all' ? 'All' : chip === 'today' ? 'Due today' : chip === 'done' ? 'Done' : chip }}
-        </button>
-      }
-    </div>
-  </section>
+  <div class="active-filters-bar">
+    <span>{{ classFilterLabel }}</span>
+    <span>{{ subjectFilterLabel }}</span>
+    @if (chipFilter !== 'all') {
+      <span>{{ chipFilterLabel }}</span>
+    }
+  </div>
 
   @if (loading) {
     <div class="loading-wrap"><ion-spinner></ion-spinner></div>
@@ -86,12 +69,54 @@
       }
     </section>
   }
-
-  @if (canManage) {
-    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="openCreate()">
-        <ion-icon name="add-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-  }
 </ion-content>
+
+@if (canManage) {
+  <ion-fab class="hw-create-fab" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="openCreate()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  [initialBreakpoint]="0.68"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="applyFilters()"
+>
+  <div class="filter-field">
+    <label>Class</label>
+    <select class="so-filter-select" [(ngModel)]="classFilter">
+      <option value="">All classes</option>
+      @for (c of classes; track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="filter-field">
+    <label>Subject</label>
+    <select class="so-filter-select" [(ngModel)]="subjectFilter">
+      <option value="">All subjects</option>
+      @for (s of subjects; track s.id) {
+        <option [value]="s.id">{{ subjectLabel(s) }}</option>
+      }
+    </select>
+  </div>
+  <div class="filter-field">
+    <label>Status</label>
+    <div class="filter-chip-group">
+      @for (chip of chipOptions; track chip.value) {
+        <button
+          type="button"
+          class="filter-chip-option"
+          [class.active]="chipFilter === chip.value"
+          (click)="chipFilter = chip.value"
+        >
+          {{ chip.label }}
+        </button>
+      }
+    </div>
+  </div>
+</so-filter-popover>

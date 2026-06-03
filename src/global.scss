@@ -10,31 +10,51 @@
 @import "@ionic/angular/css/flex-utils.css";
 
 :root {
-  --so-primary: #0056c4;
+  /* Brand — aligned with SmartOpsUI style.css */
+  --so-primary: #639922;
+  --so-primary-shade: #57871e;
+  --so-primary-tint: #73a338;
+  --so-secondary: #3b6d11;
   --so-on-primary: #ffffff;
-  --so-surface: #f9f9ff;
-  --so-surface-container-low: #f2f3fc;
+
+  /* Surfaces */
+  --so-surface: #f5f7f2;
+  --so-surface-container: #ffffff;
+  --so-surface-container-low: #f0f4ec;
   --so-surface-container-lowest: #ffffff;
-  --so-surface-container-high: #e6e8f0;
-  --so-on-surface: #191c22;
-  --so-on-surface-variant: #424754;
-  --so-outline: #727786;
-  --so-outline-variant: #c2c6d7;
-  --so-present: #006d33;
-  --so-present-bg: #64ff95;
-  --so-absent: #ba1a1a;
-  --so-absent-bg: #ffdad6;
-  --so-leave: #b45309;
-  --so-leave-bg: #fef3c7;
-  --so-late: #0056c4;
-  --so-late-bg: #d9e2ff;
-  --so-pending: #92949c;
-  --so-hw-late: #f27011;
-  --so-secondary-container: #64ff95;
-  --so-error: #ba1a1a;
+  --so-surface-container-high: #eaf3de;
+  --so-hover: #f0f7e8;
+
+  /* Text */
+  --so-on-surface: #1a1a1a;
+  --so-on-surface-variant: #6b7280;
+  --so-outline: #64748b;
+  --so-outline-variant: rgba(0, 0, 0, 0.1);
+
+  /* Semantic */
+  --so-success: #639922;
+  --so-error: #e24b4a;
+  --so-warning: #854f0b;
+  --so-badge-bg: #eaf3de;
+  --so-badge-text: #3b6d11;
+
+  /* Attendance / status */
+  --so-present: #3b6d11;
+  --so-present-bg: #eaf3de;
+  --so-absent: #e24b4a;
+  --so-absent-bg: #fcebeb;
+  --so-leave: #854f0b;
+  --so-leave-bg: #faeeda;
+  --so-late: #1e40af;
+  --so-late-bg: #dbeafe;
+  --so-pending: #6b7280;
+  --so-hw-late: #854f0b;
+  --so-secondary-container: #eaf3de;
+
+  /* Radius */
   --so-radius: 8px;
-  --so-radius-lg: 12px;
-  --so-radius-xl: 16px;
+  --so-radius-lg: 10px;
+  --so-radius-xl: 12px;
 }
 
 html,
@@ -55,6 +75,67 @@ ion-app {
 
 ion-content.so-page {
   --background: var(--so-surface);
+}
+
+.list-page-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--so-on-surface-variant);
+  }
+}
+
+.filter-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.filter-chip-option {
+  border: 1.5px solid var(--so-outline-variant);
+  background: var(--so-surface-container-lowest);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--so-on-surface);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &.active {
+    background: var(--so-primary);
+    color: #fff;
+    border-color: var(--so-primary);
+  }
+}
+
+.active-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 12px;
+
+  span {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--so-surface-container-high);
+    color: var(--so-on-surface-variant);
+  }
 }
 
 ion-tabs {
@@ -104,12 +185,12 @@ ion-tabs {
   &.present {
     background: var(--so-present-bg);
     border-color: var(--so-present);
-    color: #007437;
+    color: var(--so-badge-text);
   }
   &.absent {
     background: var(--so-absent-bg);
     border-color: var(--so-absent);
-    color: #93000a;
+    color: #a32d2d;
   }
   &.leave {
     background: var(--so-leave-bg);
@@ -166,7 +247,7 @@ ion-tabs {
   padding: 12px 14px;
   border-radius: var(--so-radius-lg);
   background: var(--so-secondary-container);
-  color: #007437;
+  color: var(--so-badge-text);
   font-size: 12px;
   font-weight: 600;
 }

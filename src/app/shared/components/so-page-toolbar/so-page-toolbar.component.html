@@ -1,0 +1,11 @@
+<div class="so-page-toolbar">
+  <div class="toolbar-main">
+    <ng-content select="[toolbarFilters]"></ng-content>
+  </div>
+  <div class="toolbar-meta">
+    @if (totalCount !== null) {
+      <span class="total-badge">{{ totalLabel }}: <strong>{{ totalCount }}</strong></span>
+    }
+    <ng-content select="[toolbarRight]"></ng-content>
+  </div>
+</div>

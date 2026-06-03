@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -23,6 +24,9 @@ import { PermissionService } from '../../core/services/permission.service';
 import { ClassDropdownItem, ClassService } from '../../core/services/class.service';
 import { HomeworkService } from '../../core/services/homework.service';
 import { SubjectDropdownItem, SubjectService } from '../../core/services/subject.service';
+import { AppHeaderService } from '../../core/services/app-header.service';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
 import { pickStr } from '../../core/utils/api-mapper.util';
 
 @Component({
@@ -31,11 +35,10 @@ import { pickStr } from '../../core/utils/api-mapper.util';
   styleUrls: ['./homework-list.page.scss'],
   imports: [
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
+    AppHeaderComponent,
+    SoFilterPopoverComponent,
     IonContent,
-  IonIcon,
+    IonIcon,
     IonFab,
     IonFabButton,
     IonSpinner,
@@ -43,8 +46,10 @@ import { pickStr } from '../../core/utils/api-mapper.util';
     IonRefresherContent,
   ],
 })
-export class HomeworkListPage implements OnInit {
+export class HomeworkListPage implements OnInit, OnDestroy {
   private readonly homeworkService = inject(HomeworkService);
+  private readonly header = inject(AppHeaderService);
+  private subs = new Subscription();
   private readonly classService = inject(ClassService);
   private readonly subjectService = inject(SubjectService);
   private readonly router = inject(Router);
@@ -60,8 +65,17 @@ export class HomeworkListPage implements OnInit {
   classFilter = '';
   subjectFilter = '';
   chipFilter = 'all';
+  filterOpen = false;
   searchQuery = '';
   loading = false;
+
+  readonly chipOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'today', label: 'Due today' },
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'done', label: 'Done' },
+  ];
 
   constructor() {
     addIcons({ addOutline, calendarOutline, schoolOutline });
@@ -71,10 +85,40 @@ export class HomeworkListPage implements OnInit {
     return !this.ayContext.isReadOnlyScope() && this.permissions.canAdd(MenuCodes.Homework);
   }
 
+  get classFilterLabel(): string {
+    if (!this.classFilter) return 'All classes';
+    return this.classes.find((c) => c.id === this.classFilter)?.name ?? 'Class';
+  }
+
+  get subjectFilterLabel(): string {
+    if (!this.subjectFilter) return 'All subjects';
+    const s = this.subjects.find((x) => x.id === this.subjectFilter);
+    return s ? this.subjectLabel(s) : 'Subject';
+  }
+
+  get chipFilterLabel(): string {
+    return this.chipOptions.find((c) => c.value === this.chipFilter)?.label ?? this.chipFilter;
+  }
+
   ngOnInit(): void {
     this.loadDropdowns();
     this.loadStats();
     this.loadList();
+    this.subs.add(
+      this.header.searchQuery$.subscribe((q) => {
+        this.searchQuery = q;
+        this.loadList();
+      }),
+    );
+    this.subs.add(
+      this.header.filterClick$.subscribe(() => {
+        this.filterOpen = true;
+      }),
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   loadDropdowns(): void {
@@ -125,6 +169,18 @@ export class HomeworkListPage implements OnInit {
 
   setChip(filter: string): void {
     this.chipFilter = filter;
+    this.loadList();
+  }
+
+  applyFilters(): void {
+    this.filterOpen = false;
+    this.loadList();
+  }
+
+  clearFilters(): void {
+    this.classFilter = '';
+    this.subjectFilter = '';
+    this.chipFilter = 'all';
     this.loadList();
   }
 

@@ -1,0 +1,98 @@
+<ion-header class="app-header">
+  <ion-toolbar [class.toolbar-search]="searchExpanded">
+    @if (searchExpanded) {
+      <div class="header-search-slot">
+        <div class="header-search-field">
+          <ion-searchbar
+            #searchBar
+            class="header-searchbar"
+            [placeholder]="searchPlaceholder"
+            showCancelButton="never"
+            (ionInput)="onSearchInput($event)"
+          ></ion-searchbar>
+          <button type="button" class="search-close-btn" aria-label="Close search" (click)="closeSearch()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    } @else {
+      @if (showBack) {
+        <ion-buttons slot="start">
+          <ion-back-button [defaultHref]="backHref" text=""></ion-back-button>
+        </ion-buttons>
+      }
+
+      <ion-title>{{ displayTitle }}</ion-title>
+
+      <ion-buttons slot="end" class="header-actions">
+        <ion-button fill="clear" class="header-icon-btn" aria-label="Search" (click)="openSearch()">
+          <ion-icon name="search-outline"></ion-icon>
+        </ion-button>
+        <ion-button
+          fill="clear"
+          class="header-icon-btn"
+          id="notifications-trigger"
+          aria-label="Notifications"
+          (click)="notificationsOpen = true"
+        >
+          <ion-icon name="notifications-outline"></ion-icon>
+        </ion-button>
+        @if (showFilter) {
+          <ion-button fill="clear" class="header-icon-btn" aria-label="Filter" (click)="onFilter()">
+            <ion-icon name="funnel-outline"></ion-icon>
+          </ion-button>
+        }
+        <ion-button
+          fill="clear"
+          class="header-icon-btn"
+          id="profile-trigger"
+          aria-label="Profile"
+          (click)="profileOpen = true"
+        >
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-popover trigger="profile-trigger" [isOpen]="profileOpen" (didDismiss)="profileOpen = false" side="bottom" alignment="end">
+  <ng-template>
+    <div class="profile-popover">
+      <div class="profile-head">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <div>
+          <strong>{{ userName }}</strong>
+          @if (userEmail) {
+            <p><ion-icon name="mail-outline"></ion-icon> {{ userEmail }}</p>
+          }
+          @if (userRole) {
+            <p><ion-icon name="shield-outline"></ion-icon> {{ userRole }}</p>
+          }
+          @if (ay.currentYear(); as year) {
+            <p class="year-line">{{ year.name }}</p>
+          }
+        </div>
+      </div>
+      <button type="button" class="sign-out-btn" (click)="signOut()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        Sign out
+      </button>
+    </div>
+  </ng-template>
+</ion-popover>
+
+<ion-popover
+  trigger="notifications-trigger"
+  [isOpen]="notificationsOpen"
+  (didDismiss)="notificationsOpen = false"
+  side="bottom"
+  alignment="end"
+>
+  <ng-template>
+    <div class="notifications-popover">
+      <h3>Notifications</h3>
+      <p>No new notifications</p>
+    </div>
+  </ng-template>
+</ion-popover>

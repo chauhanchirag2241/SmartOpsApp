@@ -1,0 +1,69 @@
+.student-detail-page {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  ion-icon {
+    font-size: 22px;
+    color: var(--so-primary);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--so-outline);
+    margin-bottom: 2px;
+  }
+
+  strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--so-on-surface);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+}
+
+.remarks-block {
+  padding-top: 12px;
+  border-top: 1px dashed var(--so-outline-variant);
+
+  .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--so-outline);
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--so-on-surface-variant);
+    line-height: 1.45;
+  }
+}

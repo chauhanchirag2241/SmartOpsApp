@@ -1,5 +1,5 @@
 .login-page {
-  --background: linear-gradient(160deg, #d9e2ff 0%, #f9f9ff 45%, #f2f3fc 100%);
+  --background: linear-gradient(160deg, #eaf3de 0%, #f5f7f2 45%, #f0f4ec 100%);
 }
 
 .login-wrap {
@@ -31,9 +31,53 @@
 .login-form {
   background: var(--so-surface-container-lowest);
   border-radius: var(--so-radius-xl);
-  padding: 8px 0;
+  padding: 20px 16px;
   margin-bottom: 20px;
   border: 1px solid var(--so-outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--so-on-surface-variant);
+  padding-left: 2px;
+}
+
+.field-input {
+  border: 1.5px solid var(--so-outline-variant);
+  border-radius: var(--so-radius);
+  background: var(--so-surface);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--so-primary);
+    box-shadow: 0 0 0 3px rgba(99, 153, 34, 0.15);
+  }
+
+  ion-input {
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    --background: transparent;
+    --color: var(--so-on-surface);
+    --placeholder-color: var(--so-outline);
+    font-size: 16px;
+    width: 100%;
+  }
 }
 
 .login-btn {

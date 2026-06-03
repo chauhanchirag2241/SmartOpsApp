@@ -1,20 +1,22 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AlertController,
-  IonBackButton,
-  IonButtons,
   IonContent,
-  IonHeader,
   IonIcon,
   IonSpinner,
-  IonTitle,
-  IonToolbar,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { createOutline, trashOutline } from 'ionicons/icons';
+import {
+  checkmarkCircle,
+  createOutline,
+  hourglass,
+  trashOutline,
+  warning,
+} from 'ionicons/icons';
 import {
   HomeworkDetail,
   HomeworkSubmissionStatus,
@@ -24,6 +26,9 @@ import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { HomeworkService } from '../../core/services/homework.service';
+import { AppHeaderService } from '../../core/services/app-header.service';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
 import { localDateString, normalizeHomeworkStatus } from '../../core/utils/api-mapper.util';
 
 interface StudentRow {
@@ -40,19 +45,9 @@ interface StudentRow {
   selector: 'app-homework-detail',
   templateUrl: './homework-detail.page.html',
   styleUrls: ['./homework-detail.page.scss'],
-  imports: [
-    FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonBackButton,
-    IonTitle,
-    IonContent,
-    IonIcon,
-    IonSpinner,
-  ],
+  imports: [FormsModule, AppHeaderComponent, SoFilterPopoverComponent, IonContent, IonIcon, IonSpinner],
 })
-export class HomeworkDetailPage implements OnInit {
+export class HomeworkDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly homeworkService = inject(HomeworkService);
@@ -60,21 +55,43 @@ export class HomeworkDetailPage implements OnInit {
   private readonly alert = inject(AlertController);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
+  private readonly header = inject(AppHeaderService);
+  private subs = new Subscription();
+  headerSearch = '';
 
   HomeworkSubmissionStatus = HomeworkSubmissionStatus;
+  readonly studentFilterOptions = ['all', 'submitted', 'pending', 'late'] as const;
 
   homeworkId = '';
   detail: HomeworkDetail | null = null;
   studentRows: StudentRow[] = [];
   filteredStudents: StudentRow[] = [];
   studentFilter = 'all';
+  filterOpen = false;
   progressPct = 0;
   loading = false;
   isSubmitting = false;
   loadError = '';
 
   constructor() {
-    addIcons({ createOutline, trashOutline });
+    addIcons({ createOutline, trashOutline, checkmarkCircle, hourglass, warning });
+  }
+
+  filterLabel(filter: string): string {
+    if (filter === 'all') return 'All';
+    return filter.charAt(0).toUpperCase() + filter.slice(1);
+  }
+
+  statusLabel(status: HomeworkSubmissionStatus): string {
+    if (status === HomeworkSubmissionStatus.Submitted) return 'Submitted';
+    if (status === HomeworkSubmissionStatus.Late) return 'Late';
+    return 'Pending';
+  }
+
+  statusBadgeClass(status: HomeworkSubmissionStatus): string {
+    if (status === HomeworkSubmissionStatus.Submitted) return 'badge-submitted';
+    if (status === HomeworkSubmissionStatus.Late) return 'badge-late';
+    return 'badge-pending';
   }
 
   get canEdit(): boolean {
@@ -90,15 +107,30 @@ export class HomeworkDetailPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.subs.add(
+      this.header.searchQuery$.subscribe((q) => {
+        this.headerSearch = q.trim().toLowerCase();
+        this.applyFilter();
+      }),
+    );
+    this.subs.add(
+      this.header.filterClick$.subscribe(() => {
+        this.filterOpen = true;
+      }),
+    );
     this.route.paramMap.subscribe((params) => {
       const id = (params.get('id') ?? '').trim();
       if (!id) {
-        void this.router.navigate(['/tabs/homework']);
+        void this.router.navigate(['/homework']);
         return;
       }
       this.homeworkId = id;
       this.loadDetail();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   loadDetail(): void {
@@ -155,8 +187,19 @@ export class HomeworkDetailPage implements OnInit {
     this.applyFilter();
   }
 
+  clearFilters(): void {
+    this.studentFilter = 'all';
+    this.applyFilter();
+  }
+
   applyFilter(): void {
+    const q = this.headerSearch;
     this.filteredStudents = this.studentRows.filter((s) => {
+      const matchesSearch =
+        !q ||
+        s.studentName.toLowerCase().includes(q) ||
+        s.rollNo.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
       if (this.studentFilter === 'all') return true;
       if (this.studentFilter === 'submitted') return s.status === HomeworkSubmissionStatus.Submitted;
       if (this.studentFilter === 'pending') return s.status === HomeworkSubmissionStatus.Pending;
@@ -248,7 +291,7 @@ export class HomeworkDetailPage implements OnInit {
             this.homeworkService.delete(this.homeworkId).subscribe({
               next: () => {
                 void this.showToast('Deleted');
-                void this.router.navigate(['/tabs/homework']);
+                void this.router.navigate(['/homework']);
               },
               error: () => void this.showToast('Delete failed'),
             });

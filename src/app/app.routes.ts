@@ -17,18 +17,13 @@ export const routes: Routes = [
         path: 'home',
         loadComponent: () => import('./pages/home/home.page').then((m) => m.HomePage),
       },
-      {
-        path: 'attendance',
-        loadComponent: () => import('./pages/attendance/attendance.page').then((m) => m.AttendancePage),
-        canActivate: [menuPermissionGuard(MenuCodes.Attendance)],
-      },
-      {
-        path: 'homework',
-        loadComponent: () => import('./pages/homework/homework-list.page').then((m) => m.HomeworkListPage),
-        canActivate: [menuPermissionGuard(MenuCodes.Homework)],
-      },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
+  },
+  {
+    path: 'attendance',
+    loadComponent: () => import('./pages/attendance/attendance.page').then((m) => m.AttendancePage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.Attendance)],
   },
   {
     path: 'homework/new',
@@ -44,6 +39,31 @@ export const routes: Routes = [
     path: 'homework/:id',
     loadComponent: () => import('./pages/homework/homework-detail.page').then((m) => m.HomeworkDetailPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.Homework)],
+  },
+  {
+    path: 'homework',
+    loadComponent: () => import('./pages/homework/homework-list.page').then((m) => m.HomeworkListPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.Homework)],
+  },
+  {
+    path: 'students',
+    loadComponent: () => import('./pages/students/students-list.page').then((m) => m.StudentsListPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.Students)],
+  },
+  {
+    path: 'students/:id',
+    loadComponent: () => import('./pages/students/student-detail.page').then((m) => m.StudentDetailPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.Students)],
+  },
+  {
+    path: 'fees/collection',
+    loadComponent: () => import('./pages/fees/fee-collection-list.page').then((m) => m.FeeCollectionListPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.FeesCollection)],
+  },
+  {
+    path: 'fees/collection/:studentId',
+    loadComponent: () => import('./pages/fees/fee-collection-detail.page').then((m) => m.FeeCollectionDetailPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.FeesCollection)],
   },
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
 ];

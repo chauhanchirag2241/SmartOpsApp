@@ -68,3 +68,23 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Visual Studio / Rider
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local environment overrides (keep environment.ts / environment.prod.ts in repo)
+.env
+.env.*
+src/environments/environment.local.ts
+
+# Capacitor native projects (generated)
+/android
+/ios
+.capacitor/
+
+# Cursor / editor local
+.cursor/

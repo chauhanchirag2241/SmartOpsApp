@@ -4,48 +4,42 @@
   height: 100%;
 }
 
-.att-header ion-toolbar {
-  --background: var(--so-surface);
-  --border-color: var(--so-outline-variant);
+.attendance-page {
+  --padding-bottom: 24px;
 }
 
-.header-inner {
+.stats-summary {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 8px 0 4px;
-}
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 0 16px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--so-on-surface-variant);
 
-.header-titles {
-  flex: 1;
-  min-width: 0;
-  ion-title {
-    padding: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--so-primary);
+  strong {
+    color: var(--so-on-surface);
   }
-  .subtitle {
-    margin: 0;
-    font-size: 11px;
-    color: var(--so-on-surface-variant);
-    padding-left: 16px;
+  .present {
+    color: var(--so-present);
   }
-}
-
-.submit-header-btn {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  margin-right: 8px;
+  .absent {
+    color: var(--so-absent);
+  }
+  .leave {
+    color: var(--so-leave);
+  }
+  .late {
+    color: var(--so-late);
+  }
 }
 
 .attendance-page {
-  --padding-bottom: 88px;
+  --padding-bottom: 24px;
 }
 
 .filters {
-  padding: 16px 16px 8px;
+  padding: 16px 16px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -58,7 +52,8 @@
 }
 
 .stats-row {
-  padding: 0 16px 16px;
+  padding: 24px 16px 0;
+  margin-top: 0;
   .so-stat-chip {
     cursor: pointer;
     touch-action: manipulation;
@@ -66,6 +61,33 @@
   .so-stat-chip.active {
     outline: 2px solid var(--so-primary);
     outline-offset: 1px;
+  }
+}
+
+.submit-section {
+  padding: 16px 16px 8px;
+}
+
+.att-submit-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: var(--so-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.65;
+  }
+
+  ion-spinner {
+    --color: #fff;
   }
 }
 

@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, forkJoin, map, tap } from 'rxjs';
 import { APP_MENU_APPLICATION } from '../constants/app.constants';
-import { MOBILE_MENU_ROUTES, MobileMenuRoute } from '../config/mobile-menu.config';
+import { DashboardModuleItem, MOBILE_MENU_ROUTES, MobileMenuRoute } from '../config/mobile-menu.config';
 import { IMenu } from '../models/menu.model';
+import { resolveMenuIcon } from '../utils/menu-icon.util';
 import { IMenuPermission, IUserPermissionResponse } from '../models/permission.model';
 import { isUsableAccessToken } from '../utils/token.util';
 import { ApiService } from './api.service';
@@ -105,13 +106,58 @@ export class PermissionService {
     }
 
     return entries.sort((a, b) => {
-      const order = ['DASHBOARD', 'ATTENDANCE', 'HOMEWORK'];
+      const order = ['DASHBOARD', 'ATTENDANCE', 'HOMEWORK', 'STUDENTS'];
       return order.indexOf(a.menuCode) - order.indexOf(b.menuCode);
     });
   }
 
   hasTab(tab: string): boolean {
     return this.getMobileEntries().some((e) => e.tab === tab);
+  }
+
+  /**
+   * All leaf menus the user can view (menus/my + canView), for the dashboard grid.
+   * Tiles with a mobile route open in-app; others show as coming soon.
+   */
+  getDashboardModules(): DashboardModuleItem[] {
+    const flat = this.flattenLeafMenus(this.menus);
+    const seen = new Set<string>();
+    const items: DashboardModuleItem[] = [];
+
+    for (const menu of flat) {
+      const code = menu.code?.toUpperCase() ?? '';
+      if (!code || seen.has(code) || !this.canView(code) || code === 'DASHBOARD') {
+        continue;
+      }
+      seen.add(code);
+      const mobile = MOBILE_MENU_ROUTES[code];
+      const mobileRoute = mobile?.route;
+      items.push({
+        menuCode: code,
+        name: menu.name || mobile?.title || code,
+        icon: resolveMenuIcon(code, menu.icon),
+        mobileRoute,
+        availableOnMobile: !!mobileRoute,
+        displayOrder: menu.displayOrder ?? 0,
+      });
+    }
+
+    return items.sort((a, b) => a.displayOrder - b.displayOrder || a.name.localeCompare(b.name));
+  }
+
+  private flattenLeafMenus(menus: IMenu[]): IMenu[] {
+    const result: IMenu[] = [];
+    const walk = (items: IMenu[]) => {
+      for (const m of items) {
+        if (m.children?.length) {
+          walk(m.children);
+        } else if (m.code) {
+          result.push(m);
+        }
+      }
+    };
+    walk(menus);
+    return result;
   }
 
   private flattenMenuCodes(menus: IMenu[]): string[] {

@@ -1,16 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  IonBackButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonSpinner,
-  IonTitle,
-  IonToolbar,
-  ToastController,
-} from '@ionic/angular/standalone';
+import { IonContent, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import {
   CreateHomeworkRequest,
   HomeworkPriority,
@@ -28,16 +20,7 @@ import { localDateString } from '../../core/utils/api-mapper.util';
   selector: 'app-homework-form',
   templateUrl: './homework-form.page.html',
   styleUrls: ['./homework-form.page.scss'],
-  imports: [
-    FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonBackButton,
-    IonTitle,
-    IonContent,
-    IonSpinner,
-  ],
+  imports: [FormsModule, AppHeaderComponent, IonContent, IonSpinner],
 })
 export class HomeworkFormPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -107,7 +90,7 @@ export class HomeworkFormPage implements OnInit {
       error: () => {
         this.loading = false;
         void this.showToast('Failed to load homework');
-        void this.router.navigate(['/tabs/homework']);
+        void this.router.navigate(['/homework']);
       },
     });
   }
@@ -130,7 +113,7 @@ export class HomeworkFormPage implements OnInit {
         const r = res as unknown as Record<string, unknown>;
         const id = String(r['id'] ?? r['Id'] ?? this.homeworkId);
         void this.showToast(this.homeworkId ? 'Homework updated' : 'Homework assigned');
-        void this.router.navigate(id ? ['/homework', id] : ['/tabs/homework']);
+        void this.router.navigate(id ? ['/homework', id] : ['/homework']);
       },
       error: (err) => {
         this.saving = false;

@@ -1,0 +1,92 @@
+<app-header
+  title="Fee Collection"
+  [showBack]="true"
+  [showFilter]="true"
+  backHref="/tabs/home"
+  searchPlaceholder="Search student name or roll..."
+/>
+
+<ion-content class="so-page fee-collection-page">
+  <so-module-shell>
+    <div class="active-filters-bar">
+      <span>{{ classFilterLabel }}</span>
+      @if (statusFilter) {
+        <span>{{ statusFilterLabel }}</span>
+      }
+    </div>
+
+    <so-page-toolbar [totalCount]="classFilter ? students.length : null" totalLabel="Students"></so-page-toolbar>
+
+    @if (!classFilter) {
+      <div class="so-empty">
+        <ion-icon name="school-outline"></ion-icon>
+        <h3>Select a class</h3>
+        <p>Use the filter button to choose a class.</p>
+      </div>
+    } @else if (loading) {
+      <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+    } @else if (!students.length) {
+      <div class="so-empty">
+        <ion-icon name="people-outline"></ion-icon>
+        <h3>No students found</h3>
+        <p>Try another class or filter.</p>
+      </div>
+    } @else {
+      <div class="student-cards">
+        @for (s of students; track s.studentId) {
+          <button type="button" class="fee-student-card so-card" (click)="openStudent(s)">
+            <div class="card-top">
+              <div class="avatar">{{ studentInitials(s.studentName) }}</div>
+              <div class="card-main">
+                <strong>{{ s.studentName }}</strong>
+                <p>Roll {{ s.rollNo }} · {{ s.className }}</p>
+                <span class="status-pill" [class]="statusBadgeClass(s.paymentStatus)">{{ s.paymentStatus || '—' }}</span>
+              </div>
+              <div class="due-block">
+                @if (s.dueAmount > 0) {
+                  <span class="due-label">Due</span>
+                  <strong class="due-amt">{{ formatInr(s.dueAmount) }}</strong>
+                } @else if (s.totalFees > 0) {
+                  <span class="paid-label">Paid</span>
+                } @else {
+                  <span class="muted-label">—</span>
+                }
+              </div>
+              <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+            </div>
+            <div class="fee-summary-row">
+              <span>Total {{ formatInr(s.totalFees) }}</span>
+              <span class="paid">Paid {{ formatInr(s.paidAmount) }}</span>
+            </div>
+          </button>
+        }
+      </div>
+    }
+  </so-module-shell>
+</ion-content>
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  [initialBreakpoint]="0.52"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="applyFilters()"
+>
+  <div class="filter-field">
+    <label>Class</label>
+    <select class="so-filter-select" [(ngModel)]="classFilter">
+      <option value="">Select class</option>
+      @for (c of classes; track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="filter-field">
+    <label>Fee status</label>
+    <select class="so-filter-select" [(ngModel)]="statusFilter" [disabled]="!classFilter">
+      @for (opt of statusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+  </div>
+</so-filter-popover>

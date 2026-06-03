@@ -1,0 +1,108 @@
+<app-header
+  title="Students"
+  [showBack]="true"
+  [showFilter]="true"
+  backHref="/tabs/home"
+  searchPlaceholder="Search name, roll, admission..."
+/>
+
+<ion-content class="so-page students-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <so-module-shell>
+    <div class="active-filters-bar">
+      <span>{{ classFilterLabel }}</span>
+      <span>{{ statusFilterLabel }}</span>
+    </div>
+
+    <so-page-toolbar [totalCount]="totalCount" totalLabel="Students"></so-page-toolbar>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+    } @else if (!students.length) {
+      <div class="so-empty">
+        <ion-icon name="people-outline"></ion-icon>
+        <h3>No students found</h3>
+        <p>Adjust search or filters.</p>
+      </div>
+    } @else {
+      <div class="student-cards">
+        @for (s of students; track s.id) {
+          <button type="button" class="student-card so-card" (click)="openStudent(s)">
+            <div class="card-top">
+              <div class="avatar">{{ initials(s.name) }}</div>
+              <div class="card-main">
+                <div class="name-row">
+                  <strong>{{ s.name }}</strong>
+                  <span class="status-pill" [class]="statusClass(s)">{{ s.status || (s.isActive ? 'Active' : 'Inactive') }}</span>
+                </div>
+                <p class="meta-line">
+                  @if (s.rollNumber) {
+                    <span>Roll {{ s.rollNumber }}</span>
+                  }
+                  @if (s.class) {
+                    <span>{{ s.class }}</span>
+                  }
+                </p>
+                @if (s.admNo) {
+                  <p class="adm-line">Adm: {{ s.admNo }}</p>
+                }
+              </div>
+              <ion-icon class="chevron" name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="card-stats">
+              @if (s.attendance) {
+                <span class="stat-chip attendance">{{ s.attendance }}</span>
+              }
+              @if (s.fees) {
+                <span class="stat-chip fees">{{ s.fees }}</span>
+              }
+              @if (s.email) {
+                <span class="stat-chip muted"><ion-icon name="mail-outline"></ion-icon> {{ s.email }}</span>
+              }
+            </div>
+          </button>
+        }
+      </div>
+
+      <ion-infinite-scroll [disabled]="!hasMore" (ionInfinite)="onInfinite($event)">
+        <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    }
+  </so-module-shell>
+</ion-content>
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  [initialBreakpoint]="0.52"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="applyFilters()"
+>
+  <div class="filter-field">
+    <label>Class</label>
+    <select class="so-filter-select" [(ngModel)]="classFilter">
+      <option value="">All classes</option>
+      @for (c of classes; track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="filter-field">
+    <label>Status</label>
+    <div class="filter-chip-group">
+      @for (opt of statusOptions; track opt.value) {
+        <button
+          type="button"
+          class="filter-chip-option"
+          [class.active]="statusFilter === opt.value"
+          (click)="statusFilter = opt.value"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+</so-filter-popover>

@@ -1,16 +1,14 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import {
   AlertController,
   IonButton,
   IonContent,
-  IonHeader,
   IonIcon,
   IonModal,
   IonSpinner,
   IonTextarea,
-  IonTitle,
-  IonToolbar,
   ToastController,
 } from '@ionic/angular/standalone';
 import { forkJoin } from 'rxjs';
@@ -19,7 +17,6 @@ import {
   checkmarkCircleOutline,
   closeOutline,
   documentTextOutline,
-  searchOutline,
   warningOutline,
 } from 'ionicons/icons';
 import {
@@ -30,6 +27,9 @@ import { AcademicYearContextService } from '../../core/services/academic-year-co
 import { AttendanceService } from '../../core/services/attendance.service';
 import { ClassDropdownItem, ClassService } from '../../core/services/class.service';
 import { StudentService } from '../../core/services/student.service';
+import { AppHeaderService } from '../../core/services/app-header.service';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
 import {
   attendanceStatusToApi,
   formatDisplayDate,
@@ -51,9 +51,8 @@ type StatusFilter = 'all' | AttendanceStatusKey | 'unmarked';
   styleUrls: ['./attendance.page.scss'],
   imports: [
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
+    AppHeaderComponent,
+    SoFilterPopoverComponent,
     IonContent,
     IonButton,
     IonIcon,
@@ -62,8 +61,10 @@ type StatusFilter = 'all' | AttendanceStatusKey | 'unmarked';
     IonTextarea,
   ],
 })
-export class AttendancePage implements OnInit {
+export class AttendancePage implements OnInit, OnDestroy {
   private readonly classService = inject(ClassService);
+  private readonly header = inject(AppHeaderService);
+  private subs = new Subscription();
   private readonly studentService = inject(StudentService);
   private readonly attendanceService = inject(AttendanceService);
   private readonly toast = inject(ToastController);
@@ -82,6 +83,7 @@ export class AttendancePage implements OnInit {
   selectedDate = localDateString();
   searchQuery = '';
   curFilter: StatusFilter = 'all';
+  filterOpen = false;
   isSubmitting = false;
   isLoading = false;
   isSubmitted = false;
@@ -91,9 +93,16 @@ export class AttendancePage implements OnInit {
   remarkTargetId: string | null = null;
   tempRemark = '';
 
+  readonly statusFilterOptions: { value: StatusFilter; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'present', label: 'Present' },
+    { value: 'absent', label: 'Absent' },
+    { value: 'leave', label: 'Leave' },
+    { value: 'late', label: 'Late' },
+  ];
+
   constructor() {
     addIcons({
-      searchOutline,
       documentTextOutline,
       checkmarkCircleOutline,
       closeOutline,
@@ -144,6 +153,42 @@ export class AttendancePage implements OnInit {
 
   ngOnInit(): void {
     this.loadClasses();
+    this.subs.add(
+      this.header.searchQuery$.subscribe((q) => {
+        this.searchQuery = q;
+        this.cdr.markForCheck();
+      }),
+    );
+    this.subs.add(
+      this.header.filterClick$.subscribe(() => {
+        this.filterOpen = true;
+        this.cdr.markForCheck();
+      }),
+    );
+  }
+
+  statusFilterLabel(filter: StatusFilter): string {
+    return this.statusFilterOptions.find((o) => o.value === filter)?.label ?? filter;
+  }
+
+  clearFilters(): void {
+    this.curFilter = 'all';
+    if (this.classes.length) {
+      this.selectedClassId = this.classes[0].id;
+    }
+    this.selectedDate = localDateString();
+    this.searchQuery = '';
+    this.header.setSearchQuery('');
+    this.loadSavedAttendance();
+  }
+
+  applySheetFilters(): void {
+    this.filterOpen = false;
+    this.loadSavedAttendance();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   loadClasses(): void {
@@ -193,7 +238,7 @@ export class AttendancePage implements OnInit {
           if (sid) attByStudent.set(sid, row);
         }
 
-        const rosterItems = (roster?.items ?? []) as Record<string, unknown>[];
+        const rosterItems = (roster?.items ?? []) as unknown as Record<string, unknown>[];
         this.students = rosterItems
           .map((item) => this.mapRosterStudent(item))
           .filter((s) => !!s.id)

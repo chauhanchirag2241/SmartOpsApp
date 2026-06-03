@@ -1,22 +1,10 @@
-<ion-header class="att-header">
-  <ion-toolbar>
-    <div class="header-inner">
-      <div class="header-titles">
-        <ion-title>Attendance</ion-title>
-        <p class="subtitle">{{ selectedClassName }} · {{ displaySelectedDate }}</p>
-      </div>
-      @if (canEdit) {
-        <ion-button class="submit-header-btn so-btn-primary" size="small" [disabled]="isSubmitting" (click)="submitAttendance()">
-          @if (isSubmitting) {
-            <ion-spinner name="crescent"></ion-spinner>
-          } @else {
-            Submit
-          }
-        </ion-button>
-      }
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  title="Attendance"
+  [showBack]="true"
+  [showFilter]="true"
+  backHref="/tabs/home"
+  searchPlaceholder="Search student name or roll..."
+/>
 
 <ion-content class="so-page attendance-page">
   @if (isSubmitted && submittedBannerDate) {
@@ -31,38 +19,33 @@
     </div>
   }
 
-  <section class="filters">
-    <div class="filter-row">
-      <select class="so-filter-select" [(ngModel)]="selectedClassId" (ngModelChange)="onClassChange()">
-        @for (c of classes; track c.id) {
-          <option [value]="c.id">{{ c.name }}</option>
-        }
-      </select>
-      <input class="so-date-input" type="date" [(ngModel)]="selectedDate" [max]="maxDate" (ngModelChange)="onDateChange()" />
-    </div>
-    <div class="so-search-wrap">
-      <ion-icon name="search-outline"></ion-icon>
-      <input class="so-search-input" type="search" placeholder="Search student name or roll..." [(ngModel)]="searchQuery" />
-    </div>
+  <div class="active-filters-bar">
+    <span>{{ selectedClassName }}</span>
+    <span>{{ displaySelectedDate }}</span>
+    @if (curFilter !== 'all') {
+      <span>{{ statusFilterLabel(curFilter) }}</span>
+    }
+  </div>
+
+  <section class="stats-summary">
+    <span>Total: <strong>{{ stats.total }}</strong></span>
+    <span class="present">P: {{ stats.present }}</span>
+    <span class="absent">A: {{ stats.absent }}</span>
+    <span class="leave">L: {{ stats.leave }}</span>
+    <span class="late">Late: {{ stats.late }}</span>
   </section>
 
-  <section class="so-chip-scroll stats-row">
-    <button type="button" class="so-stat-chip total" [class.active]="curFilter === 'all'" (click)="filterBy('all')">
-      Total: <strong>{{ stats.total }}</strong>
-    </button>
-    <button type="button" class="so-stat-chip present" [class.active]="curFilter === 'present'" (click)="filterBy('present')">
-      Present: <strong>{{ stats.present }}</strong>
-    </button>
-    <button type="button" class="so-stat-chip absent" [class.active]="curFilter === 'absent'" (click)="filterBy('absent')">
-      Absent: <strong>{{ stats.absent }}</strong>
-    </button>
-    <button type="button" class="so-stat-chip leave" [class.active]="curFilter === 'leave'" (click)="filterBy('leave')">
-      Leave: <strong>{{ stats.leave }}</strong>
-    </button>
-    <button type="button" class="so-stat-chip late" [class.active]="curFilter === 'late'" (click)="filterBy('late')">
-      Late: <strong>{{ stats.late }}</strong>
-    </button>
-  </section>
+  @if (canEdit && !isLoading) {
+    <section class="submit-section">
+      <button type="button" class="att-submit-btn" [disabled]="isSubmitting" (click)="submitAttendance()">
+        @if (isSubmitting) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          {{ isSubmitted ? 'Update attendance' : 'Submit attendance' }}
+        }
+      </button>
+    </section>
+  }
 
   @if (isLoading) {
     <div class="loading-wrap"><ion-spinner></ion-spinner></div>
@@ -123,6 +106,42 @@
     </section>
   }
 </ion-content>
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  [initialBreakpoint]="0.62"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="applySheetFilters()"
+>
+  <div class="filter-field">
+    <label>Class</label>
+    <select class="so-filter-select" [(ngModel)]="selectedClassId">
+      @for (c of classes; track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="filter-field">
+    <label>Date</label>
+    <input class="so-date-input" type="date" [(ngModel)]="selectedDate" [max]="maxDate" />
+  </div>
+  <div class="filter-field">
+    <label>Show students</label>
+    <div class="filter-chip-group">
+      @for (f of statusFilterOptions; track f.value) {
+        <button
+          type="button"
+          class="filter-chip-option"
+          [class.active]="curFilter === f.value"
+          (click)="filterBy(f.value)"
+        >
+          {{ f.label }}
+        </button>
+      }
+    </div>
+  </div>
+</so-filter-popover>
 
 @if (remarksOpen) {
   <ion-modal [isOpen]="true" (didDismiss)="closeRemarks()" [initialBreakpoint]="0.45" [breakpoints]="[0, 0.45, 0.6]">

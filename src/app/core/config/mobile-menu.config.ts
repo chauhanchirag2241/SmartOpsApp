@@ -10,6 +10,16 @@ export interface MobileMenuRoute {
   color: 'primary' | 'success' | 'warning' | 'danger';
 }
 
+/** Dashboard tile built from menus/my + auth/permissions (same as SmartOps UI). */
+export interface DashboardModuleItem {
+  menuCode: string;
+  name: string;
+  icon: string;
+  mobileRoute?: string;
+  availableOnMobile: boolean;
+  displayOrder: number;
+}
+
 /** Menus implemented in the mobile app — others show as coming soon on home if permitted. */
 export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
   [MenuCodes.Dashboard]: {
@@ -25,8 +35,7 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     menuCode: MenuCodes.Attendance,
     title: 'Attendance',
     subtitle: 'Mark daily class attendance',
-    route: '/tabs/attendance',
-    tab: 'attendance',
+    route: '/attendance',
     icon: 'checkbox-outline',
     color: 'success',
   },
@@ -34,9 +43,24 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     menuCode: MenuCodes.Homework,
     title: 'Homework',
     subtitle: 'Assign and track homework',
-    route: '/tabs/homework',
-    tab: 'homework',
+    route: '/homework',
     icon: 'book-outline',
+    color: 'primary',
+  },
+  [MenuCodes.Students]: {
+    menuCode: MenuCodes.Students,
+    title: 'Students',
+    subtitle: 'View and manage students',
+    route: '/students',
+    icon: 'people-outline',
+    color: 'primary',
+  },
+  [MenuCodes.FeesCollection]: {
+    menuCode: MenuCodes.FeesCollection,
+    title: 'Fee Collection',
+    subtitle: 'Collect and track student fees',
+    route: '/fees/collection',
+    icon: 'card-outline',
     color: 'primary',
   },
 };

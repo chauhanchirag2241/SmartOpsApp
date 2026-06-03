@@ -1,44 +1,73 @@
-<ion-header class="so-header">
-  <ion-toolbar>
-    <ion-title>Home</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header title="School Manager" searchPlaceholder="Search modules..." />
 
-<ion-content class="so-page home-page">
-  <div class="welcome">
-    <ion-icon name="person-circle-outline"></ion-icon>
-    <div>
-      <h2>Welcome, {{ userName }}</h2>
+<ion-content class="so-page dashboard-page">
+  <section class="welcome-banner">
+    <div class="welcome-text">
+      <p class="welcome-label">Welcome back,</p>
+      <h2 class="welcome-name">{{ userName }}</h2>
       @if (roleLabel) {
-        <p class="role">{{ roleLabel }}</p>
+        <div class="role-badge">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>{{ roleLabel }} Access</span>
+        </div>
       }
       @if (ay.currentYear(); as year) {
-        <p>{{ year.name }}</p>
+        <p class="year-line">{{ year.name }}</p>
       }
     </div>
-  </div>
+    <ion-icon class="welcome-watermark" name="school-outline"></ion-icon>
+  </section>
 
-  @if (!menuEntries.length) {
-    <div class="so-empty">
-      <h3>No modules assigned</h3>
-      <p>Contact your administrator for menu access.</p>
+  <section class="modules-section">
+    <div class="section-head">
+      <div>
+        <h3>My Modules</h3>
+        <p>Manage your classroom operations</p>
+      </div>
+      <span class="module-count">{{ visibleModules.length }} modules</span>
     </div>
-  } @else {
-    <p class="section-label">Your modules</p>
-    @for (entry of menuEntries; track entry.menuCode) {
-      <ion-card class="action-card" button (click)="openMenu(entry)">
-        <ion-card-header>
-          <ion-icon [name]="iconFor(entry)" [color]="entry.color"></ion-icon>
-          <ion-card-title>{{ entry.title }}</ion-card-title>
-          <ion-card-subtitle>{{ entry.subtitle }}</ion-card-subtitle>
-        </ion-card-header>
-        <ion-card-content>Open</ion-card-content>
-      </ion-card>
-    }
-  }
 
-  <ion-button expand="block" fill="outline" color="medium" (click)="logout()">
-    <ion-icon slot="start" name="log-out-outline"></ion-icon>
-    Sign out
-  </ion-button>
+    @if (!allModules.length) {
+      <div class="so-empty">
+        <h3>No modules assigned</h3>
+        <p>Contact your administrator for menu access.</p>
+      </div>
+    } @else if (!visibleModules.length) {
+      <div class="so-empty">
+        <h3>No modules match</h3>
+        <p>Try a different search.</p>
+      </div>
+    } @else {
+      <div class="modules-grid">
+        @for (mod of visibleModules; track mod.menuCode) {
+          <button
+            type="button"
+            class="module-tile"
+            [class.locked]="!mod.availableOnMobile"
+            (click)="openModule(mod)"
+          >
+            <div class="module-icon-wrap">
+              @if (mod.availableOnMobile) {
+                <ion-icon [name]="mod.icon"></ion-icon>
+              } @else {
+                <ion-icon name="lock-closed-outline" class="lock-icon"></ion-icon>
+              }
+            </div>
+            <span class="module-label">{{ mod.name }}</span>
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="stats-section">
+    <div class="stat-card">
+      <p class="stat-label">Today's Attendance</p>
+      <p class="stat-value">{{ attendanceStatLabel }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Pending Homework</p>
+      <p class="stat-value">{{ homeworkStatLabel }}</p>
+    </div>
+  </section>
 </ion-content>

@@ -1,23 +1,10 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/homework"></ion-back-button>
-    </ion-buttons>
-    <ion-title>{{ detail?.title || 'Homework' }}</ion-title>
-    <ion-buttons slot="end">
-      @if (canEdit && detail) {
-        <button type="button" class="icon-btn" (click)="editHomework()">
-          <ion-icon name="create-outline"></ion-icon>
-        </button>
-        @if (canDelete) {
-        <button type="button" class="icon-btn danger" (click)="deleteHomework()">
-          <ion-icon name="trash-outline"></ion-icon>
-        </button>
-        }
-      }
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  [title]="detail?.title || 'Homework'"
+  [showBack]="true"
+  [showFilter]="true"
+  backHref="/homework"
+  searchPlaceholder="Search students..."
+/>
 
 <ion-content class="so-page hw-detail-page">
   @if (loading) {
@@ -26,6 +13,18 @@
     <div class="so-empty"><h3>{{ loadError }}</h3></div>
   } @else if (detail) {
     <section class="detail-header so-card">
+      @if (canEdit) {
+        <div class="detail-actions detail-actions-top">
+          <button type="button" class="icon-btn" (click)="editHomework()">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
+          @if (canDelete) {
+            <button type="button" class="icon-btn danger" (click)="deleteHomework()">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          }
+        </div>
+      }
       <div class="badges">
         <span class="badge subject">{{ detail.subjectName }}</span>
         <span class="badge muted">{{ detail.className }}</span>
@@ -44,7 +43,23 @@
           <strong>{{ progressPct }}%</strong>
         </div>
         <div class="progress-bar"><div [style.width.%]="progressPct"></div></div>
-        <p class="legend">✓ {{ detail.submitted }} · ⏳ {{ detail.pending }} · ⚠ {{ detail.late }}</p>
+        <div class="stats-row">
+          <div class="stat-pill submitted">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <span class="stat-label">Submitted</span>
+            <strong>{{ detail.submitted }}</strong>
+          </div>
+          <div class="stat-pill pending">
+            <ion-icon name="hourglass"></ion-icon>
+            <span class="stat-label">Pending</span>
+            <strong>{{ detail.pending }}</strong>
+          </div>
+          <div class="stat-pill late">
+            <ion-icon name="warning"></ion-icon>
+            <span class="stat-label">Late</span>
+            <strong>{{ detail.late }}</strong>
+          </div>
+        </div>
       </div>
       @if (canEdit) {
         <button type="button" class="save-btn" [disabled]="isSubmitting" (click)="submitOrUpdate()">
@@ -60,31 +75,77 @@
     <section class="students-section">
       <div class="st-header">
         <h2>Students</h2>
-        <div class="chip-row">
-          @for (f of ['all', 'submitted', 'pending', 'late']; track f) {
-            <button type="button" class="filter-chip" [class.active]="studentFilter === f" (click)="setStudentFilter(f)">
-              {{ f === 'all' ? 'All' : f }}
-            </button>
-          }
-        </div>
+        <p class="st-sub">Mark each student as submitted, pending, or late</p>
+        @if (studentFilter !== 'all') {
+          <div class="active-filters-bar">
+            <span>{{ filterLabel(studentFilter) }}</span>
+          </div>
+        }
       </div>
+
+      @if (filteredStudents.length === 0) {
+        <div class="so-empty students-empty">
+          <p>No students in this filter.</p>
+        </div>
+      }
 
       @for (s of filteredStudents; track s.studentId) {
         <div class="student-sub-card so-card">
           <div class="st-info">
-            <span class="roll">{{ s.rollNo }}</span>
-            <strong>{{ s.studentName }}</strong>
+            <span class="roll">{{ s.rollNo || '—' }}</span>
+            <div class="st-name-wrap">
+              <strong class="st-name">{{ s.studentName || 'Student' }}</strong>
+              <span class="st-status-badge" [class]="statusBadgeClass(s.status)">{{ statusLabel(s.status) }}</span>
+            </div>
           </div>
+
+          <p class="status-hint">Submission status</p>
           <div class="status-toggle" [class.disabled]="!canEdit">
-            <button type="button" class="st submitted" [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Submitted)" (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Submitted)">✓</button>
-            <button type="button" class="st pending" [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Pending)" (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Pending)">⏳</button>
-            <button type="button" class="st late" [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Late)" (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Late)">⚠</button>
+            <button
+              type="button"
+              class="st submitted"
+              [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Submitted)"
+              (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Submitted)"
+            >
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <span>Done</span>
+            </button>
+            <button
+              type="button"
+              class="st pending"
+              [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Pending)"
+              (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Pending)"
+            >
+              <ion-icon name="hourglass"></ion-icon>
+              <span>Pending</span>
+            </button>
+            <button
+              type="button"
+              class="st late"
+              [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Late)"
+              (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Late)"
+            >
+              <ion-icon name="warning"></ion-icon>
+              <span>Late</span>
+            </button>
           </div>
+
           @if (s.status !== HomeworkSubmissionStatus.Pending) {
             <div class="extra-fields">
-              <input class="so-filter-select" type="date" [(ngModel)]="s.submittedOn" [disabled]="!canEdit" />
-              <input class="so-filter-select" type="number" min="0" placeholder="Marks" [(ngModel)]="s.marks" [disabled]="!canEdit" />
-              <input class="so-filter-select" placeholder="Remark" [(ngModel)]="s.remark" [disabled]="!canEdit" />
+              <div class="field-group">
+                <label class="field-label">Submitted on</label>
+                <input class="hw-field-input" type="date" [(ngModel)]="s.submittedOn" [disabled]="!canEdit" />
+              </div>
+              <div class="field-group two-col">
+                <div>
+                  <label class="field-label">Marks</label>
+                  <input class="hw-field-input" type="number" min="0" placeholder="Optional" [(ngModel)]="s.marks" [disabled]="!canEdit" />
+                </div>
+                <div>
+                  <label class="field-label">Remark</label>
+                  <input class="hw-field-input" type="text" placeholder="Optional" [(ngModel)]="s.remark" [disabled]="!canEdit" />
+                </div>
+              </div>
             </div>
           }
         </div>
@@ -92,3 +153,27 @@
     </section>
   }
 </ion-content>
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  [initialBreakpoint]="0.38"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="filterOpen = false"
+>
+  <div class="filter-field">
+    <label>Submission status</label>
+    <div class="filter-chip-group">
+      @for (f of studentFilterOptions; track f) {
+        <button
+          type="button"
+          class="filter-chip-option"
+          [class.active]="studentFilter === f"
+          (click)="setStudentFilter(f)"
+        >
+          {{ filterLabel(f) }}
+        </button>
+      }
+    </div>
+  </div>
+</so-filter-popover>

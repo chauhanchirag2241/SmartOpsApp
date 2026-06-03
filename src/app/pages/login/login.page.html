@@ -9,22 +9,31 @@
       <ion-note color="warning" class="session-note">Session expired. Please sign in again.</ion-note>
     }
 
-    <ion-list class="login-form" lines="none">
-      <ion-item>
-        <ion-label position="stacked">Mobile number or email</ion-label>
-        <ion-input
-          type="text"
-          inputmode="email"
-          [(ngModel)]="loginId"
-          autocomplete="username"
-          placeholder="9876543210 or admin@school.com"
-        ></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-label position="stacked">Password</ion-label>
-        <ion-input type="password" [(ngModel)]="password" autocomplete="current-password"></ion-input>
-      </ion-item>
-    </ion-list>
+    <div class="login-form">
+      <div class="field-group">
+        <label class="field-label" for="loginId">Mobile number or email</label>
+        <div class="field-input">
+          <ion-input
+            id="loginId"
+            type="text"
+            inputmode="email"
+            [(ngModel)]="loginId"
+            autocomplete="username"
+          ></ion-input>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="loginPassword">Password</label>
+        <div class="field-input">
+          <ion-input
+            id="loginPassword"
+            type="password"
+            [(ngModel)]="password"
+            autocomplete="current-password"
+          ></ion-input>
+        </div>
+      </div>
+    </div>
 
     <ion-button expand="block" class="so-btn-primary login-btn" [disabled]="loading" (click)="login()">
       @if (loading) {

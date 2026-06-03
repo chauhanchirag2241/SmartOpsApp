@@ -1,0 +1,32 @@
+.so-page-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: var(--so-radius-lg);
+  background: var(--so-surface-container-lowest);
+  border: 1px solid var(--so-outline-variant);
+}
+
+.toolbar-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toolbar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.total-badge {
+  font-size: 12px;
+  color: var(--so-on-surface-variant);
+  strong {
+    color: var(--so-primary);
+    font-weight: 700;
+  }
+}

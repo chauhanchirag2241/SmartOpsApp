@@ -1,0 +1,59 @@
+<app-header
+  [title]="detail?.fullName || 'Student'"
+  [showBack]="true"
+  backHref="/students"
+/>
+
+<ion-content class="so-page student-detail-page">
+  @if (loading) {
+    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+  } @else if (loadError) {
+    <div class="so-empty"><h3>{{ loadError }}</h3></div>
+  } @else if (detail) {
+    <so-module-shell>
+      <div class="detail-card so-card">
+        <div class="detail-row">
+          <ion-icon name="school-outline"></ion-icon>
+          <div>
+            <span class="label">Class & roll</span>
+            <strong>{{ detail.className }} · Roll {{ detail.rollNumber }}</strong>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="person-outline"></ion-icon>
+          <div>
+            <span class="label">Gender / DOB</span>
+            <strong>{{ detail.gender }} · {{ detail.dob }}</strong>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="call-outline"></ion-icon>
+          <div>
+            <span class="label">Mobile</span>
+            <strong>{{ detail.mobile }}</strong>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="mail-outline"></ion-icon>
+          <div>
+            <span class="label">Email</span>
+            <strong>{{ detail.email }}</strong>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="location-outline"></ion-icon>
+          <div>
+            <span class="label">Address</span>
+            <strong>{{ detail.address }}</strong>
+          </div>
+        </div>
+        @if (detail.remarks) {
+          <div class="remarks-block">
+            <span class="label">Remarks</span>
+            <p>{{ detail.remarks }}</p>
+          </div>
+        }
+      </div>
+    </so-module-shell>
+  }
+</ion-content>

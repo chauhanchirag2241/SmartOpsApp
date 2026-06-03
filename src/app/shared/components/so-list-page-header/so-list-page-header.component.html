@@ -1,0 +1,17 @@
+<header class="so-page-header">
+  <div class="header-info">
+    <h1>{{ title }}</h1>
+    @if (subtitle) {
+      <p>{{ subtitle }}</p>
+    }
+  </div>
+  <div class="header-actions">
+    <ng-content select="[headerActions]"></ng-content>
+    @if (showPrimary && primaryLabel) {
+      <ion-button class="so-btn-primary header-primary-btn" size="small" (click)="primaryClick.emit()">
+        <ion-icon slot="start" [name]="primaryIcon"></ion-icon>
+        {{ primaryLabel }}
+      </ion-button>
+    }
+  </div>
+</header>

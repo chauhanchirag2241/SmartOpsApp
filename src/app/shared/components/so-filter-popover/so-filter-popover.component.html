@@ -1,0 +1,23 @@
+<ion-modal
+  [isOpen]="isOpen"
+  (didDismiss)="onDismiss()"
+  [initialBreakpoint]="initialBreakpoint"
+  [breakpoints]="[0, initialBreakpoint, maxBreakpoint]"
+  [handle]="true"
+  handleBehavior="cycle"
+>
+  <ng-template>
+    <div class="filter-sheet">
+      <div class="filter-head">
+        <h3>{{ title }}</h3>
+        @if (showClear) {
+          <button type="button" class="clear-btn" (click)="onClear()">Clear all</button>
+        }
+      </div>
+      <div class="filter-body">
+        <ng-content></ng-content>
+      </div>
+      <button type="button" class="apply-btn" (click)="onApply()">Apply</button>
+    </div>
+  </ng-template>
+</ion-modal>
