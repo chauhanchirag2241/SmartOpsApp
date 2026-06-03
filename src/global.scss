@@ -1,0 +1,188 @@
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+:root {
+  --so-primary: #0056c4;
+  --so-on-primary: #ffffff;
+  --so-surface: #f9f9ff;
+  --so-surface-container-low: #f2f3fc;
+  --so-surface-container-lowest: #ffffff;
+  --so-surface-container-high: #e6e8f0;
+  --so-on-surface: #191c22;
+  --so-on-surface-variant: #424754;
+  --so-outline: #727786;
+  --so-outline-variant: #c2c6d7;
+  --so-present: #006d33;
+  --so-present-bg: #64ff95;
+  --so-absent: #ba1a1a;
+  --so-absent-bg: #ffdad6;
+  --so-leave: #b45309;
+  --so-leave-bg: #fef3c7;
+  --so-late: #0056c4;
+  --so-late-bg: #d9e2ff;
+  --so-pending: #92949c;
+  --so-hw-late: #f27011;
+  --so-secondary-container: #64ff95;
+  --so-error: #ba1a1a;
+  --so-radius: 8px;
+  --so-radius-lg: 12px;
+  --so-radius-xl: 16px;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: var(--so-surface);
+  color: var(--so-on-surface);
+}
+
+ion-app {
+  height: 100%;
+}
+
+ion-content.so-page {
+  --background: var(--so-surface);
+}
+
+ion-tabs {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.so-card {
+  background: var(--so-surface-container-lowest);
+  border: 1px solid var(--so-outline-variant);
+  border-radius: var(--so-radius-lg);
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.so-chip-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.so-stat-chip {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--so-outline-variant);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  strong {
+    font-size: 16px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  &.total {
+    background: var(--so-surface-container-high);
+  }
+  &.present {
+    background: var(--so-present-bg);
+    border-color: var(--so-present);
+    color: #007437;
+  }
+  &.absent {
+    background: var(--so-absent-bg);
+    border-color: var(--so-absent);
+    color: #93000a;
+  }
+  &.leave {
+    background: var(--so-leave-bg);
+    border-color: var(--so-leave);
+  }
+  &.late {
+    background: var(--so-late-bg);
+    border-color: var(--so-late);
+  }
+}
+
+.so-filter-select,
+.so-search-input,
+.so-date-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--so-outline-variant);
+  border-radius: var(--so-radius);
+  background: var(--so-surface-container-low);
+  padding: 0 12px;
+  font-size: 14px;
+  color: var(--so-on-surface);
+}
+
+.so-search-wrap {
+  position: relative;
+  ion-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--so-outline);
+    font-size: 20px;
+  }
+  .so-search-input {
+    padding-left: 40px;
+  }
+}
+
+.so-btn-primary {
+  --background: var(--so-primary);
+  --color: var(--so-on-primary);
+  --border-radius: 999px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.so-success-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 16px;
+  padding: 12px 14px;
+  border-radius: var(--so-radius-lg);
+  background: var(--so-secondary-container);
+  color: #007437;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.so-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--so-outline);
+  ion-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--so-on-surface);
+    margin: 0 0 8px;
+  }
+}

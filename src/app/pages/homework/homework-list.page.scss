@@ -1,0 +1,176 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hw-list-page {
+  --padding-bottom: 80px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px;
+}
+
+.stat-box {
+  background: var(--so-surface-container-lowest);
+  border: 1px solid var(--so-outline-variant);
+  border-radius: var(--so-radius-lg);
+  padding: 12px;
+  .label {
+    font-size: 11px;
+    color: var(--so-on-surface-variant);
+    font-weight: 600;
+  }
+  strong {
+    display: block;
+    font-size: 22px;
+    margin-top: 4px;
+    color: var(--so-primary);
+  }
+  &.accent strong {
+    color: #b45309;
+  }
+  &.ok strong {
+    color: var(--so-present);
+  }
+  &.warn strong {
+    color: var(--so-absent);
+  }
+}
+
+.filters {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  border: 1px solid var(--so-outline-variant);
+  background: var(--so-surface-container-low);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--so-on-surface-variant);
+  &.active {
+    background: var(--so-primary);
+    color: #fff;
+    border-color: var(--so-primary);
+  }
+}
+
+.hw-cards {
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-card {
+  cursor: pointer;
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--so-on-surface-variant);
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+  .due.today {
+    color: #b45309;
+    font-weight: 600;
+  }
+  .due.overdue {
+    color: var(--so-absent);
+    font-weight: 600;
+  }
+  &.overdue {
+    border-color: #fecaca;
+  }
+}
+
+.hw-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--so-outline);
+  flex-shrink: 0;
+  &.high {
+    background: var(--so-absent);
+  }
+  &.low {
+    background: var(--so-present);
+  }
+}
+
+.hw-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  .progress {
+    font-size: 12px;
+    color: var(--so-outline);
+  }
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: capitalize;
+  &.status-active {
+    background: #d9e2ff;
+    color: var(--so-primary);
+  }
+  &.status-today {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  &.status-overdue {
+    background: #ffdad6;
+    color: var(--so-absent);
+  }
+  &.status-done {
+    background: var(--so-present-bg);
+    color: var(--so-present);
+  }
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}

@@ -1,0 +1,7 @@
+{
+  "name": "SmartOpsApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

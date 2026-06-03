@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/homework"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ detail?.title || 'Homework' }}</ion-title>
+    <ion-buttons slot="end">
+      @if (canEdit && detail) {
+        <button type="button" class="icon-btn" (click)="editHomework()">
+          <ion-icon name="create-outline"></ion-icon>
+        </button>
+        @if (canDelete) {
+        <button type="button" class="icon-btn danger" (click)="deleteHomework()">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+        }
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="so-page hw-detail-page">
+  @if (loading) {
+    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+  } @else if (loadError) {
+    <div class="so-empty"><h3>{{ loadError }}</h3></div>
+  } @else if (detail) {
+    <section class="detail-header so-card">
+      <div class="badges">
+        <span class="badge subject">{{ detail.subjectName }}</span>
+        <span class="badge muted">{{ detail.className }}</span>
+        <span class="badge status">{{ detail.status }}</span>
+      </div>
+      <p class="dates">Assigned {{ detail.assignDate }} → Due {{ detail.dueDate }}</p>
+      <p class="meta-line">
+        {{ detail.marks ? detail.marks + ' marks' : 'No marks' }} · {{ detail.submissionTypeLabel }}
+      </p>
+      @if (detail.description) {
+        <p class="desc">{{ detail.description }}</p>
+      }
+      <div class="progress-block">
+        <div class="progress-top">
+          <span>Submission progress</span>
+          <strong>{{ progressPct }}%</strong>
+        </div>
+        <div class="progress-bar"><div [style.width.%]="progressPct"></div></div>
+        <p class="legend">✓ {{ detail.submitted }} · ⏳ {{ detail.pending }} · ⚠ {{ detail.late }}</p>
+      </div>
+      @if (canEdit) {
+        <button type="button" class="save-btn" [disabled]="isSubmitting" (click)="submitOrUpdate()">
+          @if (isSubmitting) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            {{ isSubmissionsSubmitted ? 'Update submissions' : 'Submit submissions' }}
+          }
+        </button>
+      }
+    </section>
+
+    <section class="students-section">
+      <div class="st-header">
+        <h2>Students</h2>
+        <div class="chip-row">
+          @for (f of ['all', 'submitted', 'pending', 'late']; track f) {
+            <button type="button" class="filter-chip" [class.active]="studentFilter === f" (click)="setStudentFilter(f)">
+              {{ f === 'all' ? 'All' : f }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @for (s of filteredStudents; track s.studentId) {
+        <div class="student-sub-card so-card">
+          <div class="st-info">
+            <span class="roll">{{ s.rollNo }}</span>
+            <strong>{{ s.studentName }}</strong>
+          </div>
+          <div class="status-toggle" [class.disabled]="!canEdit">
+            <button type="button" class="st submitted" [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Submitted)" (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Submitted)">✓</button>
+            <button type="button" class="st pending" [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Pending)" (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Pending)">⏳</button>
+            <button type="button" class="st late" [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Late)" (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Late)">⚠</button>
+          </div>
+          @if (s.status !== HomeworkSubmissionStatus.Pending) {
+            <div class="extra-fields">
+              <input class="so-filter-select" type="date" [(ngModel)]="s.submittedOn" [disabled]="!canEdit" />
+              <input class="so-filter-select" type="number" min="0" placeholder="Marks" [(ngModel)]="s.marks" [disabled]="!canEdit" />
+              <input class="so-filter-select" placeholder="Remark" [(ngModel)]="s.remark" [disabled]="!canEdit" />
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</ion-content>

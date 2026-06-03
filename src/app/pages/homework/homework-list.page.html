@@ -1,0 +1,97 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Homework</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="so-page hw-list-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <section class="stats-grid">
+    <div class="stat-box">
+      <span class="label">Assigned</span>
+      <strong>{{ stats.totalAssigned }}</strong>
+    </div>
+    <div class="stat-box accent">
+      <span class="label">Due today</span>
+      <strong>{{ stats.dueToday }}</strong>
+    </div>
+    <div class="stat-box ok">
+      <span class="label">Submissions</span>
+      <strong>{{ stats.totalSubmissions }}</strong>
+    </div>
+    <div class="stat-box warn">
+      <span class="label">Overdue</span>
+      <strong>{{ stats.overdue }}</strong>
+    </div>
+  </section>
+
+  <section class="filters">
+    <div class="filter-row">
+      <select class="so-filter-select" [(ngModel)]="classFilter" (ngModelChange)="loadList()">
+        <option value="">All classes</option>
+        @for (c of classes; track c.id) {
+          <option [value]="c.id">{{ c.name }}</option>
+        }
+      </select>
+      <select class="so-filter-select" [(ngModel)]="subjectFilter" (ngModelChange)="loadList()">
+        <option value="">All subjects</option>
+        @for (s of subjects; track s.id) {
+          <option [value]="s.id">{{ subjectLabel(s) }}</option>
+        }
+      </select>
+    </div>
+    <div class="so-search-wrap">
+      <input class="so-search-input" type="search" placeholder="Search homework..." [(ngModel)]="searchQuery" (keyup.enter)="loadList()" />
+    </div>
+    <div class="chip-row">
+      @for (chip of ['all', 'active', 'today', 'overdue', 'done']; track chip) {
+        <button type="button" class="filter-chip" [class.active]="chipFilter === chip" (click)="setChip(chip)">
+          {{ chip === 'all' ? 'All' : chip === 'today' ? 'Due today' : chip === 'done' ? 'Done' : chip }}
+        </button>
+      }
+    </div>
+  </section>
+
+  @if (loading) {
+    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+  } @else if (!items.length) {
+    <div class="so-empty">
+      <h3>No homework found</h3>
+      <p>Create homework for your class.</p>
+    </div>
+  } @else {
+    <section class="hw-cards">
+      @for (hw of items; track hw.id) {
+        <article class="hw-card so-card" [class.overdue]="hw.status === 'overdue'" (click)="openDetail(hw.id)">
+          <div class="hw-title-row">
+            <span class="priority-dot" [class.high]="hw.priority === 1" [class.low]="hw.priority === 2"></span>
+            <h3>{{ hw.title }}</h3>
+          </div>
+          <p class="meta">
+            <ion-icon name="school-outline"></ion-icon>
+            {{ hw.className }} · {{ hw.subjectName }}
+          </p>
+          <p class="meta due" [class.today]="hw.status === 'today'" [class.overdue]="hw.status === 'overdue'">
+            <ion-icon name="calendar-outline"></ion-icon>
+            Due {{ hw.dueDate }}
+          </p>
+          <div class="hw-footer">
+            <span class="badge" [class]="statusClass(hw.status)">{{ hw.status }}</span>
+            <span class="progress">{{ hw.submitted }}/{{ hw.total }} submitted</span>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (canManage) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="openCreate()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+</ion-content>

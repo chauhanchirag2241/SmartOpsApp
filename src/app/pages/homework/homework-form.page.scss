@@ -1,0 +1,50 @@
+.form-page {
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+.hw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0 32px;
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--so-on-surface-variant);
+    margin-top: 8px;
+  }
+  .req {
+    color: var(--so-error);
+  }
+  .textarea {
+    height: auto;
+    min-height: 88px;
+    padding-top: 10px;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+.save-btn {
+  margin-top: 20px;
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: var(--so-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}

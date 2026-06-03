@@ -1,0 +1,74 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/homework"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ pageTitle }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="so-page form-page">
+  @if (loading) {
+    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+  } @else {
+    <form class="hw-form" (ngSubmit)="save()">
+      <label>Class <span class="req">*</span></label>
+      <select class="so-filter-select" [(ngModel)]="form.classId" name="classId" required>
+        <option value="">Select class</option>
+        @for (c of classes; track c.id) {
+          <option [value]="c.id">{{ c.name }}</option>
+        }
+      </select>
+
+      <label>Subject <span class="req">*</span></label>
+      <select class="so-filter-select" [(ngModel)]="form.subjectId" name="subjectId" required>
+        <option value="">Select subject</option>
+        @for (s of subjects; track s.id) {
+          <option [value]="s.id">{{ subjectLabel(s) }}</option>
+        }
+      </select>
+
+      <label>Title <span class="req">*</span></label>
+      <input class="so-filter-select" [(ngModel)]="form.title" name="title" required />
+
+      <label>Description</label>
+      <textarea class="so-filter-select textarea" [(ngModel)]="form.description" name="description" rows="3"></textarea>
+
+      <div class="two-col">
+        <div>
+          <label>Assign date</label>
+          <input class="so-filter-select" type="date" [(ngModel)]="form.assignDate" name="assignDate" />
+        </div>
+        <div>
+          <label>Due date <span class="req">*</span></label>
+          <input class="so-filter-select" type="date" [(ngModel)]="form.dueDate" name="dueDate" required />
+        </div>
+      </div>
+
+      <label>Priority</label>
+      <select class="so-filter-select" [(ngModel)]="form.priority" name="priority">
+        <option [ngValue]="HomeworkPriority.Normal">Normal</option>
+        <option [ngValue]="HomeworkPriority.High">High</option>
+        <option [ngValue]="HomeworkPriority.Low">Low</option>
+      </select>
+
+      <label>Marks (optional)</label>
+      <input class="so-filter-select" type="number" min="0" [(ngModel)]="form.marks" name="marks" />
+
+      <label>Submission type</label>
+      <select class="so-filter-select" [(ngModel)]="form.submissionType" name="submissionType">
+        <option [ngValue]="HomeworkSubmissionType.Physical">Physical (in class)</option>
+        <option [ngValue]="HomeworkSubmissionType.Online">Online</option>
+        <option [ngValue]="HomeworkSubmissionType.Both">Both</option>
+      </select>
+
+      <button type="submit" class="save-btn" [disabled]="saving || !canManage">
+        @if (saving) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          {{ homeworkId ? 'Save changes' : 'Assign homework' }}
+        }
+      </button>
+    </form>
+  }
+</ion-content>
