@@ -63,4 +63,28 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     icon: 'card-outline',
     color: 'primary',
   },
+  [MenuCodes.LeaveStaff]: {
+    menuCode: MenuCodes.LeaveStaff,
+    title: 'Staff Leave',
+    subtitle: 'Apply for leave',
+    route: '/leave/staff-apply',
+    icon: 'calendar-outline',
+    color: 'warning',
+  },
+  [MenuCodes.LeaveStudent]: {
+    menuCode: MenuCodes.LeaveStudent,
+    title: 'Student Leave',
+    subtitle: 'Apply leave for your child',
+    route: '/leave/student-apply',
+    icon: 'school-outline',
+    color: 'primary',
+  },
+  [MenuCodes.MyActions]: {
+    menuCode: MenuCodes.MyActions,
+    title: 'My Actions',
+    subtitle: 'Pending approvals and responses',
+    route: '/my-actions',
+    icon: 'checkmark-circle-outline',
+    color: 'success',
+  },
 };

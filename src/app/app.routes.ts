@@ -65,5 +65,25 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/fees/fee-collection-detail.page').then((m) => m.FeeCollectionDetailPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.FeesCollection)],
   },
+  {
+    path: 'leave/staff-apply',
+    loadComponent: () => import('./pages/leave/staff-apply.page').then((m) => m.StaffApplyPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStaff)],
+  },
+  {
+    path: 'leave/student-apply',
+    loadComponent: () => import('./pages/leave/student-apply.page').then((m) => m.StudentApplyPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStudent)],
+  },
+  {
+    path: 'my-actions/:id',
+    loadComponent: () => import('./pages/my-actions/my-action-detail.page').then((m) => m.MyActionDetailPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.MyActions)],
+  },
+  {
+    path: 'my-actions',
+    loadComponent: () => import('./pages/my-actions/my-actions-list.page').then((m) => m.MyActionsListPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.MyActions)],
+  },
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
 ];

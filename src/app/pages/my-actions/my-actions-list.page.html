@@ -1,0 +1,23 @@
+<app-header [title]="'My Actions (' + pendingCount + ')'" [showBack]="true" backHref="/home" />
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content />
+  </ion-refresher>
+  @if (loading) {
+    <ion-spinner name="crescent" class="center-spinner" />
+  } @else if (!items.length) {
+    <p class="empty">No pending actions.</p>
+  } @else {
+    <ul class="list">
+      @for (item of items; track item.id) {
+        <li (click)="open(item.id)">
+          <span class="badge">{{ item.itemTypeLabel }}</span>
+          <strong>{{ item.title }}</strong>
+          @if (item.summary) {
+            <p>{{ item.summary }}</p>
+          }
+        </li>
+      }
+    </ul>
+  }
+</ion-content>

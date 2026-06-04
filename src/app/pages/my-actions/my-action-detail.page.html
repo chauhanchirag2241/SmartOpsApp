@@ -1,0 +1,15 @@
+<app-header [title]="title || 'Action'" [showBack]="true" backHref="/my-actions" />
+<ion-content class="ion-padding">
+  @if (loading) {
+    <ion-spinner name="crescent" />
+  } @else if (itemType === 1) {
+    <pre class="block">{{ leaveSummary }}</pre>
+    <label>Remark <textarea [(ngModel)]="remark" rows="2"></textarea></label>
+    <button type="button" class="danger" (click)="complete('Reject')">Reject</button>
+    <button type="button" class="primary-btn" (click)="complete('Approve')">Approve</button>
+  } @else if (itemType === 2) {
+    <pre class="block">{{ noticeBody }}</pre>
+    <label>Response <textarea [(ngModel)]="responseText" rows="4"></textarea></label>
+    <button type="button" class="primary-btn" (click)="complete('Respond')">Submit response</button>
+  }
+</ion-content>
