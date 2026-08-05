@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, catchError, map, of, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 import { LoginResponse, User, UserProfile, UserRole } from '../models/user.model';
 import { isUsableAccessToken } from '../utils/token.util';
 import { AcademicYearContextService } from './academic-year-context.service';
 import { ApiService } from './api.service';
 import { PermissionService } from './permission.service';
 import { StorageService } from './storage.service';
+import { TenantService } from './tenant.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -15,8 +16,10 @@ export class AuthService {
   private readonly api = inject(ApiService);
   private readonly permissionService = inject(PermissionService);
   private readonly ayContext = inject(AcademicYearContextService);
+  private readonly tenant = inject(TenantService);
   private readonly tokenKey = 'mobile_token';
   private readonly userKey = 'mobile_user';
+  private readonly ayKey = 'mobile_academic_year_id';
   private readonly currentUserSubject = new BehaviorSubject<User | null>(null);
   readonly currentUser$ = this.currentUserSubject.asObservable();
 
@@ -32,6 +35,10 @@ export class AuthService {
     return isUsableAccessToken(this.getToken());
   }
 
+  get mustChangePassword(): boolean {
+    return !!this.currentUser?.mustChangePassword;
+  }
+
   ensureValidSessionOrClear(): void {
     const token = this.getToken();
     if (!isUsableAccessToken(token)) {
@@ -45,7 +52,7 @@ export class AuthService {
   }
 
   /** Login with email (e.g. admin@smartops.com) or 10-digit mobile number + password. */
-  loginWithCredentials(login: string, password: string): Observable<void> {
+  loginWithCredentials(login: string, password: string): Observable<{ mustChangePassword: boolean }> {
     const payload = { email: this.normalizeLogin(login), password };
     return this.api.post<LoginResponse>('auth/login', payload).pipe(
       switchMap((raw) => {
@@ -54,17 +61,46 @@ export class AuthService {
           return throwError(() => new Error('Login succeeded but no access token was returned.'));
         }
         this.storage.set(this.tokenKey, accessToken);
-        return this.api.get<UserProfile>('auth/me').pipe(map((profile) => ({ accessToken, profile })));
+        return this.api.get<UserProfile>('auth/me').pipe(
+          map((profile) => ({
+            accessToken,
+            profile,
+            mustChangePassword: !!(raw.mustChangePassword ?? profile.mustChangePassword),
+          })),
+        );
       }),
-      switchMap(({ accessToken, profile }) => {
-        const user = this.mapProfileToUser(profile);
+      switchMap(({ accessToken, profile, mustChangePassword }) => {
+        const user = this.mapProfileToUser(profile, mustChangePassword);
         this.login(user, accessToken);
-        return this.permissionService.loadSession();
+        return this.permissionService.loadSession().pipe(
+          map(() => ({ mustChangePassword })),
+          catchError(() => of({ mustChangePassword })),
+        );
       }),
-      switchMap(() => this.ayContext.loadCurrentYear().pipe(catchError(() => of(null)))),
-      map(() => undefined),
+      switchMap(({ mustChangePassword }) =>
+        this.ayContext.loadCurrentYear().pipe(
+          catchError(() => of(null)),
+          map(() => ({ mustChangePassword })),
+        ),
+      ),
       catchError((err) => throwError(() => err)),
     );
+  }
+
+  changePassword(oldPassword: string, newPassword: string, confirmNewPassword: string): Observable<void> {
+    return this.api
+      .post<void>('auth/change-password', { oldPassword, newPassword, confirmNewPassword })
+      .pipe(
+        tap(() => {
+          const user = this.currentUser;
+          if (user) {
+            const updated = { ...user, mustChangePassword: false };
+            this.storage.set(this.userKey, updated);
+            this.currentUserSubject.next(updated);
+          }
+        }),
+        map(() => undefined),
+      );
   }
 
   login(user: User, token: string): void {
@@ -73,11 +109,21 @@ export class AuthService {
     this.currentUserSubject.next({ ...user, token });
   }
 
+  /** Clears session only — keeps device school (mobile_tenant). */
   logout(): void {
     this.permissionService.clear();
-    this.storage.clear();
+    this.clearSessionStorage();
     this.currentUserSubject.next(null);
     void this.router.navigate(['/login'], { replaceUrl: true });
+  }
+
+  /** Clears session + school so user can pick another school code. */
+  changeSchool(): void {
+    this.permissionService.clear();
+    this.clearSessionStorage();
+    this.tenant.clearTenant();
+    this.currentUserSubject.next(null);
+    void this.router.navigate(['/school-code'], { replaceUrl: true });
   }
 
   expireSession(): void {
@@ -107,6 +153,7 @@ export class AuthService {
   private clearSessionStorage(): void {
     this.storage.remove(this.tokenKey);
     this.storage.remove(this.userKey);
+    this.storage.remove(this.ayKey);
   }
 
   private resolveAccessToken(raw: LoginResponse | Record<string, unknown>): string {
@@ -115,9 +162,9 @@ export class AuthService {
     return typeof candidate === 'string' ? candidate : '';
   }
 
-  private mapProfileToUser(profile: UserProfile): User {
+  private mapProfileToUser(profile: UserProfile, mustChangePassword = false): User {
     const roles = profile.roles ?? [];
-    const primaryRole = roles[0] ?? 'Admin';
+    const primaryRole = roles[0] ?? 'School Admin';
     return {
       id: profile.id,
       name: profile.username || profile.email,
@@ -126,11 +173,12 @@ export class AuthService {
       roles,
       roleId: profile.roleId,
       roleCode: profile.roleCode,
+      mustChangePassword: mustChangePassword || !!profile.mustChangePassword,
     };
   }
 
   private mapRole(role?: string): UserRole {
-    const known: UserRole[] = ['teacher', 'student', 'parent', 'admin', 'Admin', 'Accountant'];
+    const known: UserRole[] = ['teacher', 'student', 'parent', 'admin', 'Admin', 'Accountant', 'SmartOpsAdmin', 'School Admin'];
     if (known.includes(role as UserRole)) {
       return role as UserRole;
     }

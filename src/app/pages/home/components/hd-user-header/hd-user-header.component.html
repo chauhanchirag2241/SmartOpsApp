@@ -1,0 +1,29 @@
+<div class="hd-header">
+  <div class="hd-header-decor" aria-hidden="true"></div>
+  <div class="hd-header-top">
+    <div class="hd-header-text">
+      <h1 class="hd-greeting">
+        {{ info.greeting }}, {{ info.displayName }}
+        <span class="hd-wave" aria-hidden="true">👋</span>
+      </h1>
+      <p class="hd-date">{{ info.dateLabel }}</p>
+      @if (info.contextLine) {
+        <p class="hd-context">{{ info.contextLine }}</p>
+      }
+      @if (info.roleBadge) {
+        <span class="hd-role-pill">{{ info.roleBadge }}</span>
+      }
+    </div>
+    <div class="hd-header-actions">
+      <button type="button" class="hd-icon-btn hd-icon-btn--warm" aria-label="Menu" disabled>
+        <ion-icon name="grid-outline"></ion-icon>
+      </button>
+      <button type="button" class="hd-icon-btn hd-icon-btn--bell" aria-label="Notifications" (click)="notifications.emit()">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </button>
+      <button type="button" class="hd-avatar" aria-label="Profile" (click)="profile.emit()">
+        {{ info.initials }}
+      </button>
+    </div>
+  </div>
+</div>

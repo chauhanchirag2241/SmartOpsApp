@@ -9,52 +9,64 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
+/* Tokens — Document/component-library.html */
 :root {
-  /* Brand — aligned with SmartOpsUI style.css */
   --so-primary: #639922;
+  --so-primary-dark: #3b6d11;
+  --so-primary-light: #eaf3de;
+  --so-primary-tint: #f3f8ec;
   --so-primary-shade: #57871e;
-  --so-primary-tint: #73a338;
   --so-secondary: #3b6d11;
   --so-on-primary: #ffffff;
 
-  /* Surfaces */
-  --so-surface: #f5f7f2;
+  --so-ink: #1f2a1a;
+  --so-ink-soft: #5b6b54;
+  --so-ink-faint: #8a9880;
+  --so-line: #dfe8d1;
+
+  --so-page-bg: #edefe6;
+  --so-card-bg: #ffffff;
+  --so-input-bg: #fcfdf9;
+
+  --so-surface: #edefe6;
   --so-surface-container: #ffffff;
-  --so-surface-container-low: #f0f4ec;
+  --so-surface-container-low: #f3f8ec;
   --so-surface-container-lowest: #ffffff;
   --so-surface-container-high: #eaf3de;
-  --so-hover: #f0f7e8;
+  --so-hover: #f3f8ec;
 
-  /* Text */
-  --so-on-surface: #1a1a1a;
-  --so-on-surface-variant: #6b7280;
-  --so-outline: #64748b;
-  --so-outline-variant: rgba(0, 0, 0, 0.1);
+  --so-on-surface: #1f2a1a;
+  --so-on-surface-variant: #5b6b54;
+  --so-outline: #8a9880;
+  --so-outline-variant: #dfe8d1;
 
-  /* Semantic */
-  --so-success: #639922;
-  --so-error: #e24b4a;
-  --so-warning: #854f0b;
+  --so-success: #2e9e5b;
+  --so-success-bg: #e5f6ec;
+  --so-error: #c0392b;
+  --so-error-bg: #fbe9e7;
+  --so-warning: #c9861a;
+  --so-warning-bg: #fcf1de;
   --so-badge-bg: #eaf3de;
   --so-badge-text: #3b6d11;
 
-  /* Attendance / status */
   --so-present: #3b6d11;
   --so-present-bg: #eaf3de;
-  --so-absent: #e24b4a;
-  --so-absent-bg: #fcebeb;
-  --so-leave: #854f0b;
-  --so-leave-bg: #faeeda;
+  --so-absent: #c0392b;
+  --so-absent-bg: #fbe9e7;
+  --so-leave: #c9861a;
+  --so-leave-bg: #fcf1de;
   --so-late: #1e40af;
   --so-late-bg: #dbeafe;
-  --so-pending: #6b7280;
-  --so-hw-late: #854f0b;
+  --so-pending: #5b6b54;
+  --so-hw-late: #c9861a;
   --so-secondary-container: #eaf3de;
 
-  /* Radius */
-  --so-radius: 8px;
-  --so-radius-lg: 10px;
-  --so-radius-xl: 12px;
+  --so-shadow: 0 1px 2px rgba(31, 42, 26, 0.06), 0 4px 16px rgba(31, 42, 26, 0.05);
+  --so-radius: 10px;
+  --so-radius-md: 12px;
+  --so-radius-lg: 16px;
+  --so-radius-xl: 16px;
+  --so-radius-btn: 11px;
 }
 
 html,
@@ -64,9 +76,9 @@ body {
 }
 
 body {
-  font-family: Inter, system-ui, -apple-system, sans-serif;
-  background: var(--so-surface);
-  color: var(--so-on-surface);
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+  background: var(--so-page-bg);
+  color: var(--so-ink);
 }
 
 ion-app {
@@ -74,9 +86,263 @@ ion-app {
 }
 
 ion-content.so-page {
-  --background: var(--so-surface);
+  --background: var(--so-page-bg);
 }
 
+/* ---------- Shared card (component-library demo-card) ---------- */
+.so-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: var(--so-radius-lg);
+  padding: 16px;
+  box-shadow: var(--so-shadow);
+}
+
+/* ---------- Shared field (component-library .field) ---------- */
+.so-field {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  > label,
+  .so-field-label {
+    display: block;
+    font-size: 11px;
+    color: var(--so-ink-soft);
+    font-weight: 700;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  &.error .so-input-wrap,
+  &.error .so-field-control {
+    border-color: var(--so-error);
+  }
+
+  &.error .so-helper {
+    color: var(--so-error);
+    font-weight: 600;
+  }
+}
+
+.so-input-wrap,
+.so-field-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 13px;
+  border: 1.5px solid var(--so-line);
+  border-radius: var(--so-radius);
+  background: var(--so-input-bg);
+  transition: border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--so-primary);
+  }
+
+  ion-input {
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 11px;
+    --padding-bottom: 11px;
+    --background: transparent;
+    --color: var(--so-ink);
+    --placeholder-color: var(--so-ink-faint);
+    font-size: 13.5px;
+    width: 100%;
+  }
+}
+
+.so-helper {
+  font-size: 11px;
+  color: var(--so-ink-faint);
+  margin-top: 5px;
+}
+
+/* ---------- Alerts (component-library .alert-box) ---------- */
+.so-alert {
+  padding: 11px 13px;
+  border-radius: var(--so-radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+
+  &.success {
+    background: var(--so-success-bg);
+    color: var(--so-success);
+  }
+
+  &.warn {
+    background: var(--so-warning-bg);
+    color: var(--so-warning);
+  }
+
+  &.danger {
+    background: var(--so-error-bg);
+    color: var(--so-error);
+  }
+}
+
+/* ---------- Buttons (component-library .btn) ---------- */
+.so-btn-primary {
+  --background: var(--so-primary);
+  --background-activated: var(--so-primary-dark);
+  --background-focused: var(--so-primary-dark);
+  --color: #fff;
+  --border-radius: var(--so-radius-btn);
+  --box-shadow: none;
+  font-weight: 700;
+  font-size: 13.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  height: 46px;
+  margin: 0;
+}
+
+.so-btn-block {
+  display: block;
+  width: 100%;
+}
+
+.so-btn-ghost {
+  border: 0;
+  background: none;
+  color: var(--so-primary-dark);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 4px;
+  cursor: pointer;
+}
+
+.so-btn-outline {
+  --background: #fff;
+  --color: var(--so-primary-dark);
+  --border-color: var(--so-primary);
+  --border-width: 1.5px;
+  --border-style: solid;
+  --border-radius: var(--so-radius-btn);
+  font-weight: 700;
+  font-size: 13.5px;
+  text-transform: none;
+  height: 46px;
+}
+
+/* ---------- Auth shell (school-code / login / change-password) ---------- */
+.so-auth-page {
+  --background: var(--so-page-bg);
+}
+
+.so-auth-wrap {
+  max-width: 390px;
+  margin: 0 auto;
+  padding: 36px 18px 28px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.so-auth-brand {
+  margin-bottom: 22px;
+
+  .so-app-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--so-primary-dark);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--so-ink);
+    letter-spacing: -0.2px;
+  }
+
+  p {
+    margin: 6px 0 0;
+    font-size: 13.5px;
+    color: var(--so-ink-soft);
+    line-height: 1.4;
+  }
+}
+
+.so-auth-card {
+  margin-bottom: 14px;
+}
+
+.so-auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.so-auth-hint {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--so-ink-faint);
+  line-height: 1.45;
+
+  p {
+    margin: 0;
+  }
+}
+
+.so-school-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--so-shadow);
+  margin-bottom: 14px;
+
+  .so-school-chip-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--so-primary-light);
+    color: var(--so-primary-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .so-school-chip-body {
+    flex: 1;
+    min-width: 0;
+
+    .t {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--so-ink);
+    }
+
+    .s {
+      font-size: 11.5px;
+      color: var(--so-ink-soft);
+      margin-top: 1px;
+    }
+  }
+}
+
+/* ---------- Existing module helpers ---------- */
 .list-page-shell {
   display: flex;
   flex-direction: column;
@@ -90,10 +356,10 @@ ion-content.so-page {
 
   label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--so-on-surface-variant);
+    letter-spacing: 0.3px;
+    color: var(--so-ink-soft);
   }
 }
 
@@ -105,13 +371,13 @@ ion-content.so-page {
 }
 
 .filter-chip-option {
-  border: 1.5px solid var(--so-outline-variant);
-  background: var(--so-surface-container-lowest);
-  border-radius: 999px;
+  border: 1.5px solid var(--so-line);
+  background: var(--so-card-bg);
+  border-radius: 20px;
   padding: 10px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--so-on-surface);
+  color: var(--so-ink);
   cursor: pointer;
   white-space: nowrap;
 
@@ -132,9 +398,9 @@ ion-content.so-page {
     font-size: 11px;
     font-weight: 600;
     padding: 4px 10px;
-    border-radius: 999px;
-    background: var(--so-surface-container-high);
-    color: var(--so-on-surface-variant);
+    border-radius: 20px;
+    background: var(--so-primary-light);
+    color: var(--so-primary-dark);
   }
 }
 
@@ -143,14 +409,6 @@ ion-tabs {
   flex-direction: column;
   width: 100%;
   height: 100%;
-}
-
-.so-card {
-  background: var(--so-surface-container-lowest);
-  border: 1px solid var(--so-outline-variant);
-  border-radius: var(--so-radius-lg);
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .so-chip-scroll {
@@ -167,8 +425,8 @@ ion-tabs {
 .so-stat-chip {
   flex-shrink: 0;
   padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--so-outline-variant);
+  border-radius: 20px;
+  border: 1px solid var(--so-line);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -180,7 +438,7 @@ ion-tabs {
   }
 
   &.total {
-    background: var(--so-surface-container-high);
+    background: var(--so-primary-light);
   }
   &.present {
     background: var(--so-present-bg);
@@ -190,7 +448,7 @@ ion-tabs {
   &.absent {
     background: var(--so-absent-bg);
     border-color: var(--so-absent);
-    color: #a32d2d;
+    color: var(--so-error);
   }
   &.leave {
     background: var(--so-leave-bg);
@@ -207,12 +465,26 @@ ion-tabs {
 .so-date-input {
   width: 100%;
   height: 44px;
-  border: 1px solid var(--so-outline-variant);
+  border: 1.5px solid var(--so-line);
   border-radius: var(--so-radius);
-  background: var(--so-surface-container-low);
+  background: var(--so-input-bg);
   padding: 0 12px;
-  font-size: 14px;
-  color: var(--so-on-surface);
+  font-size: 13.5px;
+  color: var(--so-ink);
+  accent-color: var(--so-primary);
+}
+
+.so-select-interface {
+  --ion-color-primary: var(--so-primary);
+  --ion-color-primary-rgb: var(--ion-color-primary-rgb);
+  --ion-color-primary-contrast: #fff;
+  --color: var(--so-ink);
+}
+
+.so-select-interface .action-sheet-selected,
+.so-select-interface .action-sheet-button.ion-selected,
+.so-select-interface .select-interface-option[aria-checked='true'] {
+  color: var(--so-primary) !important;
 }
 
 .so-search-wrap {
@@ -222,20 +494,15 @@ ion-tabs {
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--so-outline);
+    color: var(--so-primary-dark);
     font-size: 20px;
   }
   .so-search-input {
     padding-left: 40px;
+    border: none;
+    background: var(--so-primary-light);
+    border-radius: 11px;
   }
-}
-
-.so-btn-primary {
-  --background: var(--so-primary);
-  --color: var(--so-on-primary);
-  --border-radius: 999px;
-  font-weight: 600;
-  text-transform: none;
 }
 
 .so-success-banner {
@@ -245,17 +512,17 @@ ion-tabs {
   gap: 8px;
   margin: 12px 16px;
   padding: 12px 14px;
-  border-radius: var(--so-radius-lg);
-  background: var(--so-secondary-container);
-  color: var(--so-badge-text);
-  font-size: 12px;
+  border-radius: var(--so-radius);
+  background: var(--so-success-bg);
+  color: var(--so-success);
+  font-size: 12.5px;
   font-weight: 600;
 }
 
 .so-empty {
   text-align: center;
   padding: 48px 24px;
-  color: var(--so-outline);
+  color: var(--so-ink-faint);
   ion-icon {
     font-size: 48px;
     margin-bottom: 12px;
@@ -263,7 +530,7 @@ ion-tabs {
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: var(--so-on-surface);
+    color: var(--so-ink);
     margin: 0 0 8px;
   }
 }

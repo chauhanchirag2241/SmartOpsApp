@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'Admin' | 'Accountant';
+export type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'Admin' | 'Accountant' | 'SmartOpsAdmin' | 'School Admin';
 
 export interface User {
   id: string;
@@ -9,12 +9,14 @@ export interface User {
   roleId?: string;
   roleCode?: string;
   token?: string;
+  mustChangePassword?: boolean;
 }
 
 export interface LoginResponse {
   accessToken: string;
   refreshToken?: string;
   expiresIn?: number;
+  mustChangePassword?: boolean;
 }
 
 export interface UserProfile {
@@ -26,4 +28,5 @@ export interface UserProfile {
   roles: string[];
   roleId?: string;
   roleCode?: string;
+  mustChangePassword?: boolean;
 }

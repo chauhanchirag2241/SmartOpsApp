@@ -2,16 +2,13 @@
 const MENU_CODE_ICONS: Record<string, string> = {
   DASHBOARD: 'home-outline',
   ATTENDANCE: 'checkbox-outline',
+  STAFF_ATTENDANCE: 'finger-print-outline',
   HOMEWORK: 'book-outline',
   STUDENTS: 'people-outline',
   TEACHERS: 'school-outline',
   CLASSES: 'easel-outline',
-  CLASS_MAPPINGS: 'git-network-outline',
-  SUBJECTS: 'library-outline',
   ACADEMIC_YEARS: 'calendar-outline',
   ACADEMICS: 'school-outline',
-  FEES_STRUCTURE: 'document-text-outline',
-  FEES_COLLECTION: 'card-outline',
   SALARY_STRUCTURE: 'document-text-outline',
   SALARY_EMPLOYEES: 'person-outline',
   SALARY_PAYROLL: 'wallet-outline',
@@ -44,6 +41,7 @@ const MATERIAL_TO_ION: Record<string, string> = {
   people: 'people-outline',
   class: 'easel-outline',
   groups: 'people-outline',
+  fingerprint: 'finger-print-outline',
 };
 
 export function resolveMenuIcon(menuCode: string, apiIcon?: string | null): string {

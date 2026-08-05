@@ -1,12 +1,25 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { tenantGuard } from './core/guards/tenant.guard';
 import { menuPermissionGuard } from './core/guards/menu-permission.guard';
 import { MenuCodes } from './core/constants/menu-codes';
 
 export const routes: Routes = [
   {
+    path: 'school-code',
+    loadComponent: () =>
+      import('./pages/school-code/school-code.page').then((m) => m.SchoolCodePage),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
+    canActivate: [tenantGuard],
+  },
+  {
+    path: 'change-password',
+    loadComponent: () =>
+      import('./pages/change-password/change-password.page').then((m) => m.ChangePasswordPage),
+    canActivate: [tenantGuard],
   },
   {
     path: 'tabs',
@@ -24,6 +37,12 @@ export const routes: Routes = [
     path: 'attendance',
     loadComponent: () => import('./pages/attendance/attendance.page').then((m) => m.AttendancePage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.Attendance)],
+  },
+  {
+    path: 'staff-attendance',
+    loadComponent: () =>
+      import('./pages/staff-attendance/staff-attendance.page').then((m) => m.StaffAttendancePage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.StaffAttendance)],
   },
   {
     path: 'homework/new',
@@ -54,16 +73,6 @@ export const routes: Routes = [
     path: 'students/:id',
     loadComponent: () => import('./pages/students/student-detail.page').then((m) => m.StudentDetailPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.Students)],
-  },
-  {
-    path: 'fees/collection',
-    loadComponent: () => import('./pages/fees/fee-collection-list.page').then((m) => m.FeeCollectionListPage),
-    canActivate: [authGuard, menuPermissionGuard(MenuCodes.FeesCollection)],
-  },
-  {
-    path: 'fees/collection/:studentId',
-    loadComponent: () => import('./pages/fees/fee-collection-detail.page').then((m) => m.FeeCollectionDetailPage),
-    canActivate: [authGuard, menuPermissionGuard(MenuCodes.FeesCollection)],
   },
   {
     path: 'leave/staff-apply',

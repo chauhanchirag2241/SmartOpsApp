@@ -1,0 +1,27 @@
+<div class="filter-chip-group" [class.is-disabled]="disabled">
+  <button
+    type="button"
+    class="filter-chip-option"
+    [class.active]="isAllSelected"
+    [disabled]="disabled"
+    (click)="selectAll()"
+  >
+    {{ allLabel }}
+  </button>
+
+  @for (opt of options; track opt.value) {
+    <button
+      type="button"
+      class="filter-chip-option"
+      [class.active]="!isAllSelected && isSelected(opt.value)"
+      [disabled]="disabled"
+      (click)="toggle(opt.value)"
+    >
+      {{ opt.label }}
+    </button>
+  } @empty {
+    @if (emptyHint) {
+      <span class="so-multi-empty">{{ emptyHint }}</span>
+    }
+  }
+</div>

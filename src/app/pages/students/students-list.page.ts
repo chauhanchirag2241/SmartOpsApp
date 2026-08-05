@@ -74,7 +74,6 @@ export class StudentsListPage implements OnInit, OnDestroy {
     { value: StudentFilter.All, label: 'All' },
     { value: StudentFilter.Active, label: 'Active' },
     { value: StudentFilter.Inactive, label: 'Inactive' },
-    { value: StudentFilter.FeeOverdue, label: 'Fee overdue' },
   ];
 
   constructor() {

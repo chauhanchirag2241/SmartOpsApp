@@ -19,7 +19,6 @@ export function parseAttendanceStatusFromApi(status: unknown): AttendanceStatusK
   const numericMap: Record<number, AttendanceStatusKey> = {
     [AttendanceStatus.Present]: 'present',
     [AttendanceStatus.Absent]: 'absent',
-    [AttendanceStatus.Leave]: 'leave',
     [AttendanceStatus.Late]: 'late',
   };
   if (typeof status === 'number') return numericMap[status] || '';
@@ -27,12 +26,10 @@ export function parseAttendanceStatusFromApi(status: unknown): AttendanceStatusK
   const stringMap: Record<string, AttendanceStatusKey> = {
     present: 'present',
     absent: 'absent',
-    leave: 'leave',
     late: 'late',
     '1': 'present',
     '2': 'absent',
-    '3': 'leave',
-    '4': 'late',
+    '3': 'late',
   };
   return stringMap[n] || '';
 }
@@ -41,7 +38,6 @@ export function attendanceStatusToApi(status: AttendanceStatusKey): AttendanceSt
   const map: Record<string, AttendanceStatus> = {
     present: AttendanceStatus.Present,
     absent: AttendanceStatus.Absent,
-    leave: AttendanceStatus.Leave,
     late: AttendanceStatus.Late,
   };
   return status ? map[status] ?? null : null;

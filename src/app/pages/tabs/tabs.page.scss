@@ -8,3 +8,24 @@ ion-tabs {
   width: 100%;
   height: 100%;
 }
+
+.hd-tab-bar {
+  --background: #ffffff;
+  --border: 0;
+  border-top: 1px solid #e6ecda;
+  box-shadow: 0 -4px 18px rgba(31, 42, 26, 0.06);
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.hd-tab-bar ion-tab-button {
+  --color: #8a9880;
+  --color-selected: #639922;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.hd-tab-bar ion-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}

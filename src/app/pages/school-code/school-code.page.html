@@ -1,0 +1,44 @@
+<ion-content class="so-auth-page" [fullscreen]="true">
+  <div class="so-auth-wrap">
+    <div class="so-auth-brand">
+      <div class="so-app-title">SmartOps</div>
+      <h1>Find your school</h1>
+      <p>Enter the school code provided by your school admin</p>
+    </div>
+
+    <div class="so-card so-auth-card">
+      <div class="so-field" [class.error]="!!errorMessage">
+        <label class="so-field-label" for="schoolCode">School code</label>
+        <div class="so-input-wrap">
+          <ion-input
+            id="schoolCode"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            placeholder="e.g. DPS-AHM"
+            [(ngModel)]="schoolCode"
+            (keyup.enter)="continue()"
+          ></ion-input>
+        </div>
+        @if (errorMessage) {
+          <div class="so-helper">{{ errorMessage }}</div>
+        }
+      </div>
+    </div>
+
+    <div class="so-auth-actions">
+      <ion-button expand="block" class="so-btn-primary" [disabled]="loading" (click)="continue()">
+        @if (loading) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          Continue
+        }
+      </ion-button>
+    </div>
+
+    <div class="so-auth-hint">
+      <p>You only need to enter the school code once on this device.</p>
+    </div>
+  </div>
+</ion-content>

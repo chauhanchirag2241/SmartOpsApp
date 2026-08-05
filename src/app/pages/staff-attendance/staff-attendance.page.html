@@ -1,0 +1,171 @@
+<app-header
+  title="My Attendance"
+  [showBack]="true"
+  backHref="/tabs/home"
+/>
+
+<input
+  #faceInput
+  type="file"
+  accept="image/*"
+  capture="user"
+  class="hidden-file"
+  (change)="onFaceSelected($event, 'punch')"
+/>
+<input
+  #enrollInput
+  type="file"
+  accept="image/*"
+  capture="user"
+  class="hidden-file"
+  (change)="onFaceSelected($event, 'enroll')"
+/>
+
+<ion-content class="so-page staff-attendance-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (isLoading) {
+    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+  } @else {
+    <section class="today-card so-card">
+      <div class="today-head">
+        <div>
+          <p class="eyebrow">Today · {{ todayLabel }}</p>
+          <h2>{{ employeeName || 'Staff attendance' }}</h2>
+        </div>
+        <span class="status-pill" [attr.data-status]="statusLabel.toLowerCase()">
+          {{ statusLabel }}
+        </span>
+      </div>
+
+      <div class="punch-times">
+        <div class="time-block">
+          <ion-icon name="log-in-outline"></ion-icon>
+          <div>
+            <p class="label">Check-in</p>
+            <p class="value">{{ checkInDisplay }}</p>
+          </div>
+        </div>
+        <div class="time-block">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <div>
+            <p class="label">Check-out</p>
+            <p class="value">{{ checkOutDisplay }}</p>
+          </div>
+        </div>
+      </div>
+
+      @if (!today) {
+        <div class="so-empty inline">
+          <ion-icon name="warning-outline"></ion-icon>
+          <p>No employee profile linked to your account.</p>
+        </div>
+      } @else if (canEdit && (allowsManual || allowsFace)) {
+        <div class="actions">
+          @if (allowsManual && nextManualPunch === 'checkin') {
+            <button
+              type="button"
+              class="att-submit-btn"
+              [disabled]="isPunching"
+              (click)="manualPunch('checkin')"
+            >
+              @if (isPunching) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <ion-icon name="log-in-outline"></ion-icon>
+                Check in
+              }
+            </button>
+          }
+          @if (allowsManual && nextManualPunch === 'checkout') {
+            <button
+              type="button"
+              class="att-submit-btn outline"
+              [disabled]="isPunching"
+              (click)="manualPunch('checkout')"
+            >
+              @if (isPunching) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <ion-icon name="log-out-outline"></ion-icon>
+                Check out
+              }
+            </button>
+          }
+          @if (allowsManual && !nextManualPunch) {
+            <p class="done-note">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              Check-in and check-out recorded for today
+            </p>
+          }
+
+          @if (allowsFace) {
+            <button
+              type="button"
+              class="att-submit-btn face"
+              [disabled]="isPunching || !isFaceEnrolled"
+              (click)="openFacePunch()"
+            >
+              @if (isPunching) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <ion-icon name="camera-outline"></ion-icon>
+                Face punch
+              }
+            </button>
+
+            @if (!isFaceEnrolled) {
+              <button
+                type="button"
+                class="att-submit-btn outline"
+                [disabled]="isEnrolling"
+                (click)="openFaceEnroll()"
+              >
+                @if (isEnrolling) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                } @else {
+                  <ion-icon name="finger-print-outline"></ion-icon>
+                  Enroll face
+                }
+              </button>
+            }
+          }
+        </div>
+      } @else if (!allowsManual && !allowsFace) {
+        <p class="muted">Attendance punching is not enabled for this school.</p>
+      }
+    </section>
+
+    <section class="history-section">
+      <div class="section-head">
+        <h3>Recent history</h3>
+        <p>Last 7 days</p>
+      </div>
+
+      @if (!history.length) {
+        <div class="so-empty">
+          <ion-icon name="time-outline"></ion-icon>
+          <h3>No history yet</h3>
+          <p>Your recent punches will appear here.</p>
+        </div>
+      } @else {
+        <ul class="history-list">
+          @for (day of history; track day.date) {
+            <li class="history-row so-card">
+              <div class="history-date">
+                <strong>{{ day.displayDate }}</strong>
+                <span>{{ day.statusLabel }}</span>
+              </div>
+              <div class="history-times">
+                <span>In {{ formatTime(day.checkInTime) }}</span>
+                <span>Out {{ formatTime(day.checkOutTime) }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</ion-content>

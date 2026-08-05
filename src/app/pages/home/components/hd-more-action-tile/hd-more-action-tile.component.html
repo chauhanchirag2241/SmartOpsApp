@@ -1,0 +1,6 @@
+<button type="button" class="hd-more" (click)="open.emit(action)">
+  <span class="hd-more-icon" [style.background]="action.iconBg" [style.color]="action.iconColor || '#1f2a1a'">
+    <ion-icon [name]="action.icon"></ion-icon>
+  </span>
+  <span class="hd-more-label">{{ action.title }}</span>
+</button>

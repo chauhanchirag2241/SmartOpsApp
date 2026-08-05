@@ -1,0 +1,127 @@
+:host {
+  display: block;
+  flex: 0 0 86%;
+  max-width: 320px;
+  scroll-snap-align: start;
+}
+
+.hd-spot {
+  background: #fff;
+  border-radius: 22px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 8px 24px rgba(31, 42, 26, 0.08);
+  border: 1px solid rgba(223, 232, 209, 0.9);
+  min-height: 168px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hd-spot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2a1a;
+  }
+}
+
+.hd-spot-link {
+  border: 0;
+  background: none;
+  color: #639922;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hd-spot-progress {
+  margin-bottom: 8px;
+}
+
+.hd-spot-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #eaf3de;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #639922, #8bc34a);
+  }
+}
+
+.hd-spot-meta {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: #5b6b54;
+  font-weight: 500;
+  flex: 1;
+}
+
+.hd-spot-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex: 1;
+
+  strong {
+    font-size: 18px;
+    color: #1f2a1a;
+  }
+}
+
+.hd-spot-cta {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: #639922;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.hd-spot[data-tone='orange'] .hd-spot-cta {
+  background: #fb8c00;
+}
+.hd-spot[data-tone='blue'] .hd-spot-cta {
+  background: #1e88e5;
+}
+.hd-spot[data-tone='teal'] .hd-spot-cta {
+  background: #00897b;
+}
+.hd-spot[data-tone='purple'] .hd-spot-cta {
+  background: #7e57c2;
+}
+.hd-spot[data-tone='orange'] .hd-spot-link {
+  color: #fb8c00;
+}
+.hd-spot[data-tone='purple'] .hd-spot-link {
+  color: #7e57c2;
+}
+.hd-spot[data-tone='teal'] .hd-spot-link {
+  color: #00897b;
+}
+.hd-spot[data-tone='blue'] .hd-spot-link {
+  color: #1e88e5;
+}

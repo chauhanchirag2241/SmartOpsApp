@@ -6,13 +6,10 @@ import {
   IonContent,
   IonFab,
   IonFabButton,
-  IonHeader,
   IonIcon,
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
-  IonTitle,
-  IonToolbar,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -21,12 +18,20 @@ import { HomeworkListItem, HomeworkStats } from '../../core/models/homework.mode
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
 import { PermissionService } from '../../core/services/permission.service';
-import { ClassDropdownItem, ClassService } from '../../core/services/class.service';
+import {
+  ClassDropdownItem,
+  ClassGroupSubjectItem,
+  ClassService,
+} from '../../core/services/class.service';
 import { HomeworkService } from '../../core/services/homework.service';
-import { SubjectDropdownItem, SubjectService } from '../../core/services/subject.service';
 import { AppHeaderService } from '../../core/services/app-header.service';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
+import { SoSelectComponent, SoSelectOption } from '../../shared/components/so-select/so-select.component';
+import {
+  SoMultiChipOption,
+  SoMultiChipsComponent,
+} from '../../shared/components/so-multi-chips/so-multi-chips.component';
 import { pickStr } from '../../core/utils/api-mapper.util';
 
 @Component({
@@ -37,6 +42,8 @@ import { pickStr } from '../../core/utils/api-mapper.util';
     FormsModule,
     AppHeaderComponent,
     SoFilterPopoverComponent,
+    SoSelectComponent,
+    SoMultiChipsComponent,
     IonContent,
     IonIcon,
     IonFab,
@@ -51,19 +58,22 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   private readonly header = inject(AppHeaderService);
   private subs = new Subscription();
   private readonly classService = inject(ClassService);
-  private readonly subjectService = inject(SubjectService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastController);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
 
   items: HomeworkListItem[] = [];
-  classes: ClassDropdownItem[] = [];
-  subjects: SubjectDropdownItem[] = [];
+  classGroups: ClassDropdownItem[] = [];
+  sections: ClassDropdownItem[] = [];
+  groupSubjects: ClassGroupSubjectItem[] = [];
+  /** Fallback section list when classes API is unavailable. */
+  private allSections: ClassDropdownItem[] = [];
   stats: HomeworkStats = { totalAssigned: 0, dueToday: 0, totalSubmissions: 0, overdue: 0 };
 
-  classFilter = '';
-  subjectFilter = '';
+  classGroupFilter = '';
+  sectionFilterIds: string[] = [];
+  subjectFilterIds: string[] = [];
   chipFilter = 'all';
   filterOpen = false;
   searchQuery = '';
@@ -85,15 +95,56 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     return !this.ayContext.isReadOnlyScope() && this.permissions.canAdd(MenuCodes.Homework);
   }
 
-  get classFilterLabel(): string {
-    if (!this.classFilter) return 'All classes';
-    return this.classes.find((c) => c.id === this.classFilter)?.name ?? 'Class';
+  get classGroupOptions(): SoSelectOption[] {
+    return [
+      { value: '', label: 'All class groups' },
+      ...this.classGroups.map((g) => ({ value: g.id, label: g.name })),
+    ];
+  }
+
+  get sectionOptions(): SoMultiChipOption[] {
+    return this.sections.map((s) => ({
+      value: s.id,
+      label: this.sectionChipLabel(s),
+    }));
+  }
+
+  get subjectOptions(): SoMultiChipOption[] {
+    return this.groupSubjects.map((s) => ({
+      value: s.subjectId,
+      label: s.subjectName || 'Subject',
+    }));
+  }
+
+  get classGroupFilterLabel(): string {
+    if (!this.classGroupFilter) return 'All class groups';
+    return this.classGroups.find((g) => g.id === this.classGroupFilter)?.name ?? 'Class group';
+  }
+
+  get sectionFilterLabel(): string {
+    if (!this.classGroupFilter) return 'All sections';
+    if (!this.sectionFilterIds.length || this.sectionFilterIds.length >= this.sections.length) {
+      return 'All sections';
+    }
+    if (this.sectionFilterIds.length === 1) {
+      const s = this.sections.find((x) => x.id === this.sectionFilterIds[0]);
+      return s ? this.sectionChipLabel(s) : '1 section';
+    }
+    return `${this.sectionFilterIds.length} sections`;
   }
 
   get subjectFilterLabel(): string {
-    if (!this.subjectFilter) return 'All subjects';
-    const s = this.subjects.find((x) => x.id === this.subjectFilter);
-    return s ? this.subjectLabel(s) : 'Subject';
+    if (!this.classGroupFilter) return 'All subjects';
+    if (!this.subjectFilterIds.length || this.subjectFilterIds.length >= this.groupSubjects.length) {
+      return 'All subjects';
+    }
+    if (this.subjectFilterIds.length === 1) {
+      return (
+        this.groupSubjects.find((s) => s.subjectId === this.subjectFilterIds[0])?.subjectName ??
+        '1 subject'
+      );
+    }
+    return `${this.subjectFilterIds.length} subjects`;
   }
 
   get chipFilterLabel(): string {
@@ -122,11 +173,27 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   }
 
   loadDropdowns(): void {
-    this.classService.getClassDropdown().subscribe({
-      next: (c) => (this.classes = c || []),
+    this.classService.getClassDropdown('group').subscribe({
+      next: (groups) => (this.classGroups = groups || []),
     });
-    this.subjectService.getSubjectDropdown().subscribe({
-      next: (s) => (this.subjects = s || []),
+    this.classService.getClassDropdown().subscribe({
+      next: (sections) => (this.allSections = sections || []),
+    });
+  }
+
+  onClassGroupChange(groupId: string): void {
+    this.classGroupFilter = groupId ?? '';
+    this.sectionFilterIds = [];
+    this.subjectFilterIds = [];
+    this.sections = [];
+    this.groupSubjects = [];
+
+    if (!this.classGroupFilter) return;
+
+    this.loadSectionsForGroup(this.classGroupFilter);
+    this.classService.getClassGroupSubjects(this.classGroupFilter).subscribe({
+      next: (subjects) => (this.groupSubjects = subjects || []),
+      error: () => (this.groupSubjects = []),
     });
   }
 
@@ -147,11 +214,26 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   loadList(): void {
     this.loading = true;
     const status = this.chipFilter === 'all' ? undefined : this.chipFilter;
+    const effectiveClassIds = this.resolveEffectiveClassIds();
+    const effectiveSubjectIds = this.resolveEffectiveSubjectIds();
+
+    const apiClassId = effectiveClassIds?.length === 1 ? effectiveClassIds[0] : undefined;
+    const apiSubjectId = effectiveSubjectIds?.length === 1 ? effectiveSubjectIds[0] : undefined;
+
     this.homeworkService
-      .getList(this.classFilter || undefined, this.subjectFilter || undefined, status, this.searchQuery || undefined)
+      .getList(apiClassId, apiSubjectId, status, this.searchQuery || undefined)
       .subscribe({
         next: (list) => {
-          this.items = (list || []).map((item) => this.normalizeListItem(item));
+          let items = (list || []).map((item) => this.normalizeListItem(item));
+          if (effectiveClassIds !== null) {
+            const allowed = new Set(effectiveClassIds);
+            items = items.filter((item) => allowed.has(item.classId));
+          }
+          if (effectiveSubjectIds !== null) {
+            const allowed = new Set(effectiveSubjectIds);
+            items = items.filter((item) => allowed.has(item.subjectId));
+          }
+          this.items = items;
           this.loading = false;
         },
         error: () => {
@@ -167,19 +249,17 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     (event.target as HTMLIonRefresherElement).complete();
   }
 
-  setChip(filter: string): void {
-    this.chipFilter = filter;
-    this.loadList();
-  }
-
   applyFilters(): void {
     this.filterOpen = false;
     this.loadList();
   }
 
   clearFilters(): void {
-    this.classFilter = '';
-    this.subjectFilter = '';
+    this.classGroupFilter = '';
+    this.sectionFilterIds = [];
+    this.subjectFilterIds = [];
+    this.sections = [];
+    this.groupSubjects = [];
     this.chipFilter = 'all';
     this.loadList();
   }
@@ -192,12 +272,57 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     void this.router.navigate(['/homework', id]);
   }
 
-  subjectLabel(s: SubjectDropdownItem): string {
-    return s.subjectName || s.name || '';
-  }
-
   statusClass(status: string): string {
     return `status-${status}`;
+  }
+
+  private loadSectionsForGroup(classGroupId: string): void {
+    this.classService.getSectionsByClassGroup(classGroupId).subscribe({
+      next: (sections) => {
+        this.sections = sections || [];
+        if (!this.sections.length) {
+          this.sections = this.sectionsFromNameFallback(classGroupId);
+        }
+      },
+      error: () => {
+        this.sections = this.sectionsFromNameFallback(classGroupId);
+      },
+    });
+  }
+
+  private sectionsFromNameFallback(classGroupId: string): ClassDropdownItem[] {
+    const groupName = this.classGroups.find((g) => g.id === classGroupId)?.name?.trim();
+    if (!groupName) return [];
+    const prefix = `${groupName} - `;
+    return this.allSections.filter((s) => (s.name || '').startsWith(prefix));
+  }
+
+  private sectionChipLabel(section: ClassDropdownItem): string {
+    const name = section.name || '';
+    const idx = name.lastIndexOf(' - ');
+    return idx >= 0 ? name.slice(idx + 3) : name;
+  }
+
+  /** null = no class restriction; array = restrict to these class ids. */
+  private resolveEffectiveClassIds(): string[] | null {
+    if (!this.classGroupFilter) return null;
+    if (!this.sections.length) return [];
+    if (!this.sectionFilterIds.length || this.sectionFilterIds.length >= this.sections.length) {
+      return this.sections.map((s) => s.id);
+    }
+    return [...this.sectionFilterIds];
+  }
+
+  private resolveEffectiveSubjectIds(): string[] | null {
+    if (!this.classGroupFilter) return null;
+    if (!this.groupSubjects.length) return null;
+    if (
+      !this.subjectFilterIds.length ||
+      this.subjectFilterIds.length >= this.groupSubjects.length
+    ) {
+      return null;
+    }
+    return [...this.subjectFilterIds];
   }
 
   private normalizeListItem(raw: HomeworkListItem | Record<string, unknown>): HomeworkListItem {

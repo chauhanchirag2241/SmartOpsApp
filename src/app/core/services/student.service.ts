@@ -59,7 +59,6 @@ export class StudentService {
       rollNumber: (raw['rollNumber'] ?? raw['RollNumber']) as string | null,
       class: (raw['class'] ?? raw['Class']) as string | null,
       attendance: (raw['attendance'] ?? raw['Attendance']) as string | null,
-      fees: (raw['fees'] ?? raw['Fees']) as string | null,
       status: (raw['status'] ?? raw['Status']) as string | null,
       isActive: !!(raw['isActive'] ?? raw['IsActive']),
       enrollmentIsActive: !!(raw['enrollmentIsActive'] ?? raw['EnrollmentIsActive']),

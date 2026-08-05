@@ -1,0 +1,38 @@
+<article class="hd-spot" [attr.data-tone]="card.tone || 'green'">
+  <div class="hd-spot-head">
+    <h3>{{ card.title }}</h3>
+    @if (card.viewAllLabel) {
+      <button type="button" class="hd-spot-link" (click)="viewAll.emit(card)">
+        {{ card.viewAllLabel }} <span aria-hidden="true">›</span>
+      </button>
+    }
+  </div>
+
+  @if (card.progress != null) {
+    <div class="hd-spot-progress">
+      <div class="hd-spot-progress-bar">
+        <span [style.width.%]="progressPct"></span>
+      </div>
+    </div>
+  }
+
+  @if (card.progressLabel) {
+    <p class="hd-spot-meta">{{ card.progressLabel }}</p>
+  }
+
+  @if (card.metaValue) {
+    <div class="hd-spot-stat">
+      @if (card.metaIcon) {
+        <span class="hd-spot-stat-icon">{{ card.metaIcon }}</span>
+      }
+      <strong>{{ card.metaValue }}</strong>
+    </div>
+  }
+
+  <button type="button" class="hd-spot-cta" (click)="cta.emit(card)">
+    @if (card.ctaIcon) {
+      <ion-icon [name]="card.ctaIcon"></ion-icon>
+    }
+    {{ card.ctaLabel }}
+  </button>
+</article>

@@ -1,0 +1,26 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.so-select {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  border: 1px solid var(--so-outline-variant);
+  border-radius: var(--so-radius);
+  background: var(--so-surface-container-low);
+  color: var(--so-on-surface);
+  font-size: 14px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --highlight-color-focused: var(--so-primary);
+  --highlight-color-valid: var(--so-primary);
+  --placeholder-color: var(--so-outline);
+  --placeholder-opacity: 1;
+}
+
+.so-select::part(icon) {
+  color: var(--so-primary);
+  opacity: 1;
+}

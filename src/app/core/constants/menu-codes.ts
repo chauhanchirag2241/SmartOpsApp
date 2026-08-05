@@ -5,11 +5,11 @@ export const MenuCodes = {
   Students: 'STUDENTS',
   Teachers: 'TEACHERS',
   Classes: 'CLASSES',
-  FeesCollection: 'FEES_COLLECTION',
   SalaryPayroll: 'SALARY_PAYROLL',
   LeaveStaff: 'LEAVE_STAFF',
   LeaveStudent: 'LEAVE_STUDENT',
   MyActions: 'MY_ACTIONS',
+  StaffAttendance: 'STAFF_ATTENDANCE',
 } as const;
 
 export type MenuCode = (typeof MenuCodes)[keyof typeof MenuCodes];

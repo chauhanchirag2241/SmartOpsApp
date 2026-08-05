@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.filter-chip-group.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.so-multi-empty {
+  font-size: 12px;
+  color: var(--so-on-surface-variant);
+  padding: 8px 2px;
+}

@@ -31,7 +31,6 @@
     <span>Total: <strong>{{ stats.total }}</strong></span>
     <span class="present">P: {{ stats.present }}</span>
     <span class="absent">A: {{ stats.absent }}</span>
-    <span class="leave">L: {{ stats.leave }}</span>
     <span class="late">Late: {{ stats.late }}</span>
   </section>
 
@@ -89,13 +88,6 @@
                 [disabled]="!canEdit"
                 (click)="setStatus(s.id, 'late')"
               >L</button>
-              <button
-                type="button"
-                class="st-btn t"
-                [class.active]="isStatusActive(s.id, 'leave')"
-                [disabled]="!canEdit"
-                (click)="setStatus(s.id, 'leave')"
-              >T</button>
             </div>
             <button type="button" class="remark-btn" [disabled]="!canEdit" (click)="openRemarks(s.id)">
               <ion-icon name="document-text-outline"></ion-icon>

@@ -1,73 +1,80 @@
-<app-header title="School Manager" searchPlaceholder="Search modules..." />
+<ion-content class="hd-page" [fullscreen]="true">
+  <app-hd-user-header
+    [info]="headerInfo"
+    (notifications)="profileOpen = false"
+    (profile)="profileOpen = true"
+  />
 
-<ion-content class="so-page dashboard-page">
-  <section class="welcome-banner">
-    <div class="welcome-text">
-      <p class="welcome-label">Welcome back,</p>
-      <h2 class="welcome-name">{{ userName }}</h2>
-      @if (roleLabel) {
-        <div class="role-badge">
-          <ion-icon name="shield-checkmark-outline"></ion-icon>
-          <span>{{ roleLabel }} Access</span>
+  <div class="hd-body">
+    @if (spotlight.length) {
+      <section class="hd-spot-rail-wrap">
+        <div class="hd-spot-rail" (scroll)="onSpotScroll($event)">
+          @for (card of spotlight; track card.id) {
+            <app-hd-spotlight-card
+              [card]="card"
+              (cta)="openSpotlight($event)"
+              (viewAll)="openSpotlight($event)"
+            />
+          }
         </div>
-      }
-      @if (ay.currentYear(); as year) {
-        <p class="year-line">{{ year.name }}</p>
-      }
-    </div>
-    <ion-icon class="welcome-watermark" name="school-outline"></ion-icon>
-  </section>
+        @if (spotlight.length > 1) {
+          <div class="hd-dots" aria-hidden="true">
+            @for (card of spotlight; track card.id; let i = $index) {
+              <span class="hd-dot" [class.active]="i === activeSpotIndex"></span>
+            }
+          </div>
+        }
+      </section>
+    }
 
-  <section class="modules-section">
-    <div class="section-head">
-      <div>
-        <h3>My Modules</h3>
-        <p>Manage your classroom operations</p>
-      </div>
-      <span class="module-count">{{ visibleModules.length }} modules</span>
-    </div>
+    @if (primaryActions.length) {
+      <section class="hd-section">
+        <h2 class="hd-section-title">Primary actions</h2>
+        <div class="hd-primary-grid">
+          @for (action of primaryActions; track action.id) {
+            <app-hd-primary-action-card [action]="action" (open)="openPrimary($event)" />
+          }
+        </div>
+      </section>
+    }
 
-    @if (!allModules.length) {
-      <div class="so-empty">
+    @if (moreActions.length) {
+      <section class="hd-section">
+        <h2 class="hd-section-title">More actions</h2>
+        <div class="hd-more-grid">
+          @for (action of moreActions; track action.id) {
+            <app-hd-more-action-tile [action]="action" (open)="openMore($event)" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (!spotlight.length && !primaryActions.length && !moreActions.length) {
+      <div class="hd-empty">
         <h3>No modules assigned</h3>
         <p>Contact your administrator for menu access.</p>
       </div>
-    } @else if (!visibleModules.length) {
-      <div class="so-empty">
-        <h3>No modules match</h3>
-        <p>Try a different search.</p>
-      </div>
-    } @else {
-      <div class="modules-grid">
-        @for (mod of visibleModules; track mod.menuCode) {
-          <button
-            type="button"
-            class="module-tile"
-            [class.locked]="!mod.availableOnMobile"
-            (click)="openModule(mod)"
-          >
-            <div class="module-icon-wrap">
-              @if (mod.availableOnMobile) {
-                <ion-icon [name]="mod.icon"></ion-icon>
-              } @else {
-                <ion-icon name="lock-closed-outline" class="lock-icon"></ion-icon>
-              }
-            </div>
-            <span class="module-label">{{ mod.name }}</span>
-          </button>
-        }
-      </div>
     }
-  </section>
-
-  <section class="stats-section">
-    <div class="stat-card">
-      <p class="stat-label">Today's Attendance</p>
-      <p class="stat-value">{{ attendanceStatLabel }}</p>
-    </div>
-    <div class="stat-card">
-      <p class="stat-label">Pending Homework</p>
-      <p class="stat-value">{{ homeworkStatLabel }}</p>
-    </div>
-  </section>
+  </div>
 </ion-content>
+
+<ion-popover [isOpen]="profileOpen" (didDismiss)="profileOpen = false" side="bottom" alignment="end">
+  <ng-template>
+    <div class="hd-profile-pop">
+      <div class="hd-profile-head">
+        <div class="hd-profile-avatar">{{ headerInfo.initials }}</div>
+        <div>
+          <strong>{{ headerInfo.displayName }}</strong>
+          <p>{{ headerInfo.roleBadge }}</p>
+          @if (ay.currentYear(); as year) {
+            <p class="hd-year">{{ year.name }}</p>
+          }
+        </div>
+      </div>
+      <button type="button" class="hd-sign-out" (click)="signOut()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        Sign out
+      </button>
+    </div>
+  </ng-template>
+</ion-popover>

@@ -1,0 +1,134 @@
+:host {
+  display: block;
+  width: 100%;
+  background: #2f6b18;
+}
+
+.hd-header {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #2f6b18;
+  background-image: linear-gradient(165deg, #1a4210 0%, #2f6b18 45%, #3f8524 100%);
+  color: #ffffff;
+  padding: 18px 18px 56px;
+  border-radius: 0 0 28px 28px;
+}
+
+.hd-header-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.14) 0 42px, transparent 43px),
+    radial-gradient(circle at 78% 8%, rgba(255, 255, 255, 0.12) 0 56px, transparent 57px),
+    radial-gradient(circle at 92% 62%, rgba(255, 255, 255, 0.1) 0 48px, transparent 49px),
+    radial-gradient(circle at 8% 78%, rgba(163, 212, 110, 0.22) 0 70px, transparent 71px);
+}
+
+.hd-header-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hd-header-text {
+  color: #ffffff;
+  min-width: 0;
+}
+
+.hd-greeting {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #ffffff;
+}
+
+.hd-wave {
+  font-size: 18px;
+}
+
+.hd-date {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hd-context {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hd-role-pill {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.hd-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.hd-icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+    color: #ffffff;
+  }
+
+  &--warm {
+    background: #a6703a;
+  }
+
+  &--bell {
+    background: #d6aa28;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+}
+
+.hd-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: #ffffff;
+  color: #1f4d12;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}

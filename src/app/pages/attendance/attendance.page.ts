@@ -97,7 +97,6 @@ export class AttendancePage implements OnInit, OnDestroy {
     { value: 'all', label: 'All' },
     { value: 'present', label: 'Present' },
     { value: 'absent', label: 'Absent' },
-    { value: 'leave', label: 'Leave' },
     { value: 'late', label: 'Late' },
   ];
 
@@ -144,11 +143,10 @@ export class AttendancePage implements OnInit, OnDestroy {
     const vals = this.students.map((s) => this.status[s.id] || '');
     const present = vals.filter((s) => s === 'present').length;
     const absent = vals.filter((s) => s === 'absent').length;
-    const leave = vals.filter((s) => s === 'leave').length;
     const late = vals.filter((s) => s === 'late').length;
     const total = this.students.length;
-    const marked = present + absent + leave + late;
-    return { total, present, absent, leave, late, marked };
+    const marked = present + absent + late;
+    return { total, present, absent, late, marked };
   }
 
   ngOnInit(): void {

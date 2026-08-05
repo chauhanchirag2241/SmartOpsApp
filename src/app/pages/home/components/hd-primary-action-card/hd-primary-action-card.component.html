@@ -1,0 +1,9 @@
+<button type="button" class="hd-pa" [attr.data-tone]="action.tone" (click)="open.emit(action)">
+  <span class="hd-pa-icon">
+    <ion-icon [name]="action.icon"></ion-icon>
+  </span>
+  <span class="hd-pa-text">
+    <strong>{{ action.title }}</strong>
+    <small>{{ action.subtitle }}</small>
+  </span>
+</button>

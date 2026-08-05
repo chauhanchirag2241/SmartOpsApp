@@ -1,11 +1,10 @@
 export enum AttendanceStatus {
   Present = 1,
   Absent = 2,
-  Leave = 3,
-  Late = 4,
+  Late = 3,
 }
 
-export type AttendanceStatusKey = '' | 'present' | 'absent' | 'leave' | 'late';
+export type AttendanceStatusKey = '' | 'present' | 'absent' | 'late';
 
 export interface StudentAttendanceItem {
   studentId: string;
@@ -26,7 +25,6 @@ export interface ClassAttendanceResponse {
   total: number;
   present: number;
   absent: number;
-  leave: number;
   late: number;
   isSubmitted: boolean;
   students: AttendanceStudentRow[];

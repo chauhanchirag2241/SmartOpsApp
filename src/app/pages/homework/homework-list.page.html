@@ -31,7 +31,8 @@
   </section>
 
   <div class="active-filters-bar">
-    <span>{{ classFilterLabel }}</span>
+    <span>{{ classGroupFilterLabel }}</span>
+    <span>{{ sectionFilterLabel }}</span>
     <span>{{ subjectFilterLabel }}</span>
     @if (chipFilter !== 'all') {
       <span>{{ chipFilterLabel }}</span>
@@ -81,29 +82,44 @@
 
 <so-filter-popover
   [isOpen]="filterOpen"
-  [initialBreakpoint]="0.68"
+  [initialBreakpoint]="0.78"
   (closed)="filterOpen = false"
   (cleared)="clearFilters()"
   (applied)="applyFilters()"
 >
   <div class="filter-field">
-    <label>Class</label>
-    <select class="so-filter-select" [(ngModel)]="classFilter">
-      <option value="">All classes</option>
-      @for (c of classes; track c.id) {
-        <option [value]="c.id">{{ c.name }}</option>
-      }
-    </select>
+    <label>Class group</label>
+    <so-select
+      [options]="classGroupOptions"
+      placeholder="All class groups"
+      ariaLabel="Class group"
+      [(ngModel)]="classGroupFilter"
+      (valueChange)="onClassGroupChange($event)"
+    />
   </div>
+
   <div class="filter-field">
-    <label>Subject</label>
-    <select class="so-filter-select" [(ngModel)]="subjectFilter">
-      <option value="">All subjects</option>
-      @for (s of subjects; track s.id) {
-        <option [value]="s.id">{{ subjectLabel(s) }}</option>
-      }
-    </select>
+    <label>Sections</label>
+    <so-multi-chips
+      [options]="sectionOptions"
+      [(ngModel)]="sectionFilterIds"
+      [disabled]="!classGroupFilter"
+      allLabel="All"
+      emptyHint="Select a class group first"
+    />
   </div>
+
+  <div class="filter-field">
+    <label>Subjects</label>
+    <so-multi-chips
+      [options]="subjectOptions"
+      [(ngModel)]="subjectFilterIds"
+      [disabled]="!classGroupFilter"
+      allLabel="All"
+      emptyHint="Select a class group first"
+    />
+  </div>
+
   <div class="filter-field">
     <label>Status</label>
     <div class="filter-chip-group">

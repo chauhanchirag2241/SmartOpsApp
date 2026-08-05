@@ -1,0 +1,70 @@
+:host {
+  display: block;
+}
+
+.hd-pa {
+  width: 100%;
+  min-height: 104px;
+  border: 0;
+  border-radius: 20px;
+  padding: 16px 14px;
+  text-align: left;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 10px 22px rgba(31, 42, 26, 0.12);
+}
+
+.hd-pa-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 22px;
+    color: #fff;
+  }
+}
+
+.hd-pa-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  small {
+    font-size: 11.5px;
+    opacity: 0.9;
+    font-weight: 500;
+  }
+}
+
+.hd-pa[data-tone='green'] {
+  background: linear-gradient(145deg, #639922, #4f8218);
+}
+.hd-pa[data-tone='teal'] {
+  background: linear-gradient(145deg, #2a9d8f, #1f7a6f);
+}
+.hd-pa[data-tone='orange'] {
+  background: linear-gradient(145deg, #fb8c00, #ef6c00);
+}
+.hd-pa[data-tone='blue'] {
+  background: linear-gradient(145deg, #1e88e5, #1565c0);
+}
+.hd-pa[data-tone='purple'] {
+  background: linear-gradient(145deg, #7e57c2, #5e35b1);
+}
+.hd-pa[data-tone='brown'] {
+  background: linear-gradient(145deg, #8d6e63, #6d4c41);
+}

@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.hd-more {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hd-more-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(31, 42, 26, 0.06);
+
+  ion-icon {
+    font-size: 26px;
+  }
+}
+
+.hd-more-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5b6b54;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 72px;
+}

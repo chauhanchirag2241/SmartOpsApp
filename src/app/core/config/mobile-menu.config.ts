@@ -55,14 +55,6 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     icon: 'people-outline',
     color: 'primary',
   },
-  [MenuCodes.FeesCollection]: {
-    menuCode: MenuCodes.FeesCollection,
-    title: 'Fee Collection',
-    subtitle: 'Collect and track student fees',
-    route: '/fees/collection',
-    icon: 'card-outline',
-    color: 'primary',
-  },
   [MenuCodes.LeaveStaff]: {
     menuCode: MenuCodes.LeaveStaff,
     title: 'Staff Leave',
@@ -85,6 +77,14 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     subtitle: 'Pending approvals and responses',
     route: '/my-actions',
     icon: 'checkmark-circle-outline',
+    color: 'success',
+  },
+  [MenuCodes.StaffAttendance]: {
+    menuCode: MenuCodes.StaffAttendance,
+    title: 'Staff Attendance',
+    subtitle: 'Check in and check out',
+    route: '/staff-attendance',
+    icon: 'finger-print-outline',
     color: 'success',
   },
 };
