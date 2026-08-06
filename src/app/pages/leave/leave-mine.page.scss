@@ -1,27 +1,31 @@
 .leave-mine-page {
-  --background: #f4f5f0;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: 28px;
 }
 
-.page-pad {
-  padding: 16px 16px 88px;
+.leave-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 88px;
 }
 
 .section-head {
-  margin-bottom: 14px;
-
   h2 {
     margin: 0;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #5b6b54;
+    color: var(--so-ink-soft, #5b6b54);
   }
 
   p {
     margin: 4px 0 0;
     font-size: 13px;
-    color: #8a9880;
+    color: var(--so-ink-faint, #8a9880);
   }
 }
 
@@ -31,18 +35,25 @@
   padding: 40px 0;
 }
 
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .empty-card,
-.balance-card {
-  background: #fff;
-  border: 1px solid #dfe8d1;
+.balance-card,
+.history-card {
+  background: var(--so-card-bg, #fff);
+  border: 1px solid var(--so-line, #dfe8d1);
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(31, 42, 26, 0.05);
+  box-shadow: var(--so-shadow, 0 4px 14px rgba(31, 42, 26, 0.05));
 }
 
 .empty-card {
   text-align: center;
   padding: 28px 18px;
-  color: #8a9880;
+  color: var(--so-ink-faint, #8a9880);
 
   ion-icon {
     font-size: 36px;
@@ -52,7 +63,7 @@
 
   h3 {
     margin: 0 0 6px;
-    color: #1f2a1a;
+    color: var(--so-ink, #1f2a1a);
     font-size: 16px;
   }
 
@@ -60,12 +71,6 @@
     margin: 0;
     font-size: 13px;
   }
-}
-
-.balance-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .balance-card {
@@ -80,13 +85,13 @@
 
   strong {
     font-size: 14px;
-    color: #1f2a1a;
+    color: var(--so-ink, #1f2a1a);
   }
 
   .closing {
     font-size: 22px;
     font-weight: 800;
-    color: #3b6d11;
+    color: var(--so-primary-dark, #3b6d11);
   }
 }
 
@@ -99,11 +104,97 @@
   span {
     font-size: 11.5px;
     font-weight: 600;
-    color: #5b6b54;
-    background: #eaf3de;
+    color: var(--so-ink-soft, #5b6b54);
+    background: var(--so-primary-light, #eaf3de);
     border-radius: 999px;
     padding: 4px 10px;
   }
+}
+
+.history-card {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.history-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 14px;
+    color: var(--so-ink, #1f2a1a);
+  }
+
+  .days {
+    font-size: 12px;
+    color: var(--so-ink-faint, #8a9880);
+  }
+}
+
+.status-pill {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.status-pending {
+  color: #9a6700;
+  background: #fff4d6;
+}
+
+.status-approved {
+  color: #3b6d11;
+  background: #eaf3de;
+}
+
+.status-rejected {
+  color: #b42318;
+  background: #fee4e2;
+}
+
+.status-cancelled,
+.status-draft {
+  color: #5b6b54;
+  background: #edefe6;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--so-ink, #1f2a1a);
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--so-ink-faint, #8a9880);
+  }
+
+  &.muted {
+    color: var(--so-ink-faint, #8a9880);
+    font-size: 12px;
+  }
+}
+
+.reason {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--so-ink-soft, #5b6b54);
 }
 
 ion-fab-button {

@@ -1,0 +1,21 @@
+<div
+  class="so-segment"
+  [class.layout-hug]="layout === 'hug'"
+  [class.is-disabled]="disabled"
+  role="tablist"
+  [attr.aria-label]="ariaLabel"
+>
+  @for (opt of options; track opt.value) {
+    <button
+      type="button"
+      class="so-segment-btn"
+      role="tab"
+      [attr.aria-selected]="isActive(opt.value)"
+      [disabled]="disabled || opt.disabled"
+      [class.active]="isActive(opt.value)"
+      (click)="select(opt.value)"
+    >
+      {{ opt.label }}
+    </button>
+  }
+</div>

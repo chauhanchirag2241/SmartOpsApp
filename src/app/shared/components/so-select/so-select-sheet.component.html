@@ -7,13 +7,15 @@
     <button type="button" class="sheet-close" (click)="close()">Close</button>
   </header>
 
-  <ion-searchbar
-    class="select-search"
-    mode="ios"
-    [placeholder]="searchPlaceholder"
-    [debounce]="0"
-    (ionInput)="onSearch($event)"
-  />
+  @if (showSearch) {
+    <ion-searchbar
+      class="select-search"
+      mode="ios"
+      [placeholder]="searchPlaceholder"
+      [debounce]="0"
+      (ionInput)="onSearch($event)"
+    />
+  }
 
   <div class="option-list" role="listbox">
     @for (opt of filteredOptions; track opt.value) {

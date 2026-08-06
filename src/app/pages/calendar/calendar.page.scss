@@ -1,0 +1,434 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.calendar-page {
+  --padding-bottom: 24px;
+}
+
+.calendar-card {
+  margin: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #dfe8d1;
+  box-shadow: 0 4px 14px rgba(31, 42, 26, 0.05);
+}
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  strong {
+    font-size: 15px;
+    color: #1f2a1a;
+  }
+}
+
+.cal-nav {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: #eaf3de;
+  color: #3b6d11;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.cal-loading {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0;
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+
+  span {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #8a9880;
+  }
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2a1a;
+  background: #f7f9f2;
+  padding: 0;
+  position: relative;
+
+  &.is-blank {
+    background: transparent;
+    pointer-events: none;
+  }
+
+  &.is-today {
+    box-shadow: inset 0 0 0 2px #90caf9;
+  }
+
+  &.has-items {
+    cursor: pointer;
+  }
+
+  &:disabled:not(.is-blank) {
+    opacity: 1;
+    cursor: default;
+  }
+
+  &[data-tone='holiday'] {
+    background: #e1bee7;
+    color: #6a1b9a;
+  }
+  &[data-tone='event'] {
+    background: #b3e5fc;
+    color: #0277bd;
+  }
+  &[data-tone='exam'] {
+    background: #ffe0b2;
+    color: #e65100;
+  }
+  /* Slate — clearly different from Present green */
+  &[data-tone='weekend'] {
+    background: #eceff1;
+    color: #455a64;
+  }
+  &[data-tone='present'] {
+    background: #c8e6c9;
+    color: #1b5e20;
+  }
+  &[data-tone='leave'] {
+    background: #bbdefb;
+    color: #1565c0;
+  }
+  &[data-tone='late'] {
+    background: #ffe082;
+    color: #f57f17;
+  }
+  &[data-tone='halfday'] {
+    background: #b2dfdb;
+    color: #00695c;
+  }
+  &[data-tone='absent'] {
+    background: #ffcdd2;
+    color: #c62828;
+  }
+  &[data-tone='mixed'] {
+    background: #d7ccc8;
+    color: #4e342e;
+  }
+}
+
+.day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.75;
+}
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+
+  span {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 8px;
+    color: #5f6b57;
+
+    &[data-tone='holiday'] {
+      background: #e1bee7;
+      color: #6a1b9a;
+    }
+    &[data-tone='event'] {
+      background: #b3e5fc;
+      color: #0277bd;
+    }
+    &[data-tone='exam'] {
+      background: #ffe0b2;
+      color: #e65100;
+    }
+    &[data-tone='weekend'] {
+      background: #eceff1;
+      color: #455a64;
+    }
+    &[data-tone='present'] {
+      background: #c8e6c9;
+      color: #1b5e20;
+    }
+    &[data-tone='leave'] {
+      background: #bbdefb;
+      color: #1565c0;
+    }
+    &[data-tone='late'] {
+      background: #ffe082;
+      color: #f57f17;
+    }
+    &[data-tone='halfday'] {
+      background: #b2dfdb;
+      color: #00695c;
+    }
+  }
+}
+
+.cal-hint {
+  margin: 0 20px;
+  font-size: 13px;
+  color: #8a9880;
+  text-align: center;
+}
+
+.cal-sheet {
+  padding: 10px 16px 24px;
+  background: #fff;
+  min-height: 100%;
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: #d7e0cc;
+  margin: 4px auto 14px;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 6px 0 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2a1a;
+    line-height: 1.3;
+  }
+}
+
+.sheet-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a9880;
+}
+
+.sheet-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.sheet-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #f3f6ee;
+  color: #5f6b57;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.kind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &[data-kind='holiday'] {
+    background: #f3e5f5;
+    color: #8e24aa;
+  }
+  &[data-kind='event'] {
+    background: #e3f2fd;
+    color: #1e88e5;
+  }
+  &[data-kind='exam'] {
+    background: #fff3e0;
+    color: #ef6c00;
+  }
+}
+
+.detail-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f7f9f2;
+}
+
+.detail-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  color: #3b6d11;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.detail-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #8a9880;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2a1a;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.sheet-done {
+  margin-top: 18px;
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #3b6d11;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.day-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-item-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: #f7f9f2;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.day-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &[data-kind='holiday'] {
+    background: #f3e5f5;
+    color: #8e24aa;
+  }
+  &[data-kind='event'] {
+    background: #e3f2fd;
+    color: #1e88e5;
+  }
+  &[data-kind='exam'] {
+    background: #fff3e0;
+    color: #ef6c00;
+  }
+}
+
+.day-item-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 14px;
+    color: #1f2a1a;
+  }
+
+  small {
+    font-size: 12px;
+    color: #8a9880;
+    text-transform: capitalize;
+  }
+}

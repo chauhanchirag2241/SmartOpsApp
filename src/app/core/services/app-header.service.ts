@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 export interface AppHeaderConfig {
   title: string;
@@ -12,7 +13,7 @@ export interface AppHeaderConfig {
 @Injectable({ providedIn: 'root' })
 export class AppHeaderService {
   private readonly searchQuerySubject = new BehaviorSubject('');
-  readonly searchQuery$ = this.searchQuerySubject.asObservable();
+  readonly searchQuery$ = this.searchQuerySubject.pipe(distinctUntilChanged());
 
   private readonly filterClickSubject = new Subject<void>();
   readonly filterClick$ = this.filterClickSubject.asObservable();
@@ -31,7 +32,10 @@ export class AppHeaderService {
     this.backHref = config.backHref ?? '/tabs/home';
     this.searchPlaceholder = config.searchPlaceholder ?? 'Search...';
     this.searchExpanded = false;
-    this.searchQuerySubject.next('');
+    // Avoid re-emitting '' — BehaviorSubject.next always notifies even when unchanged.
+    if (this.searchQuerySubject.value !== '') {
+      this.searchQuerySubject.next('');
+    }
   }
 
   setSearchQuery(query: string): void {

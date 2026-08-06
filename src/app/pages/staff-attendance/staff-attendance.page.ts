@@ -12,8 +12,6 @@ import { addIcons } from 'ionicons';
 import {
   cameraOutline,
   checkmarkCircleOutline,
-  chevronBackOutline,
-  chevronForwardOutline,
   fingerPrintOutline,
   logInOutline,
   logOutOutline,
@@ -21,27 +19,17 @@ import {
 } from 'ionicons/icons';
 import {
   EmployeeAttendanceSettings,
-  MyMonthAttendance,
   StaffAttendanceRow,
   StaffPunchType,
 } from '../../core/models/staff-attendance.model';
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
-import { LeaveListItem, LeaveRequestStatus, LeaveService } from '../../core/services/leave.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { StaffAttendanceService } from '../../core/services/staff-attendance.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { formatDisplayDate, localDateString } from '../../core/utils/api-mapper.util';
 import { SoToastTone } from '../../shared/icons/so-icons';
-
-export type DayTone = 'present' | 'absent' | 'leave' | 'holiday' | 'late' | 'half' | 'empty';
-
-interface CalendarCell {
-  day: number | null;
-  tone: DayTone;
-  label: string;
-}
 
 @Component({
   selector: 'app-staff-attendance',
@@ -61,7 +49,6 @@ export class StaffAttendancePage implements OnInit {
   @ViewChild('enrollInput') enrollInput?: ElementRef<HTMLInputElement>;
 
   private readonly service = inject(StaffAttendanceService);
-  private readonly leaveService = inject(LeaveService);
   private readonly toast = inject(ToastService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly permissions = inject(PermissionService);
@@ -74,22 +61,10 @@ export class StaffAttendancePage implements OnInit {
   isEnrolling = false;
   faceMode: 'punch' | 'enroll' | null = null;
 
-  viewYear = new Date().getFullYear();
-  viewMonth = new Date().getMonth() + 1;
-  calendarCells: CalendarCell[] = [];
-  calendarLoading = false;
-  private dailyStatus: Record<number, string> = {};
-  private leaveDays = new Set<number>();
-  private holidayDays = new Set<number>();
-
-  readonly weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
   constructor() {
     addIcons({
       cameraOutline,
       checkmarkCircleOutline,
-      chevronBackOutline,
-      chevronForwardOutline,
       fingerPrintOutline,
       logInOutline,
       logOutOutline,
@@ -152,13 +127,6 @@ export class StaffAttendancePage implements OnInit {
     return formatDisplayDate(localDateString());
   }
 
-  get monthLabel(): string {
-    return new Date(this.viewYear, this.viewMonth - 1, 1).toLocaleDateString('en-GB', {
-      month: 'long',
-      year: 'numeric',
-    });
-  }
-
   ngOnInit(): void {
     this.loadAll();
   }
@@ -167,26 +135,6 @@ export class StaffAttendancePage implements OnInit {
     this.loadAll(() => {
       (event.target as HTMLIonRefresherElement)?.complete();
     });
-  }
-
-  prevMonth(): void {
-    if (this.viewMonth === 1) {
-      this.viewMonth = 12;
-      this.viewYear -= 1;
-    } else {
-      this.viewMonth -= 1;
-    }
-    this.loadCalendar();
-  }
-
-  nextMonth(): void {
-    if (this.viewMonth === 12) {
-      this.viewMonth = 1;
-      this.viewYear += 1;
-    } else {
-      this.viewMonth += 1;
-    }
-    this.loadCalendar();
   }
 
   loadAll(done?: () => void): void {
@@ -203,7 +151,7 @@ export class StaffAttendancePage implements OnInit {
         this.settings = this.mapSettings(settings);
         this.today = today ? this.mapRow(today) : null;
         this.isLoading = false;
-        this.loadCalendar(done);
+        done?.();
         this.cdr.markForCheck();
       },
       error: () => {
@@ -224,7 +172,6 @@ export class StaffAttendancePage implements OnInit {
         this.today = this.mapRow(row);
         this.isPunching = false;
         void this.showToast(punchType === 'checkin' ? 'Checked in' : 'Checked out', 'success');
-        this.loadCalendar();
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -273,7 +220,6 @@ export class StaffAttendancePage implements OnInit {
         this.today = this.mapRow(row);
         this.isPunching = false;
         void this.showToast('Face punch recorded', 'success');
-        this.loadCalendar();
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -303,138 +249,6 @@ export class StaffAttendancePage implements OnInit {
         this.cdr.markForCheck();
       },
     });
-  }
-
-  private loadCalendar(done?: () => void): void {
-    this.calendarLoading = true;
-    this.cdr.markForCheck();
-
-    forkJoin({
-      month: this.service.getMyMonth(this.viewMonth, this.viewYear).pipe(
-        catchError(() => of(null as MyMonthAttendance | null)),
-      ),
-      leaves: this.leaveService.getStaffMine().pipe(catchError(() => of([] as LeaveListItem[]))),
-    }).subscribe({
-      next: ({ month, leaves }) => {
-        this.dailyStatus = this.extractDailyStatus(month);
-        this.holidayDays = this.extractHolidayDays(month);
-        this.leaveDays = this.extractLeaveDays(leaves ?? []);
-        this.rebuildCalendarCells();
-        this.calendarLoading = false;
-        done?.();
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.dailyStatus = {};
-        this.leaveDays = new Set();
-        this.holidayDays = new Set();
-        this.rebuildCalendarCells();
-        this.calendarLoading = false;
-        done?.();
-        this.cdr.markForCheck();
-      },
-    });
-  }
-
-  private extractDailyStatus(month: MyMonthAttendance | Record<string, unknown> | null): Record<number, string> {
-    if (!month) return {};
-    const r = month as Record<string, unknown>;
-    const daily = (r['dailyStatus'] ?? r['DailyStatus'] ?? {}) as Record<string, string>;
-    const out: Record<number, string> = {};
-    for (const [k, v] of Object.entries(daily ?? {})) {
-      const day = Number(k);
-      if (day > 0) out[day] = String(v).toUpperCase();
-    }
-    return out;
-  }
-
-  private extractHolidayDays(month: MyMonthAttendance | Record<string, unknown> | null): Set<number> {
-    if (!month) return new Set();
-    const r = month as Record<string, unknown>;
-    const days = (r['nonWorkingDays'] ?? r['NonWorkingDays'] ?? []) as number[];
-    return new Set((days ?? []).map((d) => Number(d)).filter((d) => d > 0));
-  }
-
-  private extractLeaveDays(leaves: LeaveListItem[]): Set<number> {
-    const set = new Set<number>();
-    for (const raw of leaves ?? []) {
-      const item = this.normalizeLeave(raw);
-      if (!this.isApprovedOrSubmittedLeave(item.status)) continue;
-      const from = this.parseDateOnly(item.fromDate);
-      const to = this.parseDateOnly(item.toDate);
-      if (!from || !to) continue;
-      for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
-        if (d.getFullYear() === this.viewYear && d.getMonth() + 1 === this.viewMonth) {
-          set.add(d.getDate());
-        }
-      }
-    }
-    return set;
-  }
-
-  private isApprovedOrSubmittedLeave(status: number | string): boolean {
-    if (typeof status === 'number') {
-      return status === LeaveRequestStatus.Approved || status === LeaveRequestStatus.Submitted;
-    }
-    const s = String(status).toLowerCase();
-    return s === 'approved' || s === '2' || s === 'submitted' || s === '1';
-  }
-
-  private normalizeLeave(raw: LeaveListItem | Record<string, unknown>): LeaveListItem {
-    const r = raw as Record<string, unknown>;
-    return {
-      id: String(r['id'] ?? r['Id'] ?? ''),
-      fromDate: String(r['fromDate'] ?? r['FromDate'] ?? ''),
-      toDate: String(r['toDate'] ?? r['ToDate'] ?? ''),
-      status: (r['status'] ?? r['Status'] ?? '') as number | string,
-      statusLabel: String(r['statusLabel'] ?? r['StatusLabel'] ?? ''),
-    };
-  }
-
-  private parseDateOnly(value: string): Date | null {
-    if (!value) return null;
-    const iso = value.length >= 10 ? value.slice(0, 10) : value;
-    const d = new Date(`${iso}T12:00:00`);
-    return Number.isNaN(d.getTime()) ? null : d;
-  }
-
-  private rebuildCalendarCells(): void {
-    const first = new Date(this.viewYear, this.viewMonth - 1, 1);
-    const daysInMonth = new Date(this.viewYear, this.viewMonth, 0).getDate();
-    const startPad = first.getDay();
-    const cells: CalendarCell[] = [];
-
-    for (let i = 0; i < startPad; i++) {
-      cells.push({ day: null, tone: 'empty', label: '' });
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      cells.push(this.toneForDay(day));
-    }
-
-    while (cells.length % 7 !== 0) {
-      cells.push({ day: null, tone: 'empty', label: '' });
-    }
-
-    this.calendarCells = cells;
-  }
-
-  private toneForDay(day: number): CalendarCell {
-    if (this.leaveDays.has(day)) {
-      return { day, tone: 'leave', label: 'Leave' };
-    }
-
-    const code = this.dailyStatus[day];
-    if (code === 'P') return { day, tone: 'present', label: 'Present' };
-    if (code === 'A') return { day, tone: 'absent', label: 'Absent' };
-    if (code === 'L') return { day, tone: 'late', label: 'Late' };
-    if (code === 'H') return { day, tone: 'half', label: 'Half day' };
-
-    if (this.holidayDays.has(day)) {
-      return { day, tone: 'holiday', label: 'Holiday' };
-    }
-
-    return { day, tone: 'empty', label: '' };
   }
 
   private mapSettings(raw: EmployeeAttendanceSettings | Record<string, unknown>): EmployeeAttendanceSettings {

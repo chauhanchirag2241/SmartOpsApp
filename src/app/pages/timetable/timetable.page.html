@@ -1,0 +1,219 @@
+<app-header
+  title="Timetable"
+  [showBack]="true"
+  [showFilter]="showFilter"
+  backHref="/tabs/home"
+/>
+
+<ion-content class="so-page tt-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="tt-body">
+    @if (showMainTabs) {
+      <div class="so-toolbar-segment">
+        <so-segment
+          [options]="mainTabOptions"
+          [value]="mainTab"
+          ariaLabel="Timetable type"
+          (valueChange)="onMainTabChange($event)"
+        />
+      </div>
+    }
+
+    <div class="so-toolbar-segment tight">
+      <so-segment
+        [options]="viewOptions"
+        [value]="viewMode"
+        layout="hug"
+        ariaLabel="View mode"
+        (valueChange)="onViewModeChange($event)"
+      />
+    </div>
+
+    @if (mainTab === 'class') {
+      <button type="button" class="class-picker-card" (click)="filterOpen = true; draftClassId = selectedClassId">
+        <span class="class-icon"><ion-icon name="school-outline"></ion-icon></span>
+        <span class="class-copy">
+          <strong>{{ selectedClassName }}</strong>
+          <small>Class timetable</small>
+        </span>
+        <ion-icon class="class-chevron" name="chevron-down-outline"></ion-icon>
+      </button>
+    } @else if (myResponse?.persona === 'teacher') {
+      <div class="tt-meta-bar">
+        <span class="meta-pill">Teacher view</span>
+      </div>
+      @if (showMyClassFilter && myClassFilterOptions.length) {
+        <button
+          type="button"
+          class="class-picker-card"
+          (click)="draftMyClassIds = selectedMyClassIds.slice(); filterOpen = true"
+        >
+          <span class="class-icon"><ion-icon name="school-outline"></ion-icon></span>
+          <span class="class-copy">
+            <strong>{{ myClassFilterLabel }}</strong>
+            <small>Filter week by class</small>
+          </span>
+          <ion-icon class="class-chevron" name="chevron-down-outline"></ion-icon>
+        </button>
+      }
+    } @else if (myResponse?.persona === 'student' && myResponse?.className) {
+      <div class="tt-meta-bar">
+        <span class="meta-pill">{{ myResponse?.className }}</span>
+      </div>
+    }
+
+    @if (viewMode === 'today') {
+      <div class="day-strip" role="tablist" aria-label="Day">
+        @for (d of days; track d.day) {
+          <button
+            type="button"
+            class="day-chip"
+            role="tab"
+            [class.active]="selectedDay === d.day"
+            [attr.aria-selected]="selectedDay === d.day"
+            (click)="selectDay(d.day)"
+          >
+            {{ d.shortLabel }}
+          </button>
+        }
+      </div>
+      <div class="day-heading">{{ todayLabel }}</div>
+    }
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+    } @else if (message) {
+      <div class="so-empty">
+        <ion-icon name="warning-outline"></ion-icon>
+        <h3>Timetable</h3>
+        <p>{{ message }}</p>
+      </div>
+    } @else if (viewMode === 'today') {
+      @if (!dayPeriodCards.length) {
+        <div class="so-empty">
+          <ion-icon name="calendar-clear-outline"></ion-icon>
+          <h3>No periods</h3>
+          <p>Nothing scheduled for this day.</p>
+        </div>
+      } @else {
+        <section class="period-list">
+          @for (card of dayPeriodCards; track card.periodId) {
+            <article class="period-card" [class.break]="card.isBreak" [class.empty]="card.empty">
+              <div class="period-time">
+                <strong>{{ card.name }}</strong>
+                <span><ion-icon name="time-outline"></ion-icon>{{ card.timeLabel }}</span>
+              </div>
+              <div class="period-body">
+                @if (card.isBreak) {
+                  <strong class="break-label">Break</strong>
+                } @else if (card.empty) {
+                  <span class="free-label">Free</span>
+                } @else {
+                  <strong>{{ card.main }}</strong>
+                  @if (card.sub) {
+                    <small>{{ card.sub }}</small>
+                  }
+                  @if (card.room) {
+                    <small class="room">{{ card.room }}</small>
+                  }
+                }
+              </div>
+            </article>
+          }
+        </section>
+      }
+    } @else if (!weekHasPeriods) {
+      <div class="so-empty">
+        <ion-icon name="calendar-clear-outline"></ion-icon>
+        <h3>No timetable</h3>
+        <p>No periods found for this week.</p>
+      </div>
+    } @else {
+      <div class="week-scroll">
+        <table class="tt-week-grid">
+          <thead>
+            <tr>
+              <th class="period-col">Period</th>
+              @for (d of days; track d.day) {
+                <th>
+                  <button type="button" class="week-day-btn" (click)="selectDay(d.day)">
+                    {{ d.shortLabel }}
+                  </button>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of weekPeriodRows; track p.id) {
+              <tr [class.break-row]="p.isBreak">
+                <th class="period-col">
+                  <div class="p-name">{{ p.shortName || p.name }}</div>
+                  <div class="p-time">{{ p.startTime }}–{{ p.endTime }}</div>
+                </th>
+                @for (d of days; track d.day) {
+                  <td (click)="selectDay(d.day)">
+                    @if (p.isBreak) {
+                      <div class="cell break">Break</div>
+                    } @else {
+                      @let slot = getCell(d.day, p.id);
+                      @if (cellMain(slot) || cellSub(slot)) {
+                        <div class="cell filled">
+                          <span class="main">{{ cellMain(slot) }}</span>
+                          @if (cellSub(slot)) {
+                            <span class="sub">{{ cellSub(slot) }}</span>
+                          }
+                          @if (slot?.roomNo) {
+                            <span class="room">Rm {{ slot?.roomNo }}</span>
+                          }
+                        </div>
+                      } @else {
+                        <div class="cell"></div>
+                      }
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</ion-content>
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  title="Filters"
+  [initialBreakpoint]="0.45"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="applyFilters()"
+>
+  @if (showMyClassFilter) {
+    <div class="filter-field">
+      <label>Class</label>
+      <so-multi-select
+        [options]="myClassFilterOptions"
+        placeholder="All classes"
+        searchPlaceholder="Search class"
+        ariaLabel="Class"
+        [(ngModel)]="draftMyClassIds"
+      />
+      <p class="filter-hint">Leave empty or select all to show every class in the week grid.</p>
+    </div>
+  } @else {
+    <div class="filter-field">
+      <label>Class</label>
+      <so-select
+        [options]="classOptions"
+        placeholder="Select class"
+        searchPlaceholder="Search class"
+        ariaLabel="Class"
+        [(ngModel)]="draftClassId"
+      />
+    </div>
+  }
+</so-filter-popover>

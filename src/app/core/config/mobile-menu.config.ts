@@ -87,4 +87,20 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     icon: 'finger-print-outline',
     color: 'success',
   },
+  [MenuCodes.MyTimetable]: {
+    menuCode: MenuCodes.MyTimetable,
+    title: 'Timetable',
+    subtitle: 'My and class schedules',
+    route: '/timetable',
+    icon: 'calendar-clear-outline',
+    color: 'primary',
+  },
+  [MenuCodes.ClassTimetable]: {
+    menuCode: MenuCodes.ClassTimetable,
+    title: 'Class Timetable',
+    subtitle: 'View class schedules',
+    route: '/timetable',
+    icon: 'calendar-clear-outline',
+    color: 'primary',
+  },
 };

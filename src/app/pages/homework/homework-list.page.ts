@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, debounceTime, distinctUntilChanged, skip } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -176,12 +176,15 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadDropdowns();
     this.loadStats();
+    // Single initial fetch — search$ BehaviorSubject would replay '' and reload again.
     this.loadList();
     this.subs.add(
-      this.header.searchQuery$.subscribe((q) => {
-        this.searchQuery = q;
-        this.loadList();
-      }),
+      this.header.searchQuery$
+        .pipe(skip(1), distinctUntilChanged(), debounceTime(300))
+        .subscribe((q) => {
+          this.searchQuery = q;
+          this.loadList();
+        }),
     );
     this.subs.add(
       this.header.filterClick$.subscribe(() => {

@@ -30,6 +30,8 @@ export class SoSelectComponent implements ControlValueAccessor {
   @Input() disabled = false;
   @Input() ariaLabel = '';
   @Input() searchPlaceholder = 'Search';
+  /** When false, the sheet hides the search bar (useful for short lists). */
+  @Input() showSearch = true;
 
   @Output() valueChange = new EventEmitter<string>();
 
@@ -66,6 +68,7 @@ export class SoSelectComponent implements ControlValueAccessor {
 
     this.isOpen = true;
     try {
+      const compact = !this.showSearch && this.options.length <= 6;
       const modal = await this.modalCtrl.create({
         component: SoSelectSheetComponent,
         componentProps: {
@@ -73,10 +76,11 @@ export class SoSelectComponent implements ControlValueAccessor {
           value: this.value,
           title: this.placeholder,
           searchPlaceholder: this.searchPlaceholder,
+          showSearch: this.showSearch,
         },
         cssClass: 'so-search-select-modal',
-        initialBreakpoint: 0.72,
-        breakpoints: [0, 0.72, 0.95],
+        initialBreakpoint: compact ? 0.42 : 0.72,
+        breakpoints: compact ? [0, 0.42, 0.72] : [0, 0.72, 0.95],
         handle: true,
         handleBehavior: 'cycle',
       });

@@ -5,6 +5,8 @@ import { LoginResponse, User, UserProfile, UserRole } from '../models/user.model
 import { isUsableAccessToken } from '../utils/token.util';
 import { AcademicYearContextService } from './academic-year-context.service';
 import { ApiService } from './api.service';
+import { BranchContextService } from './branch-context.service';
+import { FilterLookupService } from './filter-lookup.service';
 import { PermissionService } from './permission.service';
 import { StorageService } from './storage.service';
 import { TenantService } from './tenant.service';
@@ -15,7 +17,9 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly api = inject(ApiService);
   private readonly permissionService = inject(PermissionService);
+  private readonly filterLookups = inject(FilterLookupService);
   private readonly ayContext = inject(AcademicYearContextService);
+  private readonly branchContext = inject(BranchContextService);
   private readonly tenant = inject(TenantService);
   private readonly tokenKey = 'mobile_token';
   private readonly userKey = 'mobile_user';
@@ -44,6 +48,8 @@ export class AuthService {
     if (!isUsableAccessToken(token)) {
       this.clearSessionStorage();
       this.permissionService.clear();
+      this.filterLookups.clear();
+      this.branchContext.clear();
       this.currentUserSubject.next(null);
       return;
     }
@@ -78,12 +84,13 @@ export class AuthService {
         );
       }),
       switchMap(({ mustChangePassword }) =>
-        this.ayContext.loadCurrentYear().pipe(
-          catchError(() => of(null)),
+        this.branchContext.loadBranches().pipe(
+          catchError(() => of([])),
+          switchMap(() => this.ayContext.loadCurrentYear().pipe(catchError(() => of(null)))),
+          switchMap(() => this.filterLookups.preload({ force: true })),
           map(() => ({ mustChangePassword })),
         ),
       ),
-      catchError((err) => throwError(() => err)),
     );
   }
 
@@ -112,6 +119,8 @@ export class AuthService {
   /** Clears session only — keeps device school (mobile_tenant). */
   logout(): void {
     this.permissionService.clear();
+    this.filterLookups.clear();
+    this.branchContext.clear();
     this.clearSessionStorage();
     this.currentUserSubject.next(null);
     void this.router.navigate(['/login'], { replaceUrl: true });
@@ -120,6 +129,8 @@ export class AuthService {
   /** Clears session + school so user can pick another school code. */
   changeSchool(): void {
     this.permissionService.clear();
+    this.filterLookups.clear();
+    this.branchContext.clear();
     this.clearSessionStorage();
     this.tenant.clearTenant();
     this.currentUserSubject.next(null);
@@ -128,6 +139,8 @@ export class AuthService {
 
   expireSession(): void {
     this.permissionService.clear();
+    this.filterLookups.clear();
+    this.branchContext.clear();
     this.clearSessionStorage();
     this.currentUserSubject.next(null);
     void this.router.navigate(['/login'], { queryParams: { sessionExpired: '1' }, replaceUrl: true });

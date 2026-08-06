@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { tenantGuard } from './core/guards/tenant.guard';
-import { menuPermissionGuard } from './core/guards/menu-permission.guard';
+import { anyMenuPermissionGuard, menuPermissionGuard } from './core/guards/menu-permission.guard';
 import { MenuCodes } from './core/constants/menu-codes';
 
 export const routes: Routes = [
@@ -43,6 +43,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/staff-attendance/staff-attendance.page').then((m) => m.StaffAttendancePage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.StaffAttendance)],
+  },
+  {
+    path: 'calendar',
+    loadComponent: () => import('./pages/calendar/calendar.page').then((m) => m.CalendarPage),
+    canActivate: [authGuard],
   },
   {
     path: 'homework/new',
@@ -98,6 +103,14 @@ export const routes: Routes = [
     path: 'my-actions',
     loadComponent: () => import('./pages/my-actions/my-actions-list.page').then((m) => m.MyActionsListPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.MyActions)],
+  },
+  {
+    path: 'timetable',
+    loadComponent: () => import('./pages/timetable/timetable.page').then((m) => m.TimetablePage),
+    canActivate: [
+      authGuard,
+      anyMenuPermissionGuard(MenuCodes.MyTimetable, MenuCodes.ClassTimetable),
+    ],
   },
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
 ];

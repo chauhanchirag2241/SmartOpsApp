@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 
+/** @deprecated Prefer leaveTypeId. Kept for older student apply. */
 export enum LeaveType {
   Casual = 1,
   Sick = 2,
@@ -14,6 +15,41 @@ export enum LeaveRequestStatus {
   Approved = 2,
   Rejected = 3,
   Cancelled = 4,
+}
+
+export type LeaveHalfDaySession = 'FirstHalf' | 'SecondHalf';
+
+export interface LeaveHalfDay {
+  date: string;
+  session: LeaveHalfDaySession;
+}
+
+export interface CreateStaffLeaveRequest {
+  fromDate: string;
+  toDate: string;
+  leaveTypeId: string;
+  reason: string;
+  submitImmediately?: boolean;
+  isHalfDay?: boolean;
+  halfDays?: LeaveHalfDay[];
+}
+
+export interface LeaveApplicant {
+  employeeId: string;
+  employeeName: string;
+  reportingManager?: { id: string; name: string } | null;
+}
+
+export interface LeaveTypeDto {
+  id: string;
+  code: string;
+  name: string;
+  isPaid?: boolean;
+  requiresBalance?: boolean;
+  allowHalfDay?: boolean;
+  carryForward?: boolean;
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export interface LeaveBalanceDto {
@@ -40,11 +76,24 @@ export interface LeaveListItem {
   leaveTypeName?: string | null;
   status: number | string;
   statusLabel?: string;
+  isHalfDay?: boolean;
+  reason?: string | null;
+  approvedByName?: string | null;
+  approvedOn?: string | null;
+  createdOn?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class LeaveService {
   private readonly api = inject(ApiService);
+
+  getStaffApplicant(): Observable<LeaveApplicant> {
+    return this.api.get<LeaveApplicant>('leave/staff/applicant');
+  }
+
+  getActiveLeaveTypes(): Observable<LeaveTypeDto[]> {
+    return this.api.get<LeaveTypeDto[]>('leave/types/active');
+  }
 
   getStaffMine(): Observable<LeaveListItem[]> {
     return this.api.get<LeaveListItem[]>('leave/staff/mine');
@@ -54,7 +103,7 @@ export class LeaveService {
     return this.api.get<LeaveBalanceDto[]>('leave/balances/mine');
   }
 
-  createStaff(body: unknown): Observable<unknown> {
+  createStaff(body: CreateStaffLeaveRequest): Observable<unknown> {
     return this.api.post('leave/staff', body);
   }
 

@@ -91,9 +91,11 @@ function teacherConfig(): HomeDashboardConfig {
       {
         id: 'm-tt',
         title: 'Timetable',
-        icon: 'calendar-outline',
+        icon: 'calendar-clear-outline',
         iconBg: '#FCE4EC',
         iconColor: '#E91E63',
+        route: '/timetable',
+        requiresMenu: MenuCodes.MyTimetable,
       },
       {
         id: 'm-notice',
@@ -131,6 +133,14 @@ function teacherConfig(): HomeDashboardConfig {
         iconColor: '#3B6D11',
         route: '/staff-attendance',
         requiresMenu: MenuCodes.StaffAttendance,
+      },
+      {
+        id: 'my-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
       },
       {
         id: 'my-leave',
@@ -196,11 +206,21 @@ function studentConfig(): HomeDashboardConfig {
     ],
     moreActions: [
       {
+        id: 'm-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
+      },
+      {
         id: 'm-tt',
         title: 'Timetable',
-        icon: 'calendar-outline',
+        icon: 'calendar-clear-outline',
         iconBg: '#FCE4EC',
         iconColor: '#E91E63',
+        route: '/timetable',
+        requiresMenu: MenuCodes.MyTimetable,
       },
       {
         id: 'm-notice',
@@ -282,6 +302,14 @@ function parentConfig(): HomeDashboardConfig {
     ],
     moreActions: [
       {
+        id: 'm-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
+      },
+      {
         id: 'm-hw',
         title: 'Homework',
         icon: 'book-outline',
@@ -300,9 +328,11 @@ function parentConfig(): HomeDashboardConfig {
       {
         id: 'm-tt',
         title: 'Timetable',
-        icon: 'calendar-outline',
+        icon: 'calendar-clear-outline',
         iconBg: '#FCE4EC',
         iconColor: '#E91E63',
+        route: '/timetable',
+        requiresMenu: MenuCodes.MyTimetable,
       },
       {
         id: 'm-fee',
@@ -361,6 +391,14 @@ function accountantConfig(): HomeDashboardConfig {
       },
     ],
     moreActions: [
+      {
+        id: 'm-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
+      },
       {
         id: 'm-fee',
         title: 'Fees',
@@ -485,6 +523,14 @@ function adminConfig(): HomeDashboardConfig {
         requiresMenu: MenuCodes.StaffAttendance,
       },
       {
+        id: 'm-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
+      },
+      {
         id: 'm-notice',
         title: 'Notices',
         icon: 'megaphone-outline',
@@ -494,9 +540,11 @@ function adminConfig(): HomeDashboardConfig {
       {
         id: 'm-tt',
         title: 'Timetable',
-        icon: 'calendar-outline',
+        icon: 'calendar-clear-outline',
         iconBg: '#FCE4EC',
         iconColor: '#E91E63',
+        route: '/timetable',
+        requiresMenu: MenuCodes.MyTimetable,
       },
     ],
   };
@@ -538,6 +586,14 @@ function defaultConfig(): HomeDashboardConfig {
       },
     ],
     moreActions: [
+      {
+        id: 'm-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
+      },
       {
         id: 'm-students',
         title: 'Students',

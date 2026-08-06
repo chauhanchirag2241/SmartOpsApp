@@ -1,39 +1,184 @@
-label {
-  display: block;
-  margin-bottom: 6px;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--so-ink, #1a1f14);
+.staff-apply-page {
+  --background: #f4f5f0;
 }
 
-label:first-of-type {
+.page-pad {
+  padding: 16px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.form-card {
+  background: #fff;
+  border: 1px solid #dfe8d1;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(31, 42, 26, 0.05);
+  padding: 14px 16px 16px;
+}
+
+.form-card h2 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5b6b54;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #8a9880;
+}
+
+.info-row strong {
+  font-size: 14px;
+  color: #1f2a1a;
+}
+
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1f14;
+}
+
+.form-card > label:first-of-type {
   margin-top: 0;
 }
 
-select,
-textarea {
-  width: 100%;
-  margin-bottom: 4px;
-  padding: 10px 12px;
-  border-radius: var(--so-radius, 10px);
-  border: 1.5px solid var(--so-line, #ddd);
-  background: var(--so-input-bg, #fcfdf9);
-  font-size: 13.5px;
+.req {
+  color: #c62828;
 }
 
-so-date-input {
+.hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #8a9880;
+  line-height: 1.4;
+}
+
+.balance-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-primary, #639922);
+}
+
+so-date-input,
+so-select {
   display: block;
-  margin-bottom: 4px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 4px;
+}
+
+.toggle-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.toggle-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1f14;
+}
+
+.half-day-block {
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 2px solid #c0dd97;
+}
+
+.sub-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1f14;
+}
+
+.half-day-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.half-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2a1a;
+}
+
+.half-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ion-color-primary, #639922);
+}
+
+.total-days {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: #5b6b54;
+}
+
+.total-days strong {
+  color: var(--ion-color-primary, #639922);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+}
+
+.footer-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #8a9880;
+  text-align: center;
 }
 
 .primary-btn {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 4px;
   padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--ion-color-primary);
   color: #fff;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.primary-btn:disabled {
+  opacity: 0.55;
 }

@@ -1,42 +1,99 @@
 <app-header title="Leave" [showBack]="true" backHref="/tabs/home" />
 
-<ion-content class="leave-mine-page">
+<ion-content class="so-page leave-mine-page">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div class="page-pad">
-    <div class="section-head">
-      <h2>Leave balance</h2>
-      <p>Available balance for this academic year</p>
+  <main class="leave-body">
+    <div class="so-toolbar-segment">
+      <so-segment
+        [options]="tabOptions"
+        [value]="activeTab"
+        ariaLabel="Leave sections"
+        (valueChange)="onTabChange($event)"
+      />
     </div>
 
     @if (loading) {
       <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
-    } @else if (!balances.length) {
-      <div class="empty-card">
-        <ion-icon name="airplane-outline"></ion-icon>
-        <h3>No leave balance</h3>
-        <p>Balance will appear once HR configures leave types for you.</p>
+    } @else if (activeTab === 'balance') {
+      <div class="section-head">
+        <h2>Leave balance</h2>
+        <p>Available balance for this academic year</p>
       </div>
+
+      @if (!balances.length) {
+        <div class="empty-card">
+          <ion-icon name="airplane-outline"></ion-icon>
+          <h3>No leave balance</h3>
+          <p>Balance will appear once HR configures leave types for you.</p>
+        </div>
+      } @else {
+        <div class="card-list">
+          @for (b of balances; track b.id) {
+            <article class="balance-card">
+              <div class="balance-top">
+                <strong>{{ b.leaveTypeName || 'Leave' }}</strong>
+                <span class="closing">{{ b.closingBalance }}</span>
+              </div>
+              <div class="balance-meta">
+                <span>Opening {{ b.openingBalance }}</span>
+                <span>Used {{ b.used }}</span>
+                <span>Accrued {{ b.accrued }}</span>
+              </div>
+            </article>
+          }
+        </div>
+      }
     } @else {
-      <div class="balance-list">
-        @for (b of balances; track b.id) {
-          <article class="balance-card">
-            <div class="balance-top">
-              <strong>{{ b.leaveTypeName || 'Leave' }}</strong>
-              <span class="closing">{{ b.closingBalance }}</span>
-            </div>
-            <div class="balance-meta">
-              <span>Opening {{ b.openingBalance }}</span>
-              <span>Used {{ b.used }}</span>
-              <span>Accrued {{ b.accrued }}</span>
-            </div>
-          </article>
-        }
+      <div class="section-head">
+        <h2>Leave history</h2>
+        <p>Your leave applications and approval status</p>
       </div>
+
+      @if (!history.length) {
+        <div class="empty-card">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <h3>No leave history</h3>
+          <p>Applied leave requests will show up here.</p>
+        </div>
+      } @else {
+        <div class="card-list">
+          @for (item of history; track item.id) {
+            <article class="history-card">
+              <div class="history-top">
+                <div class="history-title">
+                  <strong>{{ item.leaveTypeName || item.leaveTypeLabel || 'Leave' }}</strong>
+                  <span class="days">{{ daysLabel(item) }}</span>
+                </div>
+                <span class="status-pill" [class]="statusClass(item)">{{ statusText(item) }}</span>
+              </div>
+
+              <div class="history-row">
+                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+                <span>{{ dateRangeLabel(item) }}</span>
+              </div>
+
+              @if (approvedLabel(item); as approver) {
+                <div class="history-row muted">
+                  <span>{{ approver }}</span>
+                </div>
+              } @else if (statusText(item) === 'Pending') {
+                <div class="history-row muted">
+                  <span>Waiting for reporting manager approval</span>
+                </div>
+              }
+
+              @if (item.reason?.trim()) {
+                <p class="reason">{{ item.reason }}</p>
+              }
+            </article>
+          }
+        </div>
+      }
     }
-  </div>
+  </main>
 
   @if (canApply) {
     <ion-fab slot="fixed" vertical="bottom" horizontal="end">

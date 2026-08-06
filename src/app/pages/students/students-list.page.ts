@@ -9,7 +9,7 @@ import {
   IonRefresherContent,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import { Subscription } from 'rxjs';
+import { Subscription, debounceTime, distinctUntilChanged, skip } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   chevronForwardOutline,
@@ -58,6 +58,7 @@ export class StudentsListPage implements OnInit, OnDestroy {
   private readonly header = inject(AppHeaderService);
   private readonly router = inject(Router);
   private subs = new Subscription();
+  private loadSub?: Subscription;
 
   students: StudentListItem[] = [];
   classes: ClassDropdownItem[] = [];
@@ -84,12 +85,16 @@ export class StudentsListPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadClasses();
+    // Single initial fetch — search$ is a BehaviorSubject and would replay '' immediately;
+    // skip(1) ignores that so we don't double-load pageIndex=1 on open.
     this.loadStudents(true);
     this.subs.add(
-      this.header.searchQuery$.subscribe((q) => {
-        this.searchQuery = q;
-        this.loadStudents(true);
-      }),
+      this.header.searchQuery$
+        .pipe(skip(1), distinctUntilChanged(), debounceTime(300))
+        .subscribe((q) => {
+          this.searchQuery = q;
+          this.loadStudents(true);
+        }),
     );
     this.subs.add(
       this.header.filterClick$.subscribe(() => {
@@ -99,6 +104,7 @@ export class StudentsListPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.loadSub?.unsubscribe();
     this.subs.unsubscribe();
   }
 
@@ -180,12 +186,14 @@ export class StudentsListPage implements OnInit, OnDestroy {
       this.hasMore = true;
       this.loading = true;
       this.students = [];
+      // Cancel any in-flight list request so rapid resets don't stack identical pageIndex=1 calls.
+      this.loadSub?.unsubscribe();
     } else {
       this.loadingMore = true;
     }
 
     const classIds = this.classFilterIds.length ? this.classFilterIds : null;
-    this.studentService
+    this.loadSub = this.studentService
       .getStudents(
         this.pageIndex,
         this.pageSize,

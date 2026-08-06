@@ -1,0 +1,164 @@
+<app-header
+  title="Calendar"
+  [showBack]="true"
+  backHref="/tabs/home"
+/>
+
+<ion-content class="so-page calendar-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <section class="calendar-card so-card">
+    <div class="cal-head">
+      <button type="button" class="cal-nav" (click)="prevMonth()" aria-label="Previous month">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+      <strong>{{ monthLabel }}</strong>
+      <button type="button" class="cal-nav" (click)="nextMonth()" aria-label="Next month">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </div>
+
+    @if (isLoading) {
+      <div class="cal-loading"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else {
+      <div class="cal-weekdays">
+        @for (d of weekDays; track d) {
+          <span>{{ d }}</span>
+        }
+      </div>
+      <div class="cal-grid">
+        @for (cell of calendarCells; track $index) {
+          <button
+            type="button"
+            class="cal-day"
+            [class.is-blank]="cell.day === null"
+            [class.is-today]="isTodayInView && cell.day === todayNumber"
+            [class.has-items]="cell.count > 0"
+            [attr.data-tone]="cell.tone"
+            [disabled]="cell.day === null || cell.count === 0"
+            (click)="onDayClick(cell)"
+          >
+            @if (cell.day !== null) {
+              <span class="day-num">{{ cell.day }}</span>
+              @if (cell.count > 0) {
+                <span class="day-dot" aria-hidden="true"></span>
+              }
+            }
+          </button>
+        }
+      </div>
+    }
+
+    <div class="cal-legend">
+      <span data-tone="present">Present</span>
+      <span data-tone="leave">Leave</span>
+      <span data-tone="late">Late</span>
+      <span data-tone="halfday">Half Day</span>
+      <span data-tone="holiday">Holiday</span>
+      <span data-tone="weekend">Weekend</span>
+      <span data-tone="exam">Exam</span>
+      <span data-tone="event">Event</span>
+    </div>
+  </section>
+
+  @if (!isLoading && itemsEmpty) {
+    <p class="cal-hint">No attendance, holidays, or events for this month in your scope.</p>
+  }
+</ion-content>
+
+@if (dayPickerOpen) {
+  <ion-modal
+    [isOpen]="true"
+    (didDismiss)="closeDayPicker()"
+    [initialBreakpoint]="0.42"
+    [breakpoints]="[0, 0.42, 0.7]"
+    cssClass="cal-detail-modal"
+  >
+    <ng-template>
+      <div class="cal-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <div>
+            <p class="sheet-eyebrow">{{ dayPickerLabel }}</p>
+            <h2>Select to view</h2>
+            <p class="sheet-sub">{{ dayPickerItems.length }} items on this date</p>
+          </div>
+          <button type="button" class="sheet-close" (click)="closeDayPicker()" aria-label="Close">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <ul class="day-item-list">
+          @for (item of dayPickerItems; track item.kind + '-' + item.startDate + '-' + item.id + '-' + item.title) {
+            <li>
+              <button type="button" class="day-item-btn" (click)="selectDayPickerItem(item)">
+                <span class="day-item-icon" [attr.data-kind]="item.kind">
+                  <ion-icon [name]="kindIcon(item.kind)"></ion-icon>
+                </span>
+                <span class="day-item-text">
+                  <span class="day-item-kind" [attr.data-kind]="item.kind">{{ kindLabelForItem(item) }}</span>
+                  <strong>{{ item.examName || item.title }}</strong>
+                  <small>
+                    @if (item.subjectName) {
+                      {{ item.subjectName }}
+                    } @else if (item.statusLabel && item.statusLabel !== item.title) {
+                      {{ item.statusLabel }}
+                    } @else if (item.eventTypeName) {
+                      {{ item.eventTypeName }}
+                    }
+                  </small>
+                </span>
+                <ion-icon name="chevron-forward-outline" class="day-item-chevron"></ion-icon>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </ng-template>
+  </ion-modal>
+}
+
+@if (detailOpen) {
+  <ion-modal
+    [isOpen]="true"
+    (didDismiss)="closeDetail()"
+    [initialBreakpoint]="0.55"
+    [breakpoints]="[0, 0.55, 0.85]"
+    cssClass="cal-detail-modal"
+  >
+    <ng-template>
+      <div class="cal-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <div class="sheet-title-wrap">
+            <span class="kind-badge" [attr.data-kind]="detailKind">
+              <ion-icon [name]="kindIcon(detailKind)"></ion-icon>
+              {{ detailKindLabel }}
+            </span>
+            <h2>{{ detailTitle }}</h2>
+          </div>
+          <button type="button" class="sheet-close" (click)="closeDetail()" aria-label="Close">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <ul class="detail-rows">
+          @for (row of detailRows; track row.label + row.value) {
+            <li class="detail-row">
+              <span class="detail-icon" aria-hidden="true">
+                <ion-icon [name]="row.icon"></ion-icon>
+              </span>
+              <div class="detail-copy">
+                <span class="detail-label">{{ row.label }}</span>
+                <span class="detail-value">{{ row.value }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <button type="button" class="sheet-done" (click)="closeDetail()">Close</button>
+      </div>
+    </ng-template>
+  </ion-modal>
+}

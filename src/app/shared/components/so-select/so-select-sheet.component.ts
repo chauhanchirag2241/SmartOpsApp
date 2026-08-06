@@ -17,6 +17,7 @@ export class SoSelectSheetComponent {
   @Input() value = '';
   @Input() title = 'Select';
   @Input() searchPlaceholder = 'Search';
+  @Input() showSearch = true;
 
   searchQuery = '';
 

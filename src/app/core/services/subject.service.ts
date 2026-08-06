@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { ApiService } from './api.service';
 
 export interface SubjectDropdownItem {
@@ -11,8 +11,18 @@ export interface SubjectDropdownItem {
 @Injectable({ providedIn: 'root' })
 export class SubjectService {
   private readonly api = inject(ApiService);
+  private dropdown$?: Observable<SubjectDropdownItem[]>;
 
   getSubjectDropdown(): Observable<SubjectDropdownItem[]> {
-    return this.api.get<SubjectDropdownItem[]>('subject/dropdown');
+    if (!this.dropdown$) {
+      this.dropdown$ = this.api
+        .get<SubjectDropdownItem[]>('subject/dropdown')
+        .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    }
+    return this.dropdown$;
+  }
+
+  clearCache(): void {
+    this.dropdown$ = undefined;
   }
 }
