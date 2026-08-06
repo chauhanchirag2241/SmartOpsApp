@@ -6,9 +6,9 @@ import {
   IonContent,
   IonInput,
   IonSpinner,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { TenantService } from '../../core/services/tenant.service';
 
 @Component({
@@ -22,7 +22,7 @@ export class LoginPage implements OnInit {
   private readonly tenant = inject(TenantService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
 
   loginId = '';
   password = '';
@@ -58,7 +58,7 @@ export class LoginPage implements OnInit {
 
   login(): void {
     if (!this.loginId.trim() || !this.password) {
-      void this.showToast('Enter mobile/email and password');
+      void this.toast.warning('Enter mobile/email and password', 3500);
       return;
     }
     this.loading = true;
@@ -77,17 +77,12 @@ export class LoginPage implements OnInit {
             : Array.isArray(err?.error)
               ? err.error.join(', ')
               : err?.message || 'Invalid login or password';
-        void this.showToast(msg);
+        void this.toast.error(msg, 3500);
       },
     });
   }
 
   changeSchool(): void {
     this.auth.changeSchool();
-  }
-
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 3500, position: 'bottom' });
-    await t.present();
   }
 }

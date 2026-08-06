@@ -12,11 +12,8 @@ import {
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
-  callOutline,
   chevronForwardOutline,
-  mailOutline,
   peopleOutline,
-  schoolOutline,
 } from 'ionicons/icons';
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { StudentFilter, StudentListItem } from '../../core/models/student.model';
@@ -25,7 +22,10 @@ import { ClassDropdownItem, ClassService } from '../../core/services/class.servi
 import { PermissionService } from '../../core/services/permission.service';
 import { StudentService } from '../../core/services/student.service';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoAvatarComponent } from '../../shared/components/so-avatar/so-avatar.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
+import { SoMultiSelectComponent } from '../../shared/components/so-multi-select/so-multi-select.component';
+import { SoSelectOption } from '../../shared/components/so-select/so-select.model';
 import { SoModuleShellComponent } from '../../shared/components/so-module-shell/so-module-shell.component';
 import { SoPageToolbarComponent } from '../../shared/components/so-page-toolbar/so-page-toolbar.component';
 import { Router } from '@angular/router';
@@ -37,7 +37,9 @@ import { Router } from '@angular/router';
   imports: [
     FormsModule,
     AppHeaderComponent,
+    SoAvatarComponent,
     SoFilterPopoverComponent,
+    SoMultiSelectComponent,
     SoModuleShellComponent,
     SoPageToolbarComponent,
     IonContent,
@@ -59,7 +61,7 @@ export class StudentsListPage implements OnInit, OnDestroy {
 
   students: StudentListItem[] = [];
   classes: ClassDropdownItem[] = [];
-  classFilter = '';
+  classFilterIds: string[] = [];
   statusFilter: StudentFilter = StudentFilter.Active;
   filterOpen = false;
   searchQuery = '';
@@ -77,7 +79,7 @@ export class StudentsListPage implements OnInit, OnDestroy {
   ];
 
   constructor() {
-    addIcons({ peopleOutline, schoolOutline, mailOutline, callOutline, chevronForwardOutline });
+    addIcons({ peopleOutline, chevronForwardOutline });
   }
 
   ngOnInit(): void {
@@ -104,9 +106,16 @@ export class StudentsListPage implements OnInit, OnDestroy {
     return this.permissions.canView(MenuCodes.Students);
   }
 
+  get classOptions(): SoSelectOption[] {
+    return this.classes.map((item) => ({ value: item.id, label: item.name }));
+  }
+
   get classFilterLabel(): string {
-    if (!this.classFilter) return 'All classes';
-    return this.classes.find((c) => c.id === this.classFilter)?.name ?? 'Class';
+    if (!this.classFilterIds.length) return 'All classes';
+    if (this.classFilterIds.length === 1) {
+      return this.classes.find((c) => c.id === this.classFilterIds[0])?.name ?? '1 class';
+    }
+    return `${this.classFilterIds.length} classes`;
   }
 
   get statusFilterLabel(): string {
@@ -126,21 +135,13 @@ export class StudentsListPage implements OnInit, OnDestroy {
     this.loadStudents(false, () => (ev.target as HTMLIonInfiniteScrollElement).complete());
   }
 
-  onClassChange(): void {
-    this.loadStudents(true);
-  }
-
-  onStatusChange(): void {
-    this.loadStudents(true);
-  }
-
   applyFilters(): void {
     this.filterOpen = false;
     this.loadStudents(true);
   }
 
   clearFilters(): void {
-    this.classFilter = '';
+    this.classFilterIds = [];
     this.statusFilter = StudentFilter.Active;
     this.loadStudents(true);
   }
@@ -149,19 +150,18 @@ export class StudentsListPage implements OnInit, OnDestroy {
     void this.router.navigate(['/students', student.id]);
   }
 
-  initials(name: string): string {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '?';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
-
   statusClass(student: StudentListItem): string {
     const s = (student.status ?? '').toLowerCase();
-    if (s.includes('active') || student.isActive) return 'active';
     if (s.includes('inactive')) return 'inactive';
+    if (s.includes('active') || student.isActive) return 'active';
     if (s.includes('overdue') || s.includes('due')) return 'warn';
     return 'neutral';
+  }
+
+  statusLabel(student: StudentListItem): string {
+    const status = (student.status ?? '').trim();
+    if (status) return status;
+    return student.isActive ? 'Active' : 'Inactive';
   }
 
   private loadClasses(): void {
@@ -184,7 +184,7 @@ export class StudentsListPage implements OnInit, OnDestroy {
       this.loadingMore = true;
     }
 
-    const classIds = this.classFilter ? [this.classFilter] : null;
+    const classIds = this.classFilterIds.length ? this.classFilterIds : null;
     this.studentService
       .getStudents(
         this.pageIndex,

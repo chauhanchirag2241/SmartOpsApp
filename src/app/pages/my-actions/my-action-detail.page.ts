@@ -1,22 +1,28 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoIconComponent } from '../../shared/components/so-icon/so-icon.component';
+import { SoIcons } from '../../shared/icons/so-icons';
 import { MyActionsService } from '../../core/services/my-actions.service';
+import { ToastService } from '../../core/services/toast.service';
 import { pickStr } from '../../core/utils/api-mapper.util';
 
 @Component({
   selector: 'app-my-action-detail',
   templateUrl: './my-action-detail.page.html',
   styleUrls: ['./my-action-detail.page.scss'],
-  imports: [FormsModule, AppHeaderComponent, IonContent, IonSpinner],
+  imports: [FormsModule, AppHeaderComponent, SoIconComponent, IonContent, IonSpinner],
 })
 export class MyActionDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly actionsService = inject(MyActionsService);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
+  readonly approveIcon = SoIcons.approve;
+  readonly rejectIcon = SoIcons.reject;
+  readonly sendIcon = SoIcons.send;
 
   loading = true;
   itemType = 0;
@@ -54,7 +60,7 @@ export class MyActionDetailPage implements OnInit {
         }
         this.loading = false;
       },
-      error: async () => {
+      error: () => {
         this.loading = false;
         void this.router.navigate(['/my-actions']);
       },
@@ -71,15 +77,13 @@ export class MyActionDetailPage implements OnInit {
         payload: this.responseText,
       })
       .subscribe({
-        next: async () => {
-          const t = await this.toast.create({ message: 'Done', duration: 2000, color: 'success' });
-          await t.present();
+        next: () => {
+          void this.toast.success('Done', 2000);
           void this.router.navigate(['/my-actions']);
         },
-        error: async (err) => {
+        error: (err) => {
           const msg = typeof err?.error === 'string' ? err.error : 'Action failed';
-          const t = await this.toast.create({ message: msg, duration: 2500, color: 'danger' });
-          await t.present();
+          void this.toast.error(msg, 2500);
         },
       });
   }

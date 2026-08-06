@@ -19,85 +19,151 @@
     </div>
   }
 
-  <div class="active-filters-bar">
-    <span>{{ selectedClassName }}</span>
-    <span>{{ displaySelectedDate }}</span>
-    @if (curFilter !== 'all') {
-      <span>{{ statusFilterLabel(curFilter) }}</span>
+  <main class="attendance-body">
+    <button type="button" class="class-date-card" (click)="filterOpen = true">
+      <span class="class-icon"><ion-icon name="school-outline"></ion-icon></span>
+      <span class="class-copy">
+        <strong>{{ selectedClassName }}</strong>
+        <small>{{ displaySelectedDate }}</small>
+      </span>
+      <ion-icon class="class-chevron" name="chevron-down-outline"></ion-icon>
+    </button>
+
+    <section class="attendance-summary">
+      <div class="summary-heading">
+        <strong>Total {{ stats.total }} students</strong>
+        <span>{{ stats.presentRate }}% present</span>
+      </div>
+      <div
+        class="summary-progress"
+        role="progressbar"
+        [attr.aria-valuenow]="stats.presentRate"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <span class="progress-present" [style.width.%]="stats.presentPct"></span>
+        <span class="progress-absent" [style.width.%]="stats.absentPct"></span>
+        <span class="progress-late" [style.width.%]="stats.latePct"></span>
+      </div>
+      <div class="summary-legend">
+        <button type="button" (click)="filterBy('present')" [class.active]="curFilter === 'present'">
+          <i class="present-dot"></i>Present <strong>{{ stats.present }}</strong>
+        </button>
+        <button type="button" (click)="filterBy('absent')" [class.active]="curFilter === 'absent'">
+          <i class="absent-dot"></i>Absent <strong>{{ stats.absent }}</strong>
+        </button>
+        <button type="button" (click)="filterBy('late')" [class.active]="curFilter === 'late'">
+          <i class="late-dot"></i>Late <strong>{{ stats.late }}</strong>
+        </button>
+      </div>
+    </section>
+
+    @if (canEdit && !isLoading) {
+      <section class="bulk-actions">
+        <button type="button" class="mark-all-btn" (click)="markAllPresent()">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Mark all present
+        </button>
+        <button type="button" class="reset-btn" (click)="resetVisible()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reset
+        </button>
+      </section>
     }
-  </div>
 
-  <section class="stats-summary">
-    <span>Total: <strong>{{ stats.total }}</strong></span>
-    <span class="present">P: {{ stats.present }}</span>
-    <span class="absent">A: {{ stats.absent }}</span>
-    <span class="late">Late: {{ stats.late }}</span>
-  </section>
-
-  @if (canEdit && !isLoading) {
-    <section class="submit-section">
-      <button type="button" class="att-submit-btn" [disabled]="isSubmitting" (click)="submitAttendance()">
-        @if (isSubmitting) {
-          <ion-spinner name="crescent"></ion-spinner>
-        } @else {
-          {{ isSubmitted ? 'Update attendance' : 'Submit attendance' }}
-        }
-      </button>
-    </section>
-  }
-
-  @if (isLoading) {
-    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
-  } @else if (!visibleStudents.length) {
-    <div class="so-empty">
-      <ion-icon name="warning-outline"></ion-icon>
-      <h3>No students found</h3>
-      <p>Select another class or adjust search.</p>
+    <div class="students-heading">
+      <span>Students</span>
+      <span>{{ visibleStudents.length }}</span>
     </div>
-  } @else {
-    <section class="student-list">
-      @for (s of visibleStudents; track s.id) {
-        <div class="student-card so-card">
-          <div class="student-info">
-            <div class="avatar">{{ avatarInitials(s.name, s.roll) }}</div>
-            <div>
-              <h3>{{ s.name }}</h3>
-              <p>Roll No: {{ s.roll || '—' }}</p>
+
+    @if (isLoading) {
+      <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+    } @else if (!visibleStudents.length) {
+      <div class="so-empty">
+        <ion-icon name="warning-outline"></ion-icon>
+        <h3>No students found</h3>
+        <p>Select another class or adjust search.</p>
+      </div>
+    } @else {
+      <section class="student-list">
+        @for (s of visibleStudents; track s.id) {
+          <article
+            class="student-card"
+            [class.present]="isStatusActive(s.id, 'present')"
+            [class.absent]="isStatusActive(s.id, 'absent')"
+            [class.late]="isStatusActive(s.id, 'late')"
+            [class.read-only]="!canEdit"
+            role="button"
+            [attr.tabindex]="canEdit ? 0 : -1"
+            [attr.aria-label]="'Cycle attendance for ' + s.name"
+            (click)="cycleStatus(s.id)"
+            (keydown.enter)="cycleStatus(s.id)"
+            (keydown.space)="$event.preventDefault(); cycleStatus(s.id)"
+          >
+            <div class="student-info">
+              <div class="avatar">{{ avatarInitials(s.name, s.roll) }}</div>
+              <div class="student-copy">
+                <h3>{{ s.name }}</h3>
+                <p>Roll No: {{ s.roll || '—' }}</p>
+              </div>
             </div>
-          </div>
-          <div class="student-actions">
-            <div class="status-toggle" [class.read-only]="!canEdit">
+            <div class="student-actions">
+              <div class="status-toggle" [class.read-only]="!canEdit">
+                <button
+                  type="button"
+                  class="st-btn p"
+                  [class.active]="isStatusActive(s.id, 'present')"
+                  [disabled]="!canEdit"
+                  (click)="onStatusClick($event, s.id, 'present')"
+                >P</button>
+                <button
+                  type="button"
+                  class="st-btn a"
+                  [class.active]="isStatusActive(s.id, 'absent')"
+                  [disabled]="!canEdit"
+                  (click)="onStatusClick($event, s.id, 'absent')"
+                >A</button>
+                <button
+                  type="button"
+                  class="st-btn l"
+                  [class.active]="isStatusActive(s.id, 'late')"
+                  [disabled]="!canEdit"
+                  (click)="onStatusClick($event, s.id, 'late')"
+                >L</button>
+              </div>
               <button
                 type="button"
-                class="st-btn p"
-                [class.active]="isStatusActive(s.id, 'present')"
+                class="remark-btn"
+                [class.has-note]="!!notes[s.id]"
                 [disabled]="!canEdit"
-                (click)="setStatus(s.id, 'present')"
-              >P</button>
-              <button
-                type="button"
-                class="st-btn a"
-                [class.active]="isStatusActive(s.id, 'absent')"
-                [disabled]="!canEdit"
-                (click)="setStatus(s.id, 'absent')"
-              >A</button>
-              <button
-                type="button"
-                class="st-btn l"
-                [class.active]="isStatusActive(s.id, 'late')"
-                [disabled]="!canEdit"
-                (click)="setStatus(s.id, 'late')"
-              >L</button>
+                (click)="openRemarks(s.id, $event)"
+                aria-label="Add remark"
+              >
+                <ion-icon name="document-text-outline"></ion-icon>
+              </button>
             </div>
-            <button type="button" class="remark-btn" [disabled]="!canEdit" (click)="openRemarks(s.id)">
-              <ion-icon name="document-text-outline"></ion-icon>
-            </button>
-          </div>
-        </div>
-      }
-    </section>
-  }
+          </article>
+        }
+      </section>
+    }
+  </main>
 </ion-content>
+
+@if (canEdit && !isLoading && students.length) {
+  <footer class="attendance-footer">
+    <button type="button" class="att-submit-btn" [disabled]="isSubmitting || !hasChanges" (click)="submitAttendance()">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <so-icon [name]="saveIcon"></so-icon>
+        {{ isSubmitted ? 'Update attendance' : 'Submit attendance' }}
+      }
+    </button>
+    @if (hasChanges) {
+      <small>You have unsaved changes</small>
+    }
+  </footer>
+}
 
 <so-filter-popover
   [isOpen]="filterOpen"
@@ -108,15 +174,17 @@
 >
   <div class="filter-field">
     <label>Class</label>
-    <select class="so-filter-select" [(ngModel)]="selectedClassId">
-      @for (c of classes; track c.id) {
-        <option [value]="c.id">{{ c.name }}</option>
-      }
-    </select>
+    <so-select
+      [options]="classOptions"
+      placeholder="Select class"
+      searchPlaceholder="Search class"
+      ariaLabel="Class"
+      [(ngModel)]="selectedClassId"
+    />
   </div>
   <div class="filter-field">
     <label>Date</label>
-    <input class="so-date-input" type="date" [(ngModel)]="selectedDate" [max]="maxDate" />
+    <so-date-input [(ngModel)]="selectedDate" [max]="maxDate" placeholder="Select date" ariaLabel="Attendance date" />
   </div>
   <div class="filter-field">
     <label>Show students</label>

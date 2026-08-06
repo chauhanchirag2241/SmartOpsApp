@@ -4,10 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AlertController,
+  IonButton,
+  IonCard,
+  IonCardContent,
   IonContent,
+  IonFooter,
   IonIcon,
+  IonInput,
+  IonLabel,
+  IonSegment,
+  IonSegmentButton,
   IonSpinner,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -27,8 +34,12 @@ import { AcademicYearContextService } from '../../core/services/academic-year-co
 import { PermissionService } from '../../core/services/permission.service';
 import { HomeworkService } from '../../core/services/homework.service';
 import { AppHeaderService } from '../../core/services/app-header.service';
+import { ToastService } from '../../core/services/toast.service';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoDateInputComponent } from '../../shared/components/so-date-input/so-date-input.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
+import { SoIconComponent } from '../../shared/components/so-icon/so-icon.component';
+import { SoIcons } from '../../shared/icons/so-icons';
 import { localDateString, normalizeHomeworkStatus } from '../../core/utils/api-mapper.util';
 
 interface StudentRow {
@@ -45,19 +56,37 @@ interface StudentRow {
   selector: 'app-homework-detail',
   templateUrl: './homework-detail.page.html',
   styleUrls: ['./homework-detail.page.scss'],
-  imports: [FormsModule, AppHeaderComponent, SoFilterPopoverComponent, IonContent, IonIcon, IonSpinner],
+  imports: [
+    FormsModule,
+    AppHeaderComponent,
+    SoFilterPopoverComponent,
+    SoDateInputComponent,
+    SoIconComponent,
+    IonButton,
+    IonCard,
+    IonCardContent,
+    IonContent,
+    IonFooter,
+    IonIcon,
+    IonInput,
+    IonLabel,
+    IonSegment,
+    IonSegmentButton,
+    IonSpinner,
+  ],
 })
 export class HomeworkDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly homeworkService = inject(HomeworkService);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
   private readonly alert = inject(AlertController);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
   private readonly header = inject(AppHeaderService);
   private subs = new Subscription();
   headerSearch = '';
+  readonly saveIcon = SoIcons.save;
 
   HomeworkSubmissionStatus = HomeworkSubmissionStatus;
   readonly studentFilterOptions = ['all', 'submitted', 'pending', 'late'] as const;
@@ -89,9 +118,9 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
   }
 
   statusBadgeClass(status: HomeworkSubmissionStatus): string {
-    if (status === HomeworkSubmissionStatus.Submitted) return 'badge-submitted';
-    if (status === HomeworkSubmissionStatus.Late) return 'badge-late';
-    return 'badge-pending';
+    if (status === HomeworkSubmissionStatus.Submitted) return 'submitted';
+    if (status === HomeworkSubmissionStatus.Late) return 'late';
+    return 'pending';
   }
 
   get canEdit(): boolean {
@@ -220,8 +249,9 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
     }
   }
 
-  setStudentStatus(studentId: string, status: HomeworkSubmissionStatus): void {
+  setStudentStatus(studentId: string, value: HomeworkSubmissionStatus | string): void {
     if (!this.canEdit) return;
+    const status = Number(value) as HomeworkSubmissionStatus;
     this.studentRows = this.studentRows.map((row) => {
       if (row.studentId !== studentId) return row;
       if (status === HomeworkSubmissionStatus.Submitted || status === HomeworkSubmissionStatus.Late) {
@@ -253,8 +283,46 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
     }));
   }
 
+  get maxMarks(): number | null {
+    const marks = this.detail?.marks;
+    return marks != null && Number(marks) > 0 ? Number(marks) : null;
+  }
+
+  onMarksChange(row: StudentRow, value: number | string | null): void {
+    const parsed = value === '' || value == null ? null : Number(value);
+    if (parsed == null || Number.isNaN(parsed)) {
+      row.marks = null;
+      return;
+    }
+    const max = this.maxMarks;
+    if (parsed < 0) {
+      row.marks = 0;
+      return;
+    }
+    row.marks = max != null && parsed > max ? max : parsed;
+  }
+
+  private validateMarksAgainstHomeworkMax(): string | null {
+    const max = this.maxMarks;
+    for (const row of this.studentRows) {
+      if (row.marks == null || row.marks === ('' as unknown as number)) continue;
+      const marks = Number(row.marks);
+      if (Number.isNaN(marks)) continue;
+      if (marks < 0) return 'Marks cannot be negative.';
+      if (max != null && marks > max) {
+        return `Marks cannot exceed homework maximum (${max}).`;
+      }
+    }
+    return null;
+  }
+
   submitOrUpdate(): void {
     if (!this.canEdit || !this.homeworkId) return;
+    const marksError = this.validateMarksAgainstHomeworkMax();
+    if (marksError) {
+      void this.showToast(marksError);
+      return;
+    }
     this.isSubmitting = true;
     const payload = this.buildPayload();
     const call = this.isSubmissionsSubmitted
@@ -302,8 +370,16 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
     await a.present();
   }
 
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 2800, position: 'bottom' });
-    await t.present();
+  private showToast(message: string): void {
+    const lower = message.toLowerCase();
+    if (lower.includes('fail') || lower.includes('error')) {
+      void this.toast.error(message);
+      return;
+    }
+    if (lower.includes('saved') || lower.includes('updated') || lower.includes('deleted')) {
+      void this.toast.success(message);
+      return;
+    }
+    void this.toast.show(message);
   }
 }

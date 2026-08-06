@@ -487,6 +487,119 @@ ion-tabs {
   color: var(--so-primary) !important;
 }
 
+ion-modal.so-search-select-modal {
+  --width: 100%;
+  --border-radius: 22px 22px 0 0;
+  --background: var(--so-card-bg);
+  --backdrop-opacity: 0.42;
+}
+
+ion-modal.so-search-select-modal::part(content) {
+  box-shadow: 0 -8px 32px rgb(21 36 20 / 18%);
+}
+
+/* Shared homework visuals used by dashboard and submission screens. */
+.so-hw-icon-tile {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: var(--so-primary-light);
+  color: var(--so-primary-dark);
+
+  ion-icon {
+    font-size: 23px;
+  }
+
+  &.blue {
+    background: var(--so-late-bg);
+    color: var(--so-late);
+  }
+
+  &.orange {
+    background: var(--so-warning-bg);
+    color: var(--so-warning);
+  }
+
+  &.red {
+    background: var(--so-error-bg);
+    color: var(--so-error);
+  }
+}
+
+.so-hw-progress {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--so-surface-container-high);
+
+  > span,
+  > div {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--so-primary);
+    transition: width 180ms ease;
+  }
+}
+
+.so-hw-status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--so-badge-bg);
+  color: var(--so-badge-text);
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: capitalize;
+
+  &.today,
+  &.late {
+    background: var(--so-warning-bg);
+    color: var(--so-warning);
+  }
+
+  &.overdue {
+    background: var(--so-error-bg);
+    color: var(--so-error);
+  }
+
+  &.done,
+  &.submitted {
+    background: var(--so-success-bg);
+    color: var(--so-success);
+  }
+
+  &.pending {
+    background: var(--so-surface-container-high);
+    color: var(--so-on-surface-variant);
+  }
+}
+
+.so-sticky-action-footer {
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--so-card-bg) 94%, transparent);
+  border-top: 1px solid var(--so-line);
+  box-shadow: 0 -8px 24px rgb(31 42 26 / 8%);
+  backdrop-filter: blur(12px);
+
+  ion-button {
+    min-height: 52px;
+    margin: 0;
+    --border-radius: 999px;
+    --background: var(--so-primary);
+    --color: var(--so-on-primary);
+    --box-shadow: 0 8px 20px rgb(99 153 34 / 24%);
+    font-weight: 750;
+    text-transform: none;
+  }
+}
+
 .so-search-wrap {
   position: relative;
   ion-icon {
@@ -532,5 +645,94 @@ ion-tabs {
     font-weight: 600;
     color: var(--so-ink);
     margin: 0 0 8px;
+  }
+}
+
+/* Shared toast with common icons (iOS mode) */
+.so-toast {
+  --border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+
+  &::part(icon) {
+    margin-inline-end: 8px;
+  }
+}
+
+/* Centered calendar popup (used by so-date-input everywhere) */
+ion-modal.so-date-modal {
+  --width: min(320px, calc(100vw - 40px));
+  --height: auto;
+  --max-width: 320px;
+  --max-height: min(420px, calc(100vh - 80px));
+  --border-radius: 18px;
+  --box-shadow: 0 16px 48px rgba(31, 42, 26, 0.22);
+  --backdrop-opacity: 0.38;
+
+  &::part(content) {
+    margin: auto;
+    overflow: hidden;
+  }
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.banner-close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.remarks-sheet {
+  padding: 12px 20px 24px;
+
+  h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  ion-textarea {
+    --background: var(--so-surface-container-low);
+    margin-bottom: 16px;
+    border: 1px solid var(--so-outline-variant);
+    border-radius: var(--so-radius-lg);
+  }
+
+  .sheet-handle {
+    width: 48px;
+    height: 4px;
+    margin: 0 auto 16px;
+    border-radius: 999px;
+    background: var(--so-outline-variant);
+  }
+
+  .sheet-actions {
+    display: flex;
+    gap: 12px;
+
+    ion-button {
+      flex: 1;
+      text-transform: none;
+    }
+  }
+}
+
+/* Primary HTML buttons with leading icon */
+.primary-btn,
+.save-btn,
+.att-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  so-icon,
+  ion-icon {
+    font-size: 18px;
   }
 }

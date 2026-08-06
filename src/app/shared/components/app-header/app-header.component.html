@@ -16,13 +16,7 @@
         </div>
       </div>
     } @else {
-      @if (showBack) {
-        <ion-buttons slot="start">
-          <ion-back-button [defaultHref]="backHref" text=""></ion-back-button>
-        </ion-buttons>
-      }
-
-      <ion-title>{{ displayTitle }}</ion-title>
+      <div slot="start" class="header-title">{{ displayTitle }}</div>
 
       <ion-buttons slot="end" class="header-actions">
         <ion-button fill="clear" class="header-icon-btn" aria-label="Search" (click)="openSearch()">

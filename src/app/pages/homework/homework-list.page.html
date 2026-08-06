@@ -12,25 +12,37 @@
   </ion-refresher>
 
   <section class="stats-grid">
-    <div class="stat-box">
-      <span class="label">Assigned</span>
-      <strong>{{ stats.totalAssigned }}</strong>
-    </div>
-    <div class="stat-box accent">
-      <span class="label">Due today</span>
-      <strong>{{ stats.dueToday }}</strong>
-    </div>
-    <div class="stat-box ok">
-      <span class="label">Submissions</span>
-      <strong>{{ stats.totalSubmissions }}</strong>
-    </div>
-    <div class="stat-box warn">
-      <span class="label">Overdue</span>
-      <strong>{{ stats.overdue }}</strong>
-    </div>
+    <ion-card class="stat-box assigned">
+      <ion-card-content>
+        <span class="so-hw-icon-tile"><ion-icon name="clipboard-outline"></ion-icon></span>
+        <span class="label">Assigned</span>
+        <strong>{{ stats.totalAssigned }}</strong>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="stat-box due">
+      <ion-card-content>
+        <span class="so-hw-icon-tile orange"><ion-icon name="time-outline"></ion-icon></span>
+        <span class="label">Due today</span>
+        <strong>{{ stats.dueToday }}</strong>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="stat-box submissions">
+      <ion-card-content>
+        <span class="so-hw-icon-tile blue"><ion-icon name="checkmark-done-circle-outline"></ion-icon></span>
+        <span class="label">Submissions</span>
+        <strong>{{ stats.totalSubmissions }}</strong>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="stat-box overdue">
+      <ion-card-content>
+        <span class="so-hw-icon-tile red"><ion-icon name="alert-circle-outline"></ion-icon></span>
+        <span class="label">Overdue</span>
+        <strong>{{ stats.overdue }}</strong>
+      </ion-card-content>
+    </ion-card>
   </section>
 
-  <div class="active-filters-bar">
+  <div class="hw-filter-chips">
     <span>{{ classGroupFilterLabel }}</span>
     <span>{{ sectionFilterLabel }}</span>
     <span>{{ subjectFilterLabel }}</span>
@@ -49,24 +61,44 @@
   } @else {
     <section class="hw-cards">
       @for (hw of items; track hw.id) {
-        <article class="hw-card so-card" [class.overdue]="hw.status === 'overdue'" (click)="openDetail(hw.id)">
-          <div class="hw-title-row">
-            <span class="priority-dot" [class.high]="hw.priority === 1" [class.low]="hw.priority === 2"></span>
-            <h3>{{ hw.title }}</h3>
-          </div>
-          <p class="meta">
-            <ion-icon name="school-outline"></ion-icon>
-            {{ hw.className }} · {{ hw.subjectName }}
-          </p>
-          <p class="meta due" [class.today]="hw.status === 'today'" [class.overdue]="hw.status === 'overdue'">
-            <ion-icon name="calendar-outline"></ion-icon>
-            Due {{ hw.dueDate }}
-          </p>
-          <div class="hw-footer">
-            <span class="badge" [class]="statusClass(hw.status)">{{ hw.status }}</span>
-            <span class="progress">{{ hw.submitted }}/{{ hw.total }} submitted</span>
-          </div>
-        </article>
+        <ion-card
+          class="hw-card"
+          [button]="true"
+          [class.overdue]="hw.status === 'overdue'"
+          (click)="openDetail(hw.id)"
+        >
+          <ion-card-content>
+            <div class="hw-card-top">
+              <div class="hw-copy">
+                <h2>{{ hw.title }}</h2>
+                <p class="meta">
+                  <ion-icon name="school-outline"></ion-icon>
+                  <span>{{ hw.className }} <b>•</b> {{ hw.subjectName }}</span>
+                </p>
+                <p class="meta due" [class.today]="hw.status === 'today'" [class.overdue]="hw.status === 'overdue'">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>Due: {{ hw.dueDate }}</span>
+                </p>
+              </div>
+              <span
+                class="so-hw-icon-tile book-tile"
+                [class.orange]="hw.priority === 1"
+                [class.blue]="hw.priority === 2"
+              >
+                <ion-icon name="book-outline"></ion-icon>
+              </span>
+            </div>
+
+            <div class="so-hw-progress">
+              <span [style.width.%]="progressPct(hw)"></span>
+            </div>
+
+            <div class="hw-footer">
+              <span class="so-hw-status-badge" [class]="hw.status">{{ hw.status }}</span>
+              <strong>{{ hw.submitted }} / {{ hw.total }} Submitted</strong>
+            </div>
+          </ion-card-content>
+        </ion-card>
       }
     </section>
   }

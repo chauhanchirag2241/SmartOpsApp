@@ -6,9 +6,9 @@ import {
   IonContent,
   IonInput,
   IonSpinner,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-change-password',
@@ -19,7 +19,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class ChangePasswordPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
 
   oldPassword = '';
   newPassword = '';
@@ -76,8 +76,7 @@ export class ChangePasswordPage implements OnInit {
     });
   }
 
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 2500, position: 'bottom' });
-    await t.present();
+  private showToast(message: string): void {
+    void this.toast.success(message, 2500);
   }
 }

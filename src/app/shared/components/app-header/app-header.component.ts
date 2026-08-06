@@ -1,13 +1,11 @@
 import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
 import {
-  IonBackButton,
   IonButton,
   IonButtons,
   IonHeader,
   IonIcon,
   IonPopover,
   IonSearchbar,
-  IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -32,12 +30,10 @@ import { AcademicYearContextService } from '../../../core/services/academic-year
   imports: [
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonButtons,
     IonButton,
     IonIcon,
     IonSearchbar,
-    IonBackButton,
     IonPopover,
   ],
 })
@@ -50,6 +46,7 @@ export class AppHeaderComponent implements OnInit {
 
   @Input() title = '';
   @Input() showFilter = false;
+  /** Kept for existing page bindings; back arrow is not shown in SmartOpsApp. */
   @Input() showBack = false;
   @Input() backHref = '/tabs/home';
   @Input() searchPlaceholder = 'Search...';

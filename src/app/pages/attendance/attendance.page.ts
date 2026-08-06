@@ -9,14 +9,16 @@ import {
   IonModal,
   IonSpinner,
   IonTextarea,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { forkJoin } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline,
+  chevronDownOutline,
   closeOutline,
   documentTextOutline,
+  refreshOutline,
+  schoolOutline,
   warningOutline,
 } from 'ionicons/icons';
 import {
@@ -28,8 +30,13 @@ import { AttendanceService } from '../../core/services/attendance.service';
 import { ClassDropdownItem, ClassService } from '../../core/services/class.service';
 import { StudentService } from '../../core/services/student.service';
 import { AppHeaderService } from '../../core/services/app-header.service';
+import { ToastService } from '../../core/services/toast.service';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { SoDateInputComponent } from '../../shared/components/so-date-input/so-date-input.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
+import { SoIconComponent } from '../../shared/components/so-icon/so-icon.component';
+import { SoSelectComponent, SoSelectOption } from '../../shared/components/so-select/so-select.component';
+import { SoIcons } from '../../shared/icons/so-icons';
 import {
   attendanceStatusToApi,
   formatDisplayDate,
@@ -53,6 +60,9 @@ type StatusFilter = 'all' | AttendanceStatusKey | 'unmarked';
     FormsModule,
     AppHeaderComponent,
     SoFilterPopoverComponent,
+    SoDateInputComponent,
+    SoIconComponent,
+    SoSelectComponent,
     IonContent,
     IonButton,
     IonIcon,
@@ -67,10 +77,11 @@ export class AttendancePage implements OnInit, OnDestroy {
   private subs = new Subscription();
   private readonly studentService = inject(StudentService);
   private readonly attendanceService = inject(AttendanceService);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
   private readonly alert = inject(AlertController);
   private readonly cdr = inject(ChangeDetectorRef);
   readonly ayContext = inject(AcademicYearContextService);
+  readonly saveIcon = SoIcons.save;
 
   classes: ClassDropdownItem[] = [];
   students: StudentRow[] = [];
@@ -104,7 +115,10 @@ export class AttendancePage implements OnInit, OnDestroy {
     addIcons({
       documentTextOutline,
       checkmarkCircleOutline,
+      chevronDownOutline,
       closeOutline,
+      refreshOutline,
+      schoolOutline,
       warningOutline,
     });
   }
@@ -116,6 +130,10 @@ export class AttendancePage implements OnInit, OnDestroy {
 
   get selectedClassName(): string {
     return this.classes.find((c) => c.id === this.selectedClassId)?.name ?? 'Select class';
+  }
+
+  get classOptions(): SoSelectOption[] {
+    return this.classes.map((item) => ({ value: item.id, label: item.name }));
   }
 
   get displaySelectedDate(): string {
@@ -146,7 +164,19 @@ export class AttendancePage implements OnInit, OnDestroy {
     const late = vals.filter((s) => s === 'late').length;
     const total = this.students.length;
     const marked = present + absent + late;
-    return { total, present, absent, late, marked };
+    const presentRate = total ? Math.round((present / total) * 100) : 0;
+    const presentPct = total ? (present / total) * 100 : 0;
+    const absentPct = total ? (absent / total) * 100 : 0;
+    const latePct = total ? (late / total) * 100 : 0;
+    return { total, present, absent, late, marked, presentRate, presentPct, absentPct, latePct };
+  }
+
+  get hasChanges(): boolean {
+    return this.students.some(
+      (s) =>
+        (this.status[s.id] || '') !== (this.initialStatus[s.id] || '') ||
+        (this.notes[s.id] || '') !== (this.initialNotes[s.id] || ''),
+    );
   }
 
   ngOnInit(): void {
@@ -287,6 +317,40 @@ export class AttendancePage implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  cycleStatus(studentId: string): void {
+    if (!this.canEdit || !studentId) return;
+    const current = this.status[studentId] || '';
+    const next: Record<AttendanceStatusKey, AttendanceStatusKey> = {
+      '': 'present',
+      present: 'absent',
+      absent: 'late',
+      late: '',
+    };
+    this.status = { ...this.status, [studentId]: next[current] };
+    this.cdr.markForCheck();
+  }
+
+  onStatusClick(event: Event, studentId: string, key: AttendanceStatusKey): void {
+    event.stopPropagation();
+    this.setStatus(studentId, key);
+  }
+
+  markAllPresent(): void {
+    if (!this.canEdit) return;
+    const next = { ...this.status };
+    this.visibleStudents.forEach((student) => (next[student.id] = 'present'));
+    this.status = next;
+    this.cdr.markForCheck();
+  }
+
+  resetVisible(): void {
+    if (!this.canEdit) return;
+    const next = { ...this.status };
+    this.visibleStudents.forEach((student) => (next[student.id] = ''));
+    this.status = next;
+    this.cdr.markForCheck();
+  }
+
   isStatusActive(studentId: string, key: AttendanceStatusKey): boolean {
     return this.status[studentId] === key;
   }
@@ -296,7 +360,8 @@ export class AttendancePage implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  openRemarks(studentId: string): void {
+  openRemarks(studentId: string, event?: Event): void {
+    event?.stopPropagation();
     if (!this.canEdit || !studentId) return;
     this.remarkTargetId = studentId;
     this.tempRemark = this.notes[studentId] || '';
@@ -413,8 +478,16 @@ export class AttendancePage implements OnInit, OnDestroy {
     return a.localeCompare(b, undefined, { numeric: true });
   }
 
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 2800, position: 'bottom' });
-    await t.present();
+  private showToast(message: string): void {
+    const lower = message.toLowerCase();
+    if (lower.includes('success') || lower.includes('submitted') || lower.includes('updated') || lower.includes('saved')) {
+      void this.toast.success(message);
+      return;
+    }
+    if (lower.includes('fail') || lower.includes('error') || lower.includes('at least')) {
+      void this.toast.error(message);
+      return;
+    }
+    void this.toast.show(message);
   }
 }

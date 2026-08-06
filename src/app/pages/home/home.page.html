@@ -40,7 +40,7 @@
 
     @if (moreActions.length) {
       <section class="hd-section">
-        <h2 class="hd-section-title">More actions</h2>
+        <h2 class="hd-section-title">{{ moreActionsTitle }}</h2>
         <div class="hd-more-grid">
           @for (action of moreActions; track action.id) {
             <app-hd-more-action-tile [action]="action" (open)="openMore($event)" />
@@ -49,7 +49,18 @@
       </section>
     }
 
-    @if (!spotlight.length && !primaryActions.length && !moreActions.length) {
+    @if (myActions.length) {
+      <section class="hd-section hd-my-actions-section">
+        <h2 class="hd-section-title">{{ myActionsTitle }}</h2>
+        <div class="hd-more-grid">
+          @for (action of myActions; track action.id) {
+            <app-hd-more-action-tile [action]="action" (open)="openMore($event)" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (!spotlight.length && !primaryActions.length && !moreActions.length && !myActions.length) {
       <div class="hd-empty">
         <h3>No modules assigned</h3>
         <p>Contact your administrator for menu access.</p>

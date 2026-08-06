@@ -1,5 +1,5 @@
 <app-header
-  [title]="detail?.title || 'Homework'"
+  title="Homework"
   [showBack]="true"
   [showFilter]="true"
   backHref="/homework"
@@ -12,65 +12,68 @@
   } @else if (loadError) {
     <div class="so-empty"><h3>{{ loadError }}</h3></div>
   } @else if (detail) {
-    <section class="detail-header so-card">
-      @if (canEdit) {
-        <div class="detail-actions detail-actions-top">
-          <button type="button" class="icon-btn" (click)="editHomework()">
-            <ion-icon name="create-outline"></ion-icon>
-          </button>
-          @if (canDelete) {
-            <button type="button" class="icon-btn danger" (click)="deleteHomework()">
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
+    <ion-card class="detail-header">
+      <ion-card-content>
+        <div class="summary-top">
+          <div class="badges">
+            <span class="summary-badge">{{ detail.subjectName }}</span>
+            <span class="summary-badge">{{ detail.className }}</span>
+            <span class="so-hw-status-badge" [class]="detail.status">{{ detail.status }}</span>
+          </div>
+          @if (canEdit) {
+            <div class="detail-actions">
+              <ion-button fill="clear" size="small" aria-label="Edit homework" (click)="editHomework()">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              @if (canDelete) {
+                <ion-button
+                  class="danger"
+                  fill="clear"
+                  size="small"
+                  aria-label="Delete homework"
+                  (click)="deleteHomework()"
+                >
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              }
+            </div>
           }
         </div>
-      }
-      <div class="badges">
-        <span class="badge subject">{{ detail.subjectName }}</span>
-        <span class="badge muted">{{ detail.className }}</span>
-        <span class="badge status">{{ detail.status }}</span>
-      </div>
-      <p class="dates">Assigned {{ detail.assignDate }} → Due {{ detail.dueDate }}</p>
-      <p class="meta-line">
-        {{ detail.marks ? detail.marks + ' marks' : 'No marks' }} · {{ detail.submissionTypeLabel }}
-      </p>
-      @if (detail.description) {
-        <p class="desc">{{ detail.description }}</p>
-      }
-      <div class="progress-block">
-        <div class="progress-top">
-          <span>Submission progress</span>
-          <strong>{{ progressPct }}%</strong>
-        </div>
-        <div class="progress-bar"><div [style.width.%]="progressPct"></div></div>
-        <div class="stats-row">
-          <div class="stat-pill submitted">
-            <ion-icon name="checkmark-circle"></ion-icon>
-            <span class="stat-label">Submitted</span>
-            <strong>{{ detail.submitted }}</strong>
+
+        <p class="dates">Assigned: {{ detail.assignDate }} <span>•</span> Due: {{ detail.dueDate }}</p>
+        <p class="meta-line">
+          {{ detail.marks ? detail.marks + ' marks' : 'No marks' }} · {{ detail.submissionTypeLabel }}
+        </p>
+        @if (detail.description) {
+          <p class="desc">{{ detail.description }}</p>
+        }
+
+        <div class="progress-block">
+          <div class="progress-top">
+            <strong>Progress {{ progressPct }}%</strong>
+            <span>{{ detail.submitted }} of {{ detail.total }} submitted</span>
           </div>
-          <div class="stat-pill pending">
-            <ion-icon name="hourglass"></ion-icon>
-            <span class="stat-label">Pending</span>
-            <strong>{{ detail.pending }}</strong>
-          </div>
-          <div class="stat-pill late">
-            <ion-icon name="warning"></ion-icon>
-            <span class="stat-label">Late</span>
-            <strong>{{ detail.late }}</strong>
+          <div class="so-hw-progress"><span [style.width.%]="progressPct"></span></div>
+          <div class="stats-row">
+            <div class="stat-pill submitted">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <strong>{{ detail.submitted }}</strong>
+              <span>Submitted</span>
+            </div>
+            <div class="stat-pill pending">
+              <ion-icon name="hourglass"></ion-icon>
+              <strong>{{ detail.pending }}</strong>
+              <span>Pending</span>
+            </div>
+            <div class="stat-pill late">
+              <ion-icon name="warning"></ion-icon>
+              <strong>{{ detail.late }}</strong>
+              <span>Late</span>
+            </div>
           </div>
         </div>
-      </div>
-      @if (canEdit) {
-        <button type="button" class="save-btn" [disabled]="isSubmitting" (click)="submitOrUpdate()">
-          @if (isSubmitting) {
-            <ion-spinner name="crescent"></ion-spinner>
-          } @else {
-            {{ isSubmissionsSubmitted ? 'Update submissions' : 'Submit submissions' }}
-          }
-        </button>
-      }
-    </section>
+      </ion-card-content>
+    </ion-card>
 
     <section class="students-section">
       <div class="st-header">
@@ -90,69 +93,88 @@
       }
 
       @for (s of filteredStudents; track s.studentId) {
-        <div class="student-sub-card so-card">
-          <div class="st-info">
-            <span class="roll">{{ s.rollNo || '—' }}</span>
-            <div class="st-name-wrap">
-              <strong class="st-name">{{ s.studentName || 'Student' }}</strong>
-              <span class="st-status-badge" [class]="statusBadgeClass(s.status)">{{ statusLabel(s.status) }}</span>
-            </div>
-          </div>
-
-          <p class="status-hint">Submission status</p>
-          <div class="status-toggle" [class.disabled]="!canEdit">
-            <button
-              type="button"
-              class="st submitted"
-              [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Submitted)"
-              (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Submitted)"
-            >
-              <ion-icon name="checkmark-circle"></ion-icon>
-              <span>Done</span>
-            </button>
-            <button
-              type="button"
-              class="st pending"
-              [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Pending)"
-              (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Pending)"
-            >
-              <ion-icon name="hourglass"></ion-icon>
-              <span>Pending</span>
-            </button>
-            <button
-              type="button"
-              class="st late"
-              [class.active]="isStudentStatus(s, HomeworkSubmissionStatus.Late)"
-              (click)="setStudentStatus(s.studentId, HomeworkSubmissionStatus.Late)"
-            >
-              <ion-icon name="warning"></ion-icon>
-              <span>Late</span>
-            </button>
-          </div>
-
-          @if (s.status !== HomeworkSubmissionStatus.Pending) {
-            <div class="extra-fields">
-              <div class="field-group">
-                <label class="field-label">Submitted on</label>
-                <input class="hw-field-input" type="date" [(ngModel)]="s.submittedOn" [disabled]="!canEdit" />
+        <ion-card class="student-sub-card">
+          <ion-card-content>
+            <div class="st-info">
+              <div class="student-identity">
+                <span class="roll">#{{ s.rollNo || '—' }}</span>
+                <strong class="st-name">{{ s.studentName || 'Student' }}</strong>
               </div>
-              <div class="field-group two-col">
-                <div>
-                  <label class="field-label">Marks</label>
-                  <input class="hw-field-input" type="number" min="0" placeholder="Optional" [(ngModel)]="s.marks" [disabled]="!canEdit" />
+              <span class="so-hw-status-badge" [class]="statusBadgeClass(s.status)">
+                {{ statusLabel(s.status) }}
+              </span>
+            </div>
+
+            <ion-segment
+              class="status-toggle"
+              [disabled]="!canEdit"
+              [value]="s.status"
+              (ionChange)="setStudentStatus(s.studentId, $any($event).detail.value)"
+            >
+              <ion-segment-button class="submitted" [value]="HomeworkSubmissionStatus.Submitted">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                <ion-label>Done</ion-label>
+              </ion-segment-button>
+              <ion-segment-button class="pending" [value]="HomeworkSubmissionStatus.Pending">
+                <ion-icon name="hourglass"></ion-icon>
+                <ion-label>Pending</ion-label>
+              </ion-segment-button>
+              <ion-segment-button class="late" [value]="HomeworkSubmissionStatus.Late">
+                <ion-icon name="warning"></ion-icon>
+                <ion-label>Late</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+
+            @if (s.status !== HomeworkSubmissionStatus.Pending) {
+              <div class="extra-fields">
+                <div class="field-group">
+                  <label class="field-label">Submitted on</label>
+                  <so-date-input
+                    [(ngModel)]="s.submittedOn"
+                    [disabled]="!canEdit"
+                    placeholder="Submitted on"
+                    ariaLabel="Submitted on"
+                  />
                 </div>
-                <div>
-                  <label class="field-label">Remark</label>
-                  <input class="hw-field-input" type="text" placeholder="Optional" [(ngModel)]="s.remark" [disabled]="!canEdit" />
+                <div class="field-group two-col">
+                  <div>
+                    <label class="field-label">Marks{{ maxMarks != null ? ` / ${maxMarks}` : '' }}</label>
+                    <ion-input
+                      class="hw-field-input"
+                      type="number"
+                      min="0"
+                      [max]="maxMarks ?? undefined"
+                      [ngModel]="s.marks"
+                      (ngModelChange)="onMarksChange(s, $event)"
+                      [disabled]="!canEdit"
+                    />
+                  </div>
+                  <div>
+                    <label class="field-label">Remark</label>
+                    <ion-input class="hw-field-input" type="text" [(ngModel)]="s.remark" [disabled]="!canEdit" />
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-        </div>
+            }
+          </ion-card-content>
+        </ion-card>
       }
     </section>
   }
 </ion-content>
+
+@if (detail && canEdit) {
+  <ion-footer class="so-sticky-action-footer">
+    <ion-button expand="block" [disabled]="isSubmitting" (click)="submitOrUpdate()">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <so-icon slot="start" [name]="saveIcon"></so-icon>
+        {{ isSubmissionsSubmitted ? 'Update submissions' : 'Submit submissions' }}
+      }
+    </ion-button>
+  </ion-footer>
+}
 
 <so-filter-popover
   [isOpen]="filterOpen"

@@ -7,15 +7,16 @@ School portal mobile app for all users (admin, teacher, accountant, etc.). Menus
 1. Install dependencies: `npm install`
 2. Configure API in `src/environments/environment.ts`:
    - `apiBaseUrl` — e.g. `https://localhost:7288/api`
-   - `tenantSubdomain` — school tenant for localhost (`X-Tenant-ID` header)
+   - `tenantSubdomain` — optional local-dev fallback only (leave empty to use school-code screen)
 3. Run: `npm start` (or `ionic serve`)
-4. Sign in with mobile (10 digits, teacher/staff) or email (e.g. `admin@smartops.com`) + password.
+4. First launch: enter **school code** → then sign in with mobile (10 digits) or email + password.
 
 ## Screens
 
 | Tab / Route | Feature |
 |-------------|---------|
-| `/login` | Auth (`POST auth/login`, `GET auth/me`) |
+| `/school-code` | Find school by code (`GET schools/by-code/{code}`) — stored on device |
+| `/login` | Auth (`POST auth/login`, `GET auth/me`) + Change school |
 | `/tabs/home` | Shortcuts |
 | `/tabs/attendance` | Mark attendance (Stitch design) |
 | `/tabs/homework` | List + stats |
@@ -25,11 +26,12 @@ School portal mobile app for all users (admin, teacher, accountant, etc.). Menus
 
 ## API modules used
 
+- `GET /api/schools/by-code/{schoolCode}` (anonymous bootstrap)
 - `GET/POST /api/attendance`, `POST /api/attendance/submit`
 - `GET/POST/PUT/DELETE /api/homework`, submissions endpoints
 - `GET /api/class/dropdown`, `GET /api/subject/dropdown`
 - `GET /api/academic-year/current`
 
-Headers: `Authorization`, `X-Tenant-ID`, `X-Academic-Year-Id`
+Headers: `Authorization`, `X-Tenant-ID` (school subdomain), `X-Academic-Year-Id`
 
 Design tokens from `Document/stitch_smartops_teacher_mobile_app/DESIGN.md`.

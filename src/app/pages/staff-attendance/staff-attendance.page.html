@@ -29,6 +29,49 @@
   @if (isLoading) {
     <div class="loading-wrap"><ion-spinner></ion-spinner></div>
   } @else {
+    <section class="calendar-card so-card">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" (click)="prevMonth()" aria-label="Previous month">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+        <strong>{{ monthLabel }}</strong>
+        <button type="button" class="cal-nav" (click)="nextMonth()" aria-label="Next month">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+      </div>
+
+      @if (calendarLoading) {
+        <div class="cal-loading"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else {
+        <div class="cal-weekdays">
+          @for (d of weekDays; track d) {
+            <span>{{ d }}</span>
+          }
+        </div>
+        <div class="cal-grid">
+          @for (cell of calendarCells; track $index) {
+            <div
+              class="cal-day"
+              [class.is-blank]="cell.day === null"
+              [attr.data-tone]="cell.tone"
+              [title]="cell.label"
+            >
+              @if (cell.day !== null) {
+                <span>{{ cell.day }}</span>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <div class="cal-legend">
+        <span data-tone="present">Present</span>
+        <span data-tone="absent">Absent</span>
+        <span data-tone="leave">Leave</span>
+        <span data-tone="holiday">Holiday</span>
+      </div>
+    </section>
+
     <section class="today-card so-card">
       <div class="today-head">
         <div>
@@ -135,36 +178,6 @@
         </div>
       } @else if (!allowsManual && !allowsFace) {
         <p class="muted">Attendance punching is not enabled for this school.</p>
-      }
-    </section>
-
-    <section class="history-section">
-      <div class="section-head">
-        <h3>Recent history</h3>
-        <p>Last 7 days</p>
-      </div>
-
-      @if (!history.length) {
-        <div class="so-empty">
-          <ion-icon name="time-outline"></ion-icon>
-          <h3>No history yet</h3>
-          <p>Your recent punches will appear here.</p>
-        </div>
-      } @else {
-        <ul class="history-list">
-          @for (day of history; track day.date) {
-            <li class="history-row so-card">
-              <div class="history-date">
-                <strong>{{ day.displayDate }}</strong>
-                <span>{{ day.statusLabel }}</span>
-              </div>
-              <div class="history-times">
-                <span>In {{ formatTime(day.checkInTime) }}</span>
-                <span>Out {{ formatTime(day.checkOutTime) }}</span>
-              </div>
-            </li>
-          }
-        </ul>
       }
     </section>
   }

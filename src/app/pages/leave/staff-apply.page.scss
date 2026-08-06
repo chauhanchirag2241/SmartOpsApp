@@ -1,3 +1,39 @@
-label { display: block; margin-bottom: 12px; font-size: 14px; }
-input, select, textarea { width: 100%; margin-top: 4px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-.primary-btn { width: 100%; margin-top: 16px; padding: 12px; border: none; border-radius: 8px; background: var(--ion-color-primary); color: #fff; }
+label {
+  display: block;
+  margin-bottom: 6px;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--so-ink, #1a1f14);
+}
+
+label:first-of-type {
+  margin-top: 0;
+}
+
+select,
+textarea {
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 10px 12px;
+  border-radius: var(--so-radius, 10px);
+  border: 1.5px solid var(--so-line, #ddd);
+  background: var(--so-input-bg, #fcfdf9);
+  font-size: 13.5px;
+}
+
+so-date-input {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.primary-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ion-color-primary);
+  color: #fff;
+  font-weight: 600;
+}

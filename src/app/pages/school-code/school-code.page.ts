@@ -6,11 +6,11 @@ import {
   IonContent,
   IonInput,
   IonSpinner,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
 import { SchoolService } from '../../core/services/school.service';
 import { TenantService } from '../../core/services/tenant.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-school-code',
@@ -23,7 +23,7 @@ export class SchoolCodePage implements OnInit {
   private readonly tenant = inject(TenantService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
 
   schoolCode = '';
   loading = false;
@@ -83,8 +83,7 @@ export class SchoolCodePage implements OnInit {
     });
   }
 
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 3500, position: 'bottom' });
-    await t.present();
+  private showToast(message: string): void {
+    void this.toast.error(message, 3500);
   }
 }

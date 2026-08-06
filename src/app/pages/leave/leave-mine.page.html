@@ -1,0 +1,48 @@
+<app-header title="Leave" [showBack]="true" backHref="/tabs/home" />
+
+<ion-content class="leave-mine-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="page-pad">
+    <div class="section-head">
+      <h2>Leave balance</h2>
+      <p>Available balance for this academic year</p>
+    </div>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (!balances.length) {
+      <div class="empty-card">
+        <ion-icon name="airplane-outline"></ion-icon>
+        <h3>No leave balance</h3>
+        <p>Balance will appear once HR configures leave types for you.</p>
+      </div>
+    } @else {
+      <div class="balance-list">
+        @for (b of balances; track b.id) {
+          <article class="balance-card">
+            <div class="balance-top">
+              <strong>{{ b.leaveTypeName || 'Leave' }}</strong>
+              <span class="closing">{{ b.closingBalance }}</span>
+            </div>
+            <div class="balance-meta">
+              <span>Opening {{ b.openingBalance }}</span>
+              <span>Used {{ b.used }}</span>
+              <span>Accrued {{ b.accrued }}</span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+
+  @if (canApply) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button color="primary" (click)="openApply()" aria-label="Apply leave">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+</ion-content>

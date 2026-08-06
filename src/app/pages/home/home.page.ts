@@ -4,7 +4,6 @@ import {
   IonContent,
   IonIcon,
   IonPopover,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -12,6 +11,7 @@ import {
   appsOutline,
   book,
   bookOutline,
+  calendarClearOutline,
   calendarOutline,
   callOutline,
   cardOutline,
@@ -35,6 +35,7 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
 import { PermissionService } from '../../core/services/permission.service';
+import { ToastService } from '../../core/services/toast.service';
 import { buildHomeDashboardConfig, resolveHomeUserType } from './home-dashboard.config';
 import {
   HomeHeaderInfo,
@@ -65,7 +66,7 @@ export class HomePage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly permissions = inject(PermissionService);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
   readonly ay = inject(AcademicYearContextService);
 
   headerInfo: HomeHeaderInfo = {
@@ -78,7 +79,10 @@ export class HomePage implements OnInit {
   };
   spotlight: HomeSpotlightCard[] = [];
   primaryActions: HomePrimaryAction[] = [];
+  moreActionsTitle = 'More Actions';
   moreActions: HomeMoreAction[] = [];
+  myActionsTitle = 'My Actions';
+  myActions: HomeMoreAction[] = [];
   activeSpotIndex = 0;
   profileOpen = false;
 
@@ -88,6 +92,7 @@ export class HomePage implements OnInit {
       appsOutline,
       book,
       bookOutline,
+      calendarClearOutline,
       calendarOutline,
       callOutline,
       cardOutline,
@@ -161,7 +166,10 @@ export class HomePage implements OnInit {
 
     this.spotlight = config.spotlight.filter((c) => this.allowed(c.requiresMenu));
     this.primaryActions = config.primaryActions.filter((c) => this.allowed(c.requiresMenu));
+    this.moreActionsTitle = config.moreActionsTitle ?? 'More Actions';
     this.moreActions = config.moreActions.filter((c) => this.allowed(c.requiresMenu));
+    this.myActionsTitle = config.myActionsTitle ?? 'My Actions';
+    this.myActions = (config.myActions ?? []).filter((c) => this.allowed(c.requiresMenu));
     this.activeSpotIndex = 0;
   }
 
@@ -208,8 +216,7 @@ export class HomePage implements OnInit {
     });
   }
 
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 2800, position: 'bottom' });
-    await t.present();
+  private showToast(message: string): void {
+    void this.toast.info(message);
   }
 }

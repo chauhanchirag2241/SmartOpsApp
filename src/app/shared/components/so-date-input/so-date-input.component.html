@@ -1,0 +1,31 @@
+<button
+  type="button"
+  class="so-date-trigger"
+  [disabled]="disabled"
+  [attr.aria-label]="ariaLabel || placeholder"
+  [attr.aria-expanded]="isOpen"
+  (click)="open()"
+>
+  <span class="so-date-label" [class.is-placeholder]="!value">{{ displayLabel }}</span>
+  <ion-icon class="so-date-icon" [name]="calendarIcon" aria-hidden="true"></ion-icon>
+</button>
+
+<ion-modal
+  cssClass="so-date-modal"
+  [isOpen]="isOpen"
+  [backdropDismiss]="true"
+  (didDismiss)="close()"
+>
+  <ng-template>
+    <div class="so-date-popup">
+      <ion-datetime
+        [id]="datetimeId"
+        presentation="date"
+        [value]="isoValue"
+        [max]="maxIso"
+        [min]="minIso"
+        (ionChange)="onDatetimeChange($event)"
+      ></ion-datetime>
+    </div>
+  </ng-template>
+</ion-modal>

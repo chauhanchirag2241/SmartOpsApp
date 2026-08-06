@@ -56,5 +56,8 @@ export interface HomeDashboardConfig {
   contextLine: string;
   spotlight: HomeSpotlightCard[];
   primaryActions: HomePrimaryAction[];
+  moreActionsTitle?: string;
   moreActions: HomeMoreAction[];
+  myActionsTitle?: string;
+  myActions?: HomeMoreAction[];
 }

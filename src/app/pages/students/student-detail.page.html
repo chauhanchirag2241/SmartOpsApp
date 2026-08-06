@@ -1,5 +1,5 @@
 <app-header
-  [title]="detail?.fullName || 'Student'"
+  title="Student details"
   [showBack]="true"
   backHref="/students"
 />
@@ -11,49 +11,62 @@
     <div class="so-empty"><h3>{{ loadError }}</h3></div>
   } @else if (detail) {
     <so-module-shell>
-      <div class="detail-card so-card">
-        <div class="detail-row">
-          <ion-icon name="school-outline"></ion-icon>
-          <div>
-            <span class="label">Class & roll</span>
-            <strong>{{ detail.className }} · Roll {{ detail.rollNumber }}</strong>
+      <article class="profile-card">
+        <header class="profile-hero">
+          <so-avatar [name]="detail.fullName" [seed]="detail.fullName" size="xl" />
+          <h1>{{ detail.fullName }}</h1>
+          <p>{{ detail.className }} · Roll #{{ detail.rollNumber }}</p>
+        </header>
+
+        <div class="detail-list">
+          <div class="detail-row">
+            <span class="detail-icon phone"><ion-icon name="call-outline"></ion-icon></span>
+            <div>
+              <span class="label">Mobile</span>
+              <strong>{{ detail.mobile }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-icon email"><ion-icon name="mail-outline"></ion-icon></span>
+            <div>
+              <span class="label">Email</span>
+              <strong>{{ detail.email }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-icon birthday"><ion-icon name="calendar-outline"></ion-icon></span>
+            <div>
+              <span class="label">Date of Birth</span>
+              <strong>{{ detail.dob }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-icon gender"><ion-icon name="male-female-outline"></ion-icon></span>
+            <div>
+              <span class="label">Gender</span>
+              <strong>{{ detail.gender }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-icon address"><ion-icon name="location-outline"></ion-icon></span>
+            <div>
+              <span class="label">Address</span>
+              <strong>{{ detail.address }}</strong>
+            </div>
           </div>
         </div>
-        <div class="detail-row">
-          <ion-icon name="person-outline"></ion-icon>
-          <div>
-            <span class="label">Gender / DOB</span>
-            <strong>{{ detail.gender }} · {{ detail.dob }}</strong>
-          </div>
-        </div>
-        <div class="detail-row">
-          <ion-icon name="call-outline"></ion-icon>
-          <div>
-            <span class="label">Mobile</span>
-            <strong>{{ detail.mobile }}</strong>
-          </div>
-        </div>
-        <div class="detail-row">
-          <ion-icon name="mail-outline"></ion-icon>
-          <div>
-            <span class="label">Email</span>
-            <strong>{{ detail.email }}</strong>
-          </div>
-        </div>
-        <div class="detail-row">
-          <ion-icon name="location-outline"></ion-icon>
-          <div>
-            <span class="label">Address</span>
-            <strong>{{ detail.address }}</strong>
-          </div>
-        </div>
+
         @if (detail.remarks) {
           <div class="remarks-block">
             <span class="label">Remarks</span>
             <p>{{ detail.remarks }}</p>
           </div>
         }
-      </div>
+      </article>
     </so-module-shell>
   }
 </ion-content>

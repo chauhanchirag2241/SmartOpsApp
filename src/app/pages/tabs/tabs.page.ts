@@ -1,8 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs, ToastController } from '@ionic/angular/standalone';
+import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { clipboardOutline, homeOutline, megaphoneOutline, personOutline } from 'ionicons/icons';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-tabs',
@@ -12,7 +13,7 @@ import { clipboardOutline, homeOutline, megaphoneOutline, personOutline } from '
 })
 export class TabsPage {
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
 
   constructor() {
     addIcons({ homeOutline, clipboardOutline, megaphoneOutline, personOutline });
@@ -26,12 +27,7 @@ export class TabsPage {
     void this.router.navigateByUrl('/attendance');
   }
 
-  async comingSoon(label: string): Promise<void> {
-    const t = await this.toast.create({
-      message: `${label} is coming soon on mobile.`,
-      duration: 2200,
-      position: 'bottom',
-    });
-    await t.present();
+  comingSoon(label: string): void {
+    void this.toast.info(`${label} is coming soon on mobile.`, 2200);
   }
 }

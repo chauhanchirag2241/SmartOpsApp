@@ -1,0 +1,40 @@
+<ion-content class="select-sheet">
+  <header class="sheet-header">
+    <div>
+      <p>SELECT ONE</p>
+      <h2>{{ title }}</h2>
+    </div>
+    <button type="button" class="sheet-close" (click)="close()">Close</button>
+  </header>
+
+  <ion-searchbar
+    class="select-search"
+    mode="ios"
+    [placeholder]="searchPlaceholder"
+    [debounce]="0"
+    (ionInput)="onSearch($event)"
+  />
+
+  <div class="option-list" role="listbox">
+    @for (opt of filteredOptions; track opt.value) {
+      <button
+        type="button"
+        class="option-row"
+        role="option"
+        [class.selected]="opt.value === value"
+        [attr.aria-selected]="opt.value === value"
+        (click)="select(opt)"
+      >
+        <span>{{ opt.label }}</span>
+        @if (opt.value === value) {
+          <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+        }
+      </button>
+    } @empty {
+      <div class="empty-options">
+        <strong>No result found</strong>
+        <span>Try a different search.</span>
+      </div>
+    }
+  </div>
+</ion-content>

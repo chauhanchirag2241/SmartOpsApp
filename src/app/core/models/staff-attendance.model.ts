@@ -4,6 +4,8 @@ export interface EmployeeAttendanceSettings {
   type: string;
   allowsManual: boolean;
   allowsFace: boolean;
+  /** Full-day hours when employee has no shift; half day uses half of this. */
+  defaultWorkingHours?: number;
 }
 
 export interface StaffAttendanceRow {
@@ -32,6 +34,18 @@ export interface ManualPunchRequest {
   employeeId?: string | null;
   attendanceDate?: string | null;
   remarks?: string | null;
+}
+
+export interface MyMonthAttendance {
+  month: number;
+  year: number;
+  presentDays: number;
+  absentDays: number;
+  lateDays: number;
+  halfDayDays: number;
+  totalWorkingDays: number;
+  dailyStatus: Record<string, string>;
+  nonWorkingDays: number[];
 }
 
 export interface StaffAttendanceReport {

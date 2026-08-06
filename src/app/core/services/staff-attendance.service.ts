@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   EmployeeAttendanceSettings,
   ManualPunchRequest,
+  MyMonthAttendance,
   StaffAttendanceReport,
   StaffAttendanceRow,
 } from '../models/staff-attendance.model';
@@ -25,6 +26,12 @@ export class StaffAttendanceService {
   listByDate(date: string): Observable<StaffAttendanceRow[]> {
     const params = new HttpParams().set('date', date);
     return this.api.get<StaffAttendanceRow[]>(this.base, params);
+  }
+
+  /** Own month attendance (no staff-report permission needed). */
+  getMyMonth(month: number, year: number): Observable<MyMonthAttendance> {
+    const params = new HttpParams().set('month', String(month)).set('year', String(year));
+    return this.api.get<MyMonthAttendance>(`${this.base}/my-month`, params);
   }
 
   getReport(month: number, year: number, departmentId?: string): Observable<StaffAttendanceReport> {

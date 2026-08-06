@@ -1,8 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent, IonRefresher, IonRefresherContent, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { IonContent, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { MyActionsService } from '../../core/services/my-actions.service';
+import { ToastService } from '../../core/services/toast.service';
 import { pickStr } from '../../core/utils/api-mapper.util';
 
 interface ActionItem {
@@ -21,7 +22,7 @@ interface ActionItem {
 export class MyActionsListPage implements OnInit {
   private readonly actionsService = inject(MyActionsService);
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
 
   items: ActionItem[] = [];
   pendingCount = 0;
@@ -52,10 +53,9 @@ export class MyActionsListPage implements OnInit {
         });
         this.loading = false;
       },
-      error: async () => {
+      error: () => {
         this.loading = false;
-        const t = await this.toast.create({ message: 'Failed to load actions', duration: 2000, color: 'danger' });
-        await t.present();
+        void this.toast.error('Failed to load actions', 2000);
       },
     });
   }

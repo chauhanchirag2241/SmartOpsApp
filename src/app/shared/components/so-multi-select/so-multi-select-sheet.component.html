@@ -1,0 +1,67 @@
+<ion-content class="select-sheet">
+  <header class="sheet-header">
+    <div>
+      <p>SELECT MANY</p>
+      <h2>{{ title }}</h2>
+    </div>
+    <button type="button" class="sheet-close" (click)="close()">Close</button>
+  </header>
+
+  <ion-searchbar
+    class="select-search"
+    mode="ios"
+    [placeholder]="searchPlaceholder"
+    [debounce]="0"
+    (ionInput)="onSearch($event)"
+  />
+
+  <div class="bulk-actions">
+    <button
+      type="button"
+      class="bulk-btn"
+      [disabled]="!filteredOptions.length || allFilteredSelected"
+      (click)="selectAllFiltered()"
+    >
+      Select all
+    </button>
+    <button
+      type="button"
+      class="bulk-btn"
+      [disabled]="!filteredSelectedCount"
+      (click)="clearSelection()"
+    >
+      Clear
+    </button>
+  </div>
+
+  <div class="option-list" role="listbox" aria-multiselectable="true">
+    @for (opt of filteredOptions; track opt.value) {
+      <button
+        type="button"
+        class="option-row"
+        role="option"
+        [class.selected]="isSelected(opt.value)"
+        [attr.aria-selected]="isSelected(opt.value)"
+        (click)="toggle(opt)"
+      >
+        <span class="check-box" [class.checked]="isSelected(opt.value)" aria-hidden="true">
+          @if (isSelected(opt.value)) {
+            <ion-icon name="checkmark-outline"></ion-icon>
+          }
+        </span>
+        <span class="option-label">{{ opt.label }}</span>
+      </button>
+    } @empty {
+      <div class="empty-options">
+        <strong>No result found</strong>
+        <span>Try a different search.</span>
+      </div>
+    }
+  </div>
+</ion-content>
+
+<ion-footer class="sheet-footer">
+  <button type="button" class="done-btn" (click)="confirm()">
+    Done{{ selectedCount ? ` (${selectedCount})` : '' }}
+  </button>
+</ion-footer>

@@ -30,35 +30,25 @@
     } @else {
       <div class="student-cards">
         @for (s of students; track s.id) {
-          <button type="button" class="student-card so-card" (click)="openStudent(s)">
-            <div class="card-top">
-              <div class="avatar">{{ initials(s.name) }}</div>
-              <div class="card-main">
-                <div class="name-row">
-                  <strong>{{ s.name }}</strong>
-                  <span class="status-pill" [class]="statusClass(s)">{{ s.status || (s.isActive ? 'Active' : 'Inactive') }}</span>
-                </div>
-                <p class="meta-line">
-                  @if (s.rollNumber) {
-                    <span>Roll {{ s.rollNumber }}</span>
-                  }
-                  @if (s.class) {
-                    <span>{{ s.class }}</span>
-                  }
-                </p>
-                @if (s.admNo) {
-                  <p class="adm-line">Adm: {{ s.admNo }}</p>
+          <button type="button" class="student-card" (click)="openStudent(s)">
+            <so-avatar [name]="s.name" [seed]="s.name" size="md" shape="rounded" />
+            <div class="card-main">
+              <strong>{{ s.name }}</strong>
+              <p class="class-roll">
+                @if (s.rollNumber) {
+                  <span>Roll #{{ s.rollNumber }}</span>
                 }
-              </div>
-              <ion-icon class="chevron" name="chevron-forward-outline"></ion-icon>
+                @if (s.class) {
+                  <span>{{ s.class }}</span>
+                }
+              </p>
+              @if (s.admNo) {
+                <p class="admission-line">Admission: {{ s.admNo }}</p>
+              }
             </div>
-            <div class="card-stats">
-              @if (s.attendance) {
-                <span class="stat-chip attendance">{{ s.attendance }}</span>
-              }
-              @if (s.email) {
-                <span class="stat-chip muted"><ion-icon name="mail-outline"></ion-icon> {{ s.email }}</span>
-              }
+            <div class="card-end">
+              <span class="status-pill" [class]="statusClass(s)">{{ statusLabel(s) }}</span>
+              <ion-icon class="chevron" name="chevron-forward-outline"></ion-icon>
             </div>
           </button>
         }
@@ -80,12 +70,13 @@
 >
   <div class="filter-field">
     <label>Class</label>
-    <select class="so-filter-select" [(ngModel)]="classFilter">
-      <option value="">All classes</option>
-      @for (c of classes; track c.id) {
-        <option [value]="c.id">{{ c.name }}</option>
-      }
-    </select>
+    <so-multi-select
+      [options]="classOptions"
+      placeholder="All classes"
+      searchPlaceholder="Search class"
+      ariaLabel="Class"
+      [(ngModel)]="classFilterIds"
+    />
   </div>
   <div class="filter-field">
     <label>Status</label>

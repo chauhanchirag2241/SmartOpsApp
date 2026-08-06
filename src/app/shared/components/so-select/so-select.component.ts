@@ -1,20 +1,19 @@
-import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { Component, EventEmitter, Input, Output, forwardRef, inject } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ModalController } from '@ionic/angular/standalone';
+import { SoSelectSheetComponent } from './so-select-sheet.component';
+import { SoSelectOption } from './so-select.model';
 
-export interface SoSelectOption {
-  label: string;
-  value: string;
-}
+export { SoSelectOption } from './so-select.model';
 
 /**
- * Shared themed select for SmartOpsApp filters/forms.
- * Uses Ionic ion-select so highlight/focus follow --so-primary / --ion-color-primary.
+ * Shared themed single-select for SmartOpsApp filters/forms.
+ * Opens a searchable sheet through ModalController so it also works when
+ * rendered inside another sheet (filter popover).
  */
 @Component({
   selector: 'so-select',
   standalone: true,
-  imports: [FormsModule, IonSelect, IonSelectOption],
   templateUrl: './so-select.component.html',
   styleUrls: ['./so-select.component.scss'],
   providers: [
@@ -29,20 +28,22 @@ export class SoSelectComponent implements ControlValueAccessor {
   @Input() options: SoSelectOption[] = [];
   @Input() placeholder = 'Select';
   @Input() disabled = false;
-  /** Ionic select interface: action-sheet works reliably inside filter modals. */
-  @Input() interface: 'action-sheet' | 'popover' | 'alert' = 'action-sheet';
   @Input() ariaLabel = '';
+  @Input() searchPlaceholder = 'Search';
 
   @Output() valueChange = new EventEmitter<string>();
 
   value = '';
+  isOpen = false;
 
-  get interfaceOpts(): Record<string, unknown> {
-    return { cssClass: 'so-select-interface', header: this.placeholder };
-  }
+  private readonly modalCtrl = inject(ModalController);
 
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
+
+  get selectedLabel(): string {
+    return this.options.find((option) => option.value === this.value)?.label ?? '';
+  }
 
   writeValue(value: string | null): void {
     this.value = value ?? '';
@@ -60,10 +61,37 @@ export class SoSelectComponent implements ControlValueAccessor {
     this.disabled = isDisabled;
   }
 
-  onValueChange(next: string): void {
-    this.value = next ?? '';
-    this.onChange(this.value);
-    this.valueChange.emit(this.value);
-    this.onTouched();
+  async open(): Promise<void> {
+    if (this.disabled || this.isOpen) return;
+
+    this.isOpen = true;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: SoSelectSheetComponent,
+        componentProps: {
+          options: this.options,
+          value: this.value,
+          title: this.placeholder,
+          searchPlaceholder: this.searchPlaceholder,
+        },
+        cssClass: 'so-search-select-modal',
+        initialBreakpoint: 0.72,
+        breakpoints: [0, 0.72, 0.95],
+        handle: true,
+        handleBehavior: 'cycle',
+      });
+
+      await modal.present();
+      const { data, role } = await modal.onWillDismiss<string>();
+      this.onTouched();
+
+      if (role === 'selected' && data !== undefined && data !== this.value) {
+        this.value = data ?? '';
+        this.onChange(this.value);
+        this.valueChange.emit(this.value);
+      }
+    } finally {
+      this.isOpen = false;
+    }
   }
 }

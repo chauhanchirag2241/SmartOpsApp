@@ -8,12 +8,50 @@ export enum LeaveType {
   Other = 3,
 }
 
+export enum LeaveRequestStatus {
+  Draft = 0,
+  Submitted = 1,
+  Approved = 2,
+  Rejected = 3,
+  Cancelled = 4,
+}
+
+export interface LeaveBalanceDto {
+  id: string;
+  employeeId: string;
+  employeeName?: string | null;
+  leaveTypeId: string;
+  leaveTypeName?: string | null;
+  leaveTypeCode?: string | null;
+  academicYearId: string;
+  openingBalance: number;
+  accrued: number;
+  used: number;
+  adjusted: number;
+  closingBalance: number;
+}
+
+export interface LeaveListItem {
+  id: string;
+  fromDate: string;
+  toDate: string;
+  dayCount?: number;
+  leaveTypeLabel?: string | null;
+  leaveTypeName?: string | null;
+  status: number | string;
+  statusLabel?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LeaveService {
   private readonly api = inject(ApiService);
 
-  getStaffMine(): Observable<unknown[]> {
-    return this.api.get('leave/staff/mine');
+  getStaffMine(): Observable<LeaveListItem[]> {
+    return this.api.get<LeaveListItem[]>('leave/staff/mine');
+  }
+
+  getBalancesMine(): Observable<LeaveBalanceDto[]> {
+    return this.api.get<LeaveBalanceDto[]>('leave/balances/mine');
   }
 
   createStaff(body: unknown): Observable<unknown> {

@@ -14,180 +14,215 @@ ion-content {
 }
 
 .hw-list-page {
-  --padding-bottom: 24px;
+  --padding-bottom: 92px;
 }
 
 .hw-create-fab {
   position: fixed;
-  right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   z-index: 10;
 
   ion-fab-button {
+    width: 62px;
+    height: 62px;
     --background: var(--so-primary);
     --color: var(--so-on-primary);
-    --box-shadow: 0 4px 14px rgba(99, 153, 34, 0.35);
+    --box-shadow: 0 10px 22px rgb(99 153 34 / 36%);
+
+    ion-icon {
+      font-size: 30px;
+    }
   }
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 16px;
+  gap: 12px;
+  padding: 16px 14px 10px;
 }
 
 .stat-box {
-  background: var(--so-surface-container-lowest);
-  border: 1px solid var(--so-outline-variant);
-  border-radius: var(--so-radius-lg);
-  padding: 12px;
-  .label {
-    font-size: 11px;
-    color: var(--so-on-surface-variant);
-    font-weight: 600;
+  min-width: 0;
+  margin: 0;
+  border-radius: 18px;
+  background: var(--so-card-bg);
+  box-shadow: var(--so-shadow);
+
+  ion-card-content {
+    padding: 14px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 5px 10px;
   }
+
+  .so-hw-icon-tile {
+    grid-row: 1 / span 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .label {
+    color: var(--so-ink-soft);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
   strong {
     display: block;
-    font-size: 22px;
-    margin-top: 4px;
     color: var(--so-primary);
+    font-size: 27px;
+    line-height: 1;
   }
-  &.accent strong {
+
+  &.due strong {
     color: var(--so-warning);
   }
-  &.ok strong {
-    color: var(--so-present);
+
+  &.submissions strong {
+    color: var(--so-late);
   }
-  &.warn strong {
-    color: var(--so-absent);
+
+  &.overdue strong {
+    color: var(--so-error);
   }
 }
 
-.filters {
-  padding: 0 16px 12px;
+.hw-filter-chips {
+  margin: 4px 0 10px;
+  padding: 5px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.filter-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-}
 
-.filter-chip {
-  border: 1px solid var(--so-outline-variant);
-  background: var(--so-surface-container-low);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--so-on-surface-variant);
-  &.active {
-    background: var(--so-primary);
-    color: #fff;
-    border-color: var(--so-primary);
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  span {
+    flex: 0 0 auto;
+    max-width: 190px;
+    overflow: hidden;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: var(--so-primary-light);
+    color: var(--so-primary);
+    font-size: 11px;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
 .hw-cards {
-  padding: 0 16px 24px;
+  padding: 0 14px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .hw-card {
-  cursor: pointer;
-  h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
+  margin: 0;
+  border-radius: 22px;
+  background: var(--so-card-bg);
+  box-shadow: 0 6px 18px rgb(31 42 26 / 8%);
+
+  ion-card-content {
+    padding: 18px;
   }
-  .meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 8px 0 0;
-    font-size: 13px;
-    color: var(--so-on-surface-variant);
-    ion-icon {
-      font-size: 16px;
-    }
+
+  &::part(native) {
+    cursor: pointer;
   }
-  .due.today {
-    color: var(--so-warning);
-    font-weight: 600;
-  }
-  .due.overdue {
-    color: var(--so-absent);
-    font-weight: 600;
-  }
+
   &.overdue {
-    border-color: #fecaca;
+    outline: 1px solid color-mix(in srgb, var(--so-error) 28%, transparent);
   }
 }
 
-.hw-title-row {
+.hw-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.hw-copy {
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    overflow: hidden;
+    color: var(--so-ink);
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.book-tile {
+  width: 48px;
+  height: 48px;
+}
+
+.meta {
+  margin: 9px 0 0;
+  color: var(--so-ink-soft);
+  font-size: 12px;
+  line-height: 1.35;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+
+  ion-icon {
+    color: var(--so-primary);
+    font-size: 17px;
+    flex: 0 0 auto;
+  }
+
+  b {
+    padding: 0 3px;
+    color: var(--so-outline);
+  }
+
+  &.due {
+    ion-icon {
+      color: var(--so-late);
+    }
+  }
+
+  &.today {
+    color: var(--so-warning);
+    font-weight: 650;
+  }
+
+  &.overdue {
+    color: var(--so-error);
+    font-weight: 650;
+  }
 }
 
-.priority-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--so-outline);
-  flex-shrink: 0;
-  &.high {
-    background: var(--so-absent);
-  }
-  &.low {
-    background: var(--so-present);
-  }
+.hw-card .so-hw-progress {
+  margin: 16px 0 8px;
 }
 
 .hw-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
-  .progress {
-    font-size: 12px;
-    color: var(--so-outline);
-  }
-}
 
-.badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
-  text-transform: capitalize;
-  &.status-active {
-    background: var(--so-badge-bg);
-    color: var(--so-primary);
-  }
-  &.status-today {
-    background: var(--so-leave-bg);
-    color: var(--so-warning);
-  }
-  &.status-overdue {
-    background: var(--so-absent-bg);
-    color: var(--so-absent);
-  }
-  &.status-done {
-    background: var(--so-present-bg);
-    color: var(--so-present);
+  strong {
+    color: var(--so-ink-soft);
+    font-size: 11px;
+    font-weight: 750;
   }
 }
 

@@ -3,6 +3,8 @@ import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
+  IonCard,
+  IonCardContent,
   IonContent,
   IonFab,
   IonFabButton,
@@ -10,10 +12,18 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, calendarOutline, schoolOutline } from 'ionicons/icons';
+import {
+  addOutline,
+  alertCircleOutline,
+  bookOutline,
+  calendarOutline,
+  checkmarkDoneCircleOutline,
+  clipboardOutline,
+  schoolOutline,
+  timeOutline,
+} from 'ionicons/icons';
 import { HomeworkListItem, HomeworkStats } from '../../core/models/homework.model';
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
@@ -25,6 +35,7 @@ import {
 } from '../../core/services/class.service';
 import { HomeworkService } from '../../core/services/homework.service';
 import { AppHeaderService } from '../../core/services/app-header.service';
+import { ToastService } from '../../core/services/toast.service';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
 import { SoSelectComponent, SoSelectOption } from '../../shared/components/so-select/so-select.component';
@@ -44,6 +55,8 @@ import { pickStr } from '../../core/utils/api-mapper.util';
     SoFilterPopoverComponent,
     SoSelectComponent,
     SoMultiChipsComponent,
+    IonCard,
+    IonCardContent,
     IonContent,
     IonIcon,
     IonFab,
@@ -59,7 +72,7 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   private subs = new Subscription();
   private readonly classService = inject(ClassService);
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastController);
+  private readonly toast = inject(ToastService);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
 
@@ -88,7 +101,16 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   ];
 
   constructor() {
-    addIcons({ addOutline, calendarOutline, schoolOutline });
+    addIcons({
+      addOutline,
+      alertCircleOutline,
+      bookOutline,
+      calendarOutline,
+      checkmarkDoneCircleOutline,
+      clipboardOutline,
+      schoolOutline,
+      timeOutline,
+    });
   }
 
   get canManage(): boolean {
@@ -276,6 +298,10 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     return `status-${status}`;
   }
 
+  progressPct(item: HomeworkListItem): number {
+    return item.total ? Math.min(100, Math.round((item.submitted / item.total) * 100)) : 0;
+  }
+
   private loadSectionsForGroup(classGroupId: string): void {
     this.classService.getSectionsByClassGroup(classGroupId).subscribe({
       next: (sections) => {
@@ -350,8 +376,7 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     };
   }
 
-  private async showToast(message: string): Promise<void> {
-    const t = await this.toast.create({ message, duration: 2800, position: 'bottom' });
-    await t.present();
+  private showToast(message: string): void {
+    void this.toast.error(message);
   }
 }

@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.so-date-trigger {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1.5px solid var(--so-line);
+  border-radius: var(--so-radius);
+  background: var(--so-input-bg, #fcfdf9);
+  color: var(--so-ink);
+  font-size: 13.5px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:active:not(:disabled) {
+    background: var(--so-primary-light);
+    border-color: var(--so-primary);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.so-date-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.is-placeholder {
+    color: var(--so-ink-faint, #9aa892);
+  }
+}
+
+.so-date-icon {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--so-primary);
+}
+
+.so-date-popup {
+  padding: 10px 8px 12px;
+  background: var(--so-card-bg, #fff);
+
+  ion-datetime {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    --background: transparent;
+    --wheel-highlight-background: var(--so-primary-light);
+    --wheel-highlight-border-radius: 10px;
+  }
+}

@@ -75,6 +75,11 @@ export const routes: Routes = [
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.Students)],
   },
   {
+    path: 'leave/mine',
+    loadComponent: () => import('./pages/leave/leave-mine.page').then((m) => m.LeaveMinePage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStaff)],
+  },
+  {
     path: 'leave/staff-apply',
     loadComponent: () => import('./pages/leave/staff-apply.page').then((m) => m.StaffApplyPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStaff)],

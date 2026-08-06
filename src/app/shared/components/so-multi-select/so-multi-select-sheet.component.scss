@@ -1,0 +1,180 @@
+:host {
+  display: block;
+  height: 100%;
+  background: var(--so-card-bg);
+}
+
+.select-sheet {
+  --background: var(--so-card-bg);
+  color: var(--so-ink);
+}
+
+.sheet-header {
+  padding: 18px 18px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  p {
+    margin: 0 0 3px;
+    color: var(--so-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--so-ink);
+    font-size: 20px;
+    font-weight: 700;
+  }
+}
+
+.sheet-close {
+  border: 0;
+  padding: 8px 0 8px 12px;
+  background: transparent;
+  color: var(--so-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.select-search {
+  padding: 4px 12px 4px;
+  --background: var(--so-input-bg);
+  --color: var(--so-ink);
+  --placeholder-color: var(--so-ink-faint);
+  --icon-color: var(--so-primary);
+  --clear-button-color: var(--so-primary);
+  --border-radius: 12px;
+  --box-shadow: none;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 2px 18px 10px;
+}
+
+.bulk-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--so-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  &:disabled {
+    color: var(--so-ink-faint);
+    opacity: 0.7;
+  }
+}
+
+.option-list {
+  margin: 0 14px 16px;
+  overflow: hidden;
+  border: 1.5px solid var(--so-line);
+  border-radius: 14px;
+  background: var(--so-input-bg);
+}
+
+.option-row {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--so-line);
+  background: transparent;
+  color: var(--so-ink);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &.selected {
+    background: var(--so-primary-light);
+    color: var(--so-primary-dark);
+    font-weight: 650;
+  }
+}
+
+.check-box {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--so-line);
+  border-radius: 6px;
+  background: var(--so-card-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  &.checked {
+    border-color: var(--so-primary);
+    background: var(--so-primary);
+    color: #fff;
+  }
+
+  ion-icon {
+    font-size: 16px;
+    color: #fff;
+  }
+}
+
+.option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-options {
+  min-height: 120px;
+  padding: 24px;
+  color: var(--so-ink-faint);
+  text-align: center;
+  display: grid;
+  place-content: center;
+  gap: 5px;
+
+  strong {
+    color: var(--so-ink);
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 13px;
+  }
+}
+
+.sheet-footer {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--so-line);
+  background: var(--so-card-bg);
+  box-shadow: none;
+}
+
+.done-btn {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: var(--so-radius);
+  background: var(--so-primary);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}

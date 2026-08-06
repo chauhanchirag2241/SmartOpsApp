@@ -4,19 +4,29 @@
   --min-height: 56px;
   --padding-top: 4px;
   --padding-bottom: 4px;
+  --padding-start: 16px;
+  --padding-end: 4px;
 
   &.toolbar-search {
     --min-height: 64px;
     --padding-top: 10px;
     --padding-bottom: 10px;
+    --padding-start: 0;
   }
 }
 
-ion-title {
+.header-title {
+  margin: 0;
+  padding: 0;
+  color: var(--so-primary);
   font-size: 18px;
   font-weight: 700;
-  color: var(--so-primary);
-  padding-inline: 0;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(52vw, 220px);
 }
 
 .header-actions {
