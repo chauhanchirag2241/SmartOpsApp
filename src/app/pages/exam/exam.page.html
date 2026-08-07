@@ -1,0 +1,423 @@
+<app-header
+  [title]="headerTitle"
+  [showBack]="true"
+  [showFilter]="showListFilter"
+  backHref="/tabs/home"
+  searchPlaceholder="Search exams..."
+/>
+
+<ion-content class="so-page exam-page" [class.form-mode]="examsMode === 'form'">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)" [disabled]="examsMode === 'form'">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="exam-body">
+    @if (examsMode === 'list') {
+      <div class="so-toolbar-segment">
+        <so-segment
+          [options]="tabOptions"
+          [value]="activeTab"
+          ariaLabel="Exam sections"
+          (valueChange)="onTabChange($event)"
+        />
+      </div>
+    }
+
+    @if (activeTab === 'exams' && examsMode === 'list') {
+      <div class="exam-filter-chips">
+        <span>{{ filterGroupLabel }}</span>
+        <span>{{ filterClassLabel }}</span>
+        <span>{{ filterStatusLabel }}</span>
+        <span>{{ filterActiveLabel }}</span>
+      </div>
+
+      @if (loading) {
+        <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (!exams.length) {
+        <div class="empty-card">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <h3>{{ showingDeleted ? 'No deleted exams' : 'No exams found' }}</h3>
+          <p>
+            {{
+              showingDeleted
+                ? 'Soft-deleted exams for your classes will appear here.'
+                : 'Tap + to create an exam for your class.'
+            }}
+          </p>
+        </div>
+      } @else {
+        <div class="card-list">
+          @for (exam of exams; track exam.id) {
+            <article
+              class="exam-card"
+              [class.deleted]="showingDeleted"
+              [class.clickable]="!showingDeleted && canEdit"
+              (click)="onCardClick(exam)"
+            >
+              <div class="exam-card-top">
+                <div class="exam-copy">
+                  <h2>{{ exam.name }}</h2>
+                  <p class="meta">{{ exam.examType }} · {{ exam.examGroupName }}</p>
+                  <p class="meta">{{ classesLabel(exam) }}</p>
+                </div>
+                <span class="status-badge">{{ exam.statusLabel }}</span>
+              </div>
+              <div class="exam-card-footer">
+                <span class="marks">Max {{ exam.totalMaxMarks }} · {{ exam.subjectCount }} subjects</span>
+                @if (!showingDeleted) {
+                  <div class="card-actions">
+                    @if (canEdit) {
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        aria-label="Edit exam"
+                        (click)="openEdit(exam, $event)"
+                      >
+                        <ion-icon name="create-outline"></ion-icon>
+                      </button>
+                    }
+                    @if (canDelete) {
+                      <button
+                        type="button"
+                        class="icon-btn danger"
+                        aria-label="Delete exam"
+                        (click)="confirmDelete(exam, $event)"
+                      >
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <span class="deleted-tag">Deleted</span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+
+    @if (activeTab === 'exams' && examsMode === 'form') {
+      @if (formError) {
+        <div class="error-banner">{{ formError }}</div>
+      }
+
+      @if (loading) {
+        <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else {
+        <form id="examSaveForm" class="exam-form" (ngSubmit)="saveExam()">
+          <section class="form-card">
+            <h3 class="form-card-title">Exam details</h3>
+
+            <label>Exam group <span class="req">*</span></label>
+            <so-select
+              [options]="groupOptions"
+              placeholder="Select group"
+              [(ngModel)]="formGroupId"
+              name="formGroupId"
+              (valueChange)="onFormGroupChange()"
+            />
+
+            <label>Exam name <span class="req">*</span></label>
+            <input
+              class="so-filter-select"
+              [(ngModel)]="formName"
+              name="formName"
+              placeholder="e.g. Mid Term Examination"
+              required
+            />
+
+            <label>Exam type</label>
+            <so-select
+              [options]="examTypeOptions"
+              [(ngModel)]="formExamType"
+              name="formExamType"
+            />
+
+            <label>Min pass %</label>
+            <input
+              class="so-filter-select"
+              type="number"
+              min="0"
+              max="100"
+              [(ngModel)]="formMinPassPercent"
+              name="formMinPassPercent"
+            />
+
+            <label>Grade scale (override)</label>
+            <so-select
+              [options]="gradeScaleOptions"
+              [(ngModel)]="formGradeScaleId"
+              name="formGradeScaleId"
+            />
+
+            <label>Description</label>
+            <input
+              class="so-filter-select"
+              [(ngModel)]="formDescription"
+              name="formDescription"
+              placeholder="Optional notes"
+            />
+
+            <label>Classes</label>
+            <so-multi-select
+              [options]="formClassOptions"
+              placeholder="Select classes (optional)"
+              searchPlaceholder="Search class"
+              [(ngModel)]="formClassIds"
+              name="formClassIds"
+            />
+            <p class="field-hint">{{ formClassHint }}</p>
+          </section>
+
+          <section class="form-card">
+            <div class="components-head">
+              <h3 class="form-card-title">Mark components</h3>
+              <span class="card-title-meta">Total max: {{ totalMaxMarks }}</span>
+            </div>
+
+            @for (row of componentRows; track $index; let i = $index) {
+              <div class="component-block">
+                <label>Name</label>
+                <input
+                  class="so-filter-select"
+                  [(ngModel)]="row.name"
+                  [name]="'compName' + i"
+                  placeholder="e.g. Theory"
+                />
+                <div class="two-col">
+                  <div>
+                    <label>Max marks</label>
+                    <input
+                      class="so-filter-select"
+                      type="number"
+                      min="1"
+                      [(ngModel)]="row.maxMarks"
+                      [name]="'compMax' + i"
+                      placeholder="Max"
+                    />
+                  </div>
+                  <div>
+                    <label>Passing marks</label>
+                    <input
+                      class="so-filter-select"
+                      type="number"
+                      min="0"
+                      [(ngModel)]="row.passingMarks"
+                      [name]="'compPass' + i"
+                      placeholder="Pass"
+                    />
+                  </div>
+                </div>
+                <button type="button" class="link-btn danger" (click)="removeComponentRow(i)">
+                  Remove component
+                </button>
+              </div>
+            }
+
+            <button type="button" class="add-row-btn" (click)="addComponentRow()">
+              <ion-icon name="add-outline"></ion-icon>
+              Add component
+            </button>
+            <p class="field-hint">Components define how marks are entered for this exam.</p>
+          </section>
+        </form>
+      }
+    }
+
+    @if (activeTab === 'schedule' && examsMode === 'list') {
+      <div class="section-head">
+        <h2>Schedule</h2>
+        <p>Pick an exam and build subject slots for selected classes.</p>
+      </div>
+
+      @if (scheduleError) {
+        <div class="error-banner">{{ scheduleError }}</div>
+      }
+
+      <div class="filters schedule-form">
+        <label>Exam <span class="req">*</span></label>
+        <so-select
+          [options]="examSelectOptions"
+          placeholder="Select exam"
+          [showSearch]="true"
+          [(ngModel)]="scheduleExamId"
+          name="scheduleExamId"
+          (valueChange)="onScheduleExamChange()"
+        />
+
+        <label>Classes <span class="req">*</span></label>
+        <so-multi-select
+          [options]="scheduleClassOptions"
+          placeholder="Select classes"
+          [(ngModel)]="scheduleClassIds"
+          name="scheduleClassIds"
+          (valueChange)="onScheduleClassesChange()"
+        />
+
+        <div class="components-head">
+          <label>Subject slots</label>
+        </div>
+
+        @for (slot of scheduleSlots; track $index; let i = $index) {
+          <div class="slot-card">
+            <label>Subject</label>
+            <so-select
+              [options]="scheduleSubjectOptions"
+              [placeholder]="scheduleClassIds.length ? 'Select subject' : 'Select classes first'"
+              [showSearch]="true"
+              [(ngModel)]="slot.subjectId"
+              [name]="'slotSubject' + i"
+            />
+
+            <label>Exam date</label>
+            <so-date-input
+              [(ngModel)]="slot.examDate"
+              [name]="'slotDate' + i"
+              placeholder="Exam date"
+            />
+
+            <div class="two-col">
+              <div>
+                <label>Start time</label>
+                <input
+                  class="so-filter-select"
+                  type="time"
+                  [(ngModel)]="slot.startTime"
+                  [name]="'slotStart' + i"
+                />
+              </div>
+              <div>
+                <label>End time</label>
+                <input
+                  class="so-filter-select"
+                  type="time"
+                  [(ngModel)]="slot.endTime"
+                  [name]="'slotEnd' + i"
+                />
+              </div>
+            </div>
+
+            <label>Room / Hall</label>
+            <input
+              class="so-filter-select"
+              [(ngModel)]="slot.roomNo"
+              [name]="'slotRoom' + i"
+              placeholder="e.g. Hall A"
+            />
+
+            <button type="button" class="link-btn danger" (click)="removeScheduleSlot(i)">
+              Remove slot
+            </button>
+          </div>
+        }
+
+        <button type="button" class="add-row-btn" (click)="addScheduleSlot()">
+          <ion-icon name="add-outline"></ion-icon>
+          Add slot
+        </button>
+
+        <button
+          type="button"
+          class="save-btn"
+          [disabled]="scheduleSaving || !canSaveScheduleDraft"
+          (click)="saveSchedule()"
+        >
+          @if (scheduleSaving) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Save schedule
+          }
+        </button>
+      </div>
+
+      @if (scheduleLoading) {
+        <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (existingSchedules.length) {
+        <div class="section-head">
+          <h2>Existing slots</h2>
+        </div>
+        <div class="card-list">
+          @for (slot of existingSchedules; track slot.id) {
+            <article class="exam-card slot-existing">
+              <h2>{{ slot.subjectName }}</h2>
+              <p class="meta">{{ slot.className }} · {{ slot.examDate }}</p>
+              <p class="meta">
+                {{ slot.startTime || '—' }} – {{ slot.endTime || '—' }}
+                @if (slot.roomNo) {
+                  · {{ slot.roomNo }}
+                }
+              </p>
+            </article>
+          }
+        </div>
+      }
+    }
+  </main>
+</ion-content>
+
+@if (showCreateFab) {
+  <ion-fab class="exam-create-fab" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="openCreate()" aria-label="Create exam">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
+
+@if (examsMode === 'form' && !loading) {
+  <div class="exam-save-bar">
+    <p class="save-hint">Components define how marks are entered for this exam.</p>
+    <button type="button" class="save-btn sticky" [disabled]="saving" (click)="saveExam()">
+      @if (saving) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        {{ formMode === 'edit' ? 'Update exam' : 'Create exam' }}
+      }
+    </button>
+  </div>
+}
+
+<so-filter-popover
+  [isOpen]="filterOpen"
+  [initialBreakpoint]="0.72"
+  (closed)="filterOpen = false"
+  (cleared)="clearFilters()"
+  (applied)="applyFilters()"
+>
+  <div class="filter-field">
+    <label>Exam group</label>
+    <so-select
+      [options]="filterGroupOptions"
+      placeholder="All groups"
+      [(ngModel)]="draftFilterGroupId"
+      name="draftFilterGroupId"
+    />
+  </div>
+  <div class="filter-field">
+    <label>Class</label>
+    <so-select
+      [options]="filterClassOptions"
+      placeholder="All classes"
+      [showSearch]="true"
+      [(ngModel)]="draftFilterClassId"
+      name="draftFilterClassId"
+    />
+  </div>
+  <div class="filter-field">
+    <label>Status</label>
+    <so-select
+      [options]="statusFilterOptions"
+      [(ngModel)]="draftFilterStatus"
+      name="draftFilterStatus"
+    />
+  </div>
+  <div class="filter-field">
+    <label>Active</label>
+    <so-select
+      [options]="activeFilterOptions"
+      [(ngModel)]="draftFilterActive"
+      name="draftFilterActive"
+    />
+  </div>
+</so-filter-popover>

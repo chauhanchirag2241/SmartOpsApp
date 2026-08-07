@@ -5,7 +5,7 @@
 }
 
 .calendar-page {
-  --padding-bottom: 24px;
+  --padding-bottom: var(--so-content-bottom-gap);
 }
 
 .calendar-card {
@@ -110,9 +110,10 @@
     background: #e1bee7;
     color: #6a1b9a;
   }
+  /* Indigo — distinct from Leave rose and Holiday purple */
   &[data-tone='event'] {
-    background: #b3e5fc;
-    color: #0277bd;
+    background: #c5cae9;
+    color: #303f9f;
   }
   &[data-tone='exam'] {
     background: #ffe0b2;
@@ -127,17 +128,19 @@
     background: #c8e6c9;
     color: #1b5e20;
   }
+  /* Rose — distinct from Event indigo and Half Day cyan */
   &[data-tone='leave'] {
-    background: #bbdefb;
-    color: #1565c0;
+    background: #f8bbd0;
+    color: #ad1457;
   }
   &[data-tone='late'] {
     background: #ffe082;
     color: #f57f17;
   }
+  /* Cyan — distinct from Leave rose and Event indigo */
   &[data-tone='halfday'] {
-    background: #b2dfdb;
-    color: #00695c;
+    background: #b2ebf2;
+    color: #00838f;
   }
   &[data-tone='absent'] {
     background: #ffcdd2;
@@ -175,8 +178,8 @@
       color: #6a1b9a;
     }
     &[data-tone='event'] {
-      background: #b3e5fc;
-      color: #0277bd;
+      background: #c5cae9;
+      color: #303f9f;
     }
     &[data-tone='exam'] {
       background: #ffe0b2;
@@ -191,16 +194,16 @@
       color: #1b5e20;
     }
     &[data-tone='leave'] {
-      background: #bbdefb;
-      color: #1565c0;
+      background: #f8bbd0;
+      color: #ad1457;
     }
     &[data-tone='late'] {
       background: #ffe082;
       color: #f57f17;
     }
     &[data-tone='halfday'] {
-      background: #b2dfdb;
-      color: #00695c;
+      background: #b2ebf2;
+      color: #00838f;
     }
   }
 }
@@ -289,8 +292,8 @@
     color: #8e24aa;
   }
   &[data-kind='event'] {
-    background: #e3f2fd;
-    color: #1e88e5;
+    background: #e8eaf6;
+    color: #303f9f;
   }
   &[data-kind='exam'] {
     background: #fff3e0;
@@ -406,8 +409,8 @@
     color: #8e24aa;
   }
   &[data-kind='event'] {
-    background: #e3f2fd;
-    color: #1e88e5;
+    background: #c5cae9;
+    color: #303f9f;
   }
   &[data-kind='exam'] {
     background: #fff3e0;

@@ -9,7 +9,7 @@
 }
 
 .staff-attendance-page {
-  --padding-bottom: 24px;
+  --padding-bottom: var(--so-content-bottom-gap);
 }
 
 .loading-wrap {

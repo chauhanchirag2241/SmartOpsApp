@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-app.has-bottom-nav {
+  /* Room for persistent footer on every authenticated page. */
+  --so-content-bottom-gap: calc(var(--so-bottom-nav-offset) + 12px);
+}

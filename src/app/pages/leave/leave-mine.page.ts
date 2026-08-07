@@ -60,8 +60,15 @@ export class LeaveMinePage implements OnInit {
     this.load();
   }
 
+  /** Returning from apply / approvals — refresh deducted balance without pull-to-refresh. */
+  ionViewWillEnter(): void {
+    this.load();
+  }
+
   onTabChange(value: string): void {
     this.activeTab = value === 'history' ? 'history' : 'balance';
+    // Balance used/closing must reflect leave applied while on History (and vice versa).
+    this.load();
   }
 
   onRefresh(event: CustomEvent): void {
@@ -107,6 +114,15 @@ export class LeaveMinePage implements OnInit {
     const days = item.dayCount ?? 0;
     const half = item.isHalfDay ? ' · Half day' : '';
     return `${days} day${days === 1 ? '' : 's'}${half}`;
+  }
+
+  balanceMeta(b: LeaveBalanceDto): string {
+    const code = (b.leaveTypeCode || '').trim();
+    const ay = this.ayContext.currentYear()?.name?.trim() || '';
+    if (code && ay) return `${code} · ${ay}`;
+    if (code) return code;
+    if (ay) return ay;
+    return 'Balance';
   }
 
   approvedLabel(item: LeaveListItem): string | null {

@@ -1,75 +1,83 @@
 <app-header title="Apply Leave" [showBack]="true" backHref="/leave/mine" />
 
-<ion-content class="staff-apply-page">
+<ion-content class="so-page staff-apply-page">
   @if (loading || saving) {
     <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
   } @else {
     <div class="page-pad">
       <section class="form-card">
-        <h2>Employee</h2>
-        <div class="info-row">
-          <span class="info-label">Employee name</span>
-          <strong>{{ employeeName }}</strong>
+        <div class="card-label">Employee</div>
+        <div class="employee-row">
+          <span class="flabel">Employee name</span>
+          <strong class="fvalue">{{ employeeName }}</strong>
         </div>
-        <div class="info-row">
-          <span class="info-label">Reporting manager</span>
-          <strong>{{ reportingManagerName }}</strong>
+        <div class="employee-row">
+          <span class="flabel">Reporting manager</span>
+          <strong class="fvalue">{{ reportingManagerName }}</strong>
         </div>
-        <p class="hint">Leave is approved by your reporting manager. If none is set, it goes to Principal.</p>
+        <p class="employee-note">Leave is approved by your reporting manager. If none is set, it goes to Principal.</p>
       </section>
 
       <section class="form-card">
-        <h2>Leave details</h2>
+        <div class="card-label">Leave details</div>
 
-        <label>Leave type <span class="req">*</span></label>
-        <so-select
-          [options]="leaveTypeOptions"
-          placeholder="Select leave type"
-          searchPlaceholder="Search leave type"
-          ariaLabel="Leave type"
-          [(ngModel)]="leaveTypeId"
-          name="leaveTypeId"
-          (valueChange)="onLeaveTypeChanged()"
-        />
-        @if (remainingBalanceLabel) {
-          <p class="balance-hint">{{ remainingBalanceLabel }}</p>
-        }
+        <div class="field">
+          <label>Leave type <span class="req">*</span></label>
+          <so-select
+            [options]="leaveTypeOptions"
+            placeholder="Select leave type"
+            searchPlaceholder="Search leave type"
+            ariaLabel="Leave type"
+            [(ngModel)]="leaveTypeId"
+            name="leaveTypeId"
+            (valueChange)="onLeaveTypeChanged()"
+          />
+          @if (remainingBalanceLabel) {
+            <p class="remaining-note">{{ remainingBalanceLabel }}</p>
+          }
+        </div>
 
-        <label>From <span class="req">*</span></label>
-        <so-date-input
-          [(ngModel)]="fromDate"
-          name="fromDate"
-          placeholder="From date"
-          ariaLabel="From date"
-          (ngModelChange)="onDatesChanged()"
-        />
+        <div class="field">
+          <label>From <span class="req">*</span></label>
+          <so-date-input
+            [(ngModel)]="fromDate"
+            name="fromDate"
+            placeholder="From date"
+            ariaLabel="From date"
+            (ngModelChange)="onDatesChanged()"
+          />
+        </div>
 
-        <label>To <span class="req">*</span></label>
-        <so-date-input
-          [(ngModel)]="toDate"
-          name="toDate"
-          placeholder="To date"
-          ariaLabel="To date"
-          (ngModelChange)="onDatesChanged()"
-        />
+        <div class="field">
+          <label>To <span class="req">*</span></label>
+          <so-date-input
+            [(ngModel)]="toDate"
+            name="toDate"
+            placeholder="To date"
+            ariaLabel="To date"
+            (ngModelChange)="onDatesChanged()"
+          />
+        </div>
 
-        <div class="toggle-row">
-          <div class="toggle-copy">
-            <span class="toggle-title">Half day</span>
-            <p class="hint">Off = full day. On = pick which days are half day.</p>
+        <div class="field halfday-field">
+          <div class="halfday-row">
+            <div>
+              <label>Half day</label>
+              <p class="fhint">Off = full day. On = pick which days are half day.</p>
+            </div>
+            <ion-toggle
+              [checked]="isHalfDay"
+              [disabled]="!allowHalfDay"
+              aria-label="Half day leave"
+              (ionChange)="onHalfDayToggle($any($event).detail.checked)"
+            ></ion-toggle>
           </div>
-          <ion-toggle
-            [checked]="isHalfDay"
-            [disabled]="!allowHalfDay"
-            aria-label="Half day leave"
-            (ionChange)="onHalfDayToggle($any($event).detail.checked)"
-          ></ion-toggle>
         </div>
 
         @if (isHalfDay) {
           <div class="half-day-block">
             <span class="sub-label">Half-day dates</span>
-            <p class="hint">Select days between From and To, then First or Second half.</p>
+            <p class="fhint">Select days between From and To, then First or Second half.</p>
             @for (row of halfDayRows; track row.date) {
               <div class="half-day-row">
                 <label class="half-check">
@@ -89,26 +97,28 @@
               </div>
             }
             @if (!halfDayRows.length) {
-              <p class="hint">Set a valid From / To date range first.</p>
+              <p class="fhint">Set a valid From / To date range first.</p>
             }
           </div>
         }
 
-        <p class="total-days">Total days: <strong>{{ totalDaysPreview }}</strong></p>
+        <p class="total-days">Total days: <span>{{ totalDaysPreview }}</span></p>
 
-        <label>Reason <span class="req">*</span></label>
-        <textarea
-          class="so-filter-select textarea"
-          [(ngModel)]="reason"
-          name="reason"
-          rows="4"
-          placeholder="Reason for leave…"
-        ></textarea>
+        <div class="field field-last">
+          <label>Reason <span class="req">*</span></label>
+          <textarea
+            class="so-filter-select textarea"
+            [(ngModel)]="reason"
+            name="reason"
+            rows="4"
+            placeholder="Reason for leave…"
+          ></textarea>
+        </div>
       </section>
 
-      <p class="footer-hint">Leave will be submitted to your reporting manager for approval</p>
+      <p class="submit-note">Leave will be submitted to your reporting manager for approval</p>
 
-      <button type="button" class="primary-btn" [disabled]="!canApply" (click)="submit()">
+      <button type="button" class="primary-btn submit-btn" [disabled]="!canApply" (click)="submit()">
         <so-icon [name]="sendIcon"></so-icon>
         Submit for approval
       </button>

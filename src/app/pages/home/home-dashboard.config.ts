@@ -80,6 +80,15 @@ function teacherConfig(): HomeDashboardConfig {
         iconColor: '#00897B',
       },
       {
+        id: 'm-exam',
+        title: 'Exam',
+        icon: 'document-text-outline',
+        iconBg: '#E0F7FA',
+        iconColor: '#00838F',
+        route: '/exams',
+        requiresMenu: MenuCodes.Exams,
+      },
+      {
         id: 'm-hw',
         title: 'Homework',
         icon: 'book-outline',

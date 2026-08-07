@@ -1,0 +1,39 @@
+:host {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.so-bottom-nav {
+  pointer-events: auto;
+}
+
+.hd-tab-bar {
+  --background: var(--so-card-bg, #fff);
+  --border: 0;
+  border-top: 1px solid var(--so-line, #dfe8d1);
+  box-shadow: 0 -4px 18px rgba(31, 42, 26, 0.06);
+  height: var(--so-tab-bar-height, 60px);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.hd-tab-bar ion-tab-button {
+  --color: var(--so-ink-faint, #8a9880);
+  --color-selected: var(--so-primary, #639922);
+  font-size: 11px;
+  font-weight: 600;
+
+  &.tab-selected {
+    --color: var(--so-primary, #639922);
+    color: var(--so-primary, #639922);
+  }
+}
+
+.hd-tab-bar ion-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}

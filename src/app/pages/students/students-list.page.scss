@@ -2,7 +2,7 @@
   --padding-start: 14px;
   --padding-end: 14px;
   --padding-top: 10px;
-  --padding-bottom: 28px;
+  --padding-bottom: var(--so-content-bottom-gap);
 }
 
 .loading-wrap {

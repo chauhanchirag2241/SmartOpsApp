@@ -112,5 +112,13 @@ export const routes: Routes = [
       anyMenuPermissionGuard(MenuCodes.MyTimetable, MenuCodes.ClassTimetable),
     ],
   },
+  {
+    path: 'exams',
+    loadComponent: () => import('./pages/exam/exam.page').then((m) => m.ExamPage),
+    canActivate: [
+      authGuard,
+      anyMenuPermissionGuard(MenuCodes.Exams, MenuCodes.ExamSchedule),
+    ],
+  },
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
 ];

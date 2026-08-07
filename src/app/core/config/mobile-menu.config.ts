@@ -103,4 +103,20 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     icon: 'calendar-clear-outline',
     color: 'primary',
   },
+  [MenuCodes.Exams]: {
+    menuCode: MenuCodes.Exams,
+    title: 'Exam',
+    subtitle: 'Create and schedule exams',
+    route: '/exams',
+    icon: 'document-text-outline',
+    color: 'primary',
+  },
+  [MenuCodes.ExamSchedule]: {
+    menuCode: MenuCodes.ExamSchedule,
+    title: 'Exam Schedule',
+    subtitle: 'Schedule exam subjects',
+    route: '/exams',
+    icon: 'document-text-outline',
+    color: 'primary',
+  },
 };

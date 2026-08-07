@@ -14,14 +14,14 @@ ion-content {
 }
 
 .hw-list-page {
-  --padding-bottom: 92px;
+  --padding-bottom: calc(var(--so-content-bottom-gap) + 28px);
 }
 
 .hw-create-fab {
   position: fixed;
   right: 18px;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  z-index: 10;
+  bottom: var(--so-fab-bottom);
+  z-index: 30;
 
   ion-fab-button {
     width: 62px;

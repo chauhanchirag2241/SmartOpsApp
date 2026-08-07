@@ -6,7 +6,7 @@
 
 .attendance-page {
   --background: var(--ion-background-color);
-  --padding-bottom: 118px;
+  --padding-bottom: calc(var(--so-content-bottom-gap) + 56px);
 }
 
 .attendance-body {
@@ -383,9 +383,9 @@
   position: fixed;
   z-index: 20;
   right: 0;
-  bottom: 0;
+  bottom: var(--so-sticky-bottom);
   left: 0;
-  padding: 9px 14px calc(8px + env(safe-area-inset-bottom));
+  padding: 9px 14px 8px;
   background: linear-gradient(to top, var(--ion-background-color) 72%, rgba(237, 239, 230, 0));
   pointer-events: none;
 

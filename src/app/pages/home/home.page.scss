@@ -3,7 +3,7 @@
 }
 
 .hd-body {
-  padding: 0 0 28px;
+  padding: 0 0 var(--so-content-bottom-gap, 28px);
   margin-top: -40px;
   position: relative;
   z-index: 2;
@@ -76,7 +76,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px 10px;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
 }
 
 .hd-empty {

@@ -144,6 +144,54 @@ export class ClassService {
     return cached;
   }
 
+  /**
+   * Subjects taught for a specific section/class (class-wise).
+   * Preferred for exam schedule subject picker.
+   * Allowed with Exams / ExamSchedule View (same as attendance class dropdown).
+   */
+  getTeachingSubjectsForClass(
+    classId: string,
+    academicYearId?: string | null,
+  ): Observable<ClassGroupSubjectItem[]> {
+    const id = (classId || '').trim();
+    if (!id) {
+      return of([]);
+    }
+
+    let params = new HttpParams();
+    const yearId = (academicYearId || '').trim();
+    if (yearId) {
+      params = params.set('academicYearId', yearId);
+    }
+
+    return this.api
+      .get<
+        Array<{
+          id?: string;
+          Id?: string;
+          name?: string;
+          Name?: string;
+          subjectId?: string;
+          SubjectId?: string;
+          subjectName?: string;
+          SubjectName?: string;
+        }>
+      >(`class/${id}/teaching-subjects`, params.keys().length ? params : undefined)
+      .pipe(
+        map((rows) =>
+          (rows || [])
+            .map((row) => {
+              const subjectId = String(row.subjectId ?? row.SubjectId ?? row.id ?? row.Id ?? '').trim();
+              const subjectName = String(
+                row.subjectName ?? row.SubjectName ?? row.name ?? row.Name ?? '',
+              ).trim();
+              return { id: subjectId, subjectId, subjectName };
+            })
+            .filter((s) => !!s.subjectId),
+        ),
+      );
+  }
+
   /** Call on logout / school change so the next session does not see stale lookups. */
   clearCache(): void {
     this.dropdownCache.clear();

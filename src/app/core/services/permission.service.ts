@@ -62,7 +62,8 @@ export class PermissionService {
   }
 
   getPermission(menuCode: string): IMenuPermission | undefined {
-    return this.permissions.find((p) => p.menuCode === menuCode);
+    const code = (menuCode || '').toUpperCase();
+    return this.permissions.find((p) => (p.menuCode || '').toUpperCase() === code);
   }
 
   canView(menuCode: string): boolean {
@@ -180,7 +181,7 @@ export class PermissionService {
     const r = raw as Record<string, unknown>;
     const list = (r['permissions'] ?? r['Permissions'] ?? []) as Record<string, unknown>[];
     return list.map((p) => ({
-      menuCode: String(p['menuCode'] ?? p['MenuCode'] ?? ''),
+      menuCode: String(p['menuCode'] ?? p['MenuCode'] ?? '').toUpperCase(),
       canView: !!(p['canView'] ?? p['CanView']),
       canAdd: !!(p['canAdd'] ?? p['CanAdd']),
       canEdit: !!(p['canEdit'] ?? p['CanEdit']),

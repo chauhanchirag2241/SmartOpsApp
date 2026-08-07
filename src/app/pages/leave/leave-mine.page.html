@@ -19,8 +19,8 @@
       <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
     } @else if (activeTab === 'balance') {
       <div class="section-head">
-        <h2>Leave balance</h2>
-        <p>Available balance for this academic year</p>
+        <p class="section-label">Leave balance</p>
+        <p class="section-sub">Available balance for this academic year</p>
       </div>
 
       @if (!balances.length) {
@@ -32,24 +32,41 @@
       } @else {
         <div class="card-list">
           @for (b of balances; track b.id) {
-            <article class="balance-card">
-              <div class="balance-top">
-                <strong>{{ b.leaveTypeName || 'Leave' }}</strong>
-                <span class="closing">{{ b.closingBalance }}</span>
+            <article class="ledger-card">
+              <div class="ledger-perf" aria-hidden="true"></div>
+              <div class="ledger-top">
+                <div class="leave-type">
+                  {{ b.leaveTypeName || 'Leave' }}
+                  <span>{{ balanceMeta(b) }}</span>
+                </div>
+                <div class="balance-num">
+                  {{ b.closingBalance }}
+                  <sub>days left</sub>
+                </div>
               </div>
-              <div class="balance-meta">
-                <span>Opening {{ b.openingBalance }}</span>
-                <span>Used {{ b.used }}</span>
-                <span>Accrued {{ b.accrued }}</span>
+              <div class="stat-row">
+                <div class="stat">
+                  <div class="num">{{ b.openingBalance }}</div>
+                  <div class="lbl">Opening</div>
+                </div>
+                <div class="stat">
+                  <div class="num">{{ b.used }}</div>
+                  <div class="lbl">Used</div>
+                </div>
+                <div class="stat">
+                  <div class="num">{{ b.accrued }}</div>
+                  <div class="lbl">Accrued</div>
+                </div>
               </div>
             </article>
           }
         </div>
+        <p class="empty-note">— {{ balances.length }} leave type{{ balances.length === 1 ? '' : 's' }} on record —</p>
       }
     } @else {
       <div class="section-head">
-        <h2>Leave history</h2>
-        <p>Your leave applications and approval status</p>
+        <p class="section-label">Leave history</p>
+        <p class="section-sub">Your leave applications and approval status</p>
       </div>
 
       @if (!history.length) {
@@ -59,36 +76,35 @@
           <p>Applied leave requests will show up here.</p>
         </div>
       } @else {
-        <div class="card-list">
+        <div class="timeline">
           @for (item of history; track item.id) {
-            <article class="history-card">
-              <div class="history-top">
-                <div class="history-title">
-                  <strong>{{ item.leaveTypeName || item.leaveTypeLabel || 'Leave' }}</strong>
-                  <span class="days">{{ daysLabel(item) }}</span>
+            <div [class]="'entry ' + statusClass(item)">
+              <div class="dot" aria-hidden="true"></div>
+              <article class="entry-card">
+                <div class="entry-head">
+                  <div class="type">
+                    {{ item.leaveTypeName || item.leaveTypeLabel || 'Leave' }}
+                    <span class="days">{{ daysLabel(item) }}</span>
+                  </div>
+                  <span [class]="'stamp ' + statusClass(item)">{{ statusText(item) }}</span>
                 </div>
-                <span class="status-pill" [class]="statusClass(item)">{{ statusText(item) }}</span>
-              </div>
 
-              <div class="history-row">
-                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-                <span>{{ dateRangeLabel(item) }}</span>
-              </div>
-
-              @if (approvedLabel(item); as approver) {
-                <div class="history-row muted">
-                  <span>{{ approver }}</span>
+                <div class="entry-date">
+                  <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+                  <span>{{ dateRangeLabel(item) }}</span>
                 </div>
-              } @else if (statusText(item) === 'Pending') {
-                <div class="history-row muted">
-                  <span>Waiting for reporting manager approval</span>
-                </div>
-              }
 
-              @if (item.reason?.trim()) {
-                <p class="reason">{{ item.reason }}</p>
-              }
-            </article>
+                @if (approvedLabel(item); as approver) {
+                  <div class="entry-status-note">{{ approver }}</div>
+                } @else if (statusText(item) === 'Pending') {
+                  <div class="entry-status-note">Waiting for reporting manager approval</div>
+                }
+
+                @if (item.reason?.trim()) {
+                  <p class="entry-remark">{{ item.reason }}</p>
+                }
+              </article>
+            </div>
           }
         </div>
       }

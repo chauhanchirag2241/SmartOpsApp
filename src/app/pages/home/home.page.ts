@@ -22,6 +22,7 @@ import {
   checkmarkCircleOutline,
   checkmarkDoneOutline,
   createOutline,
+  documentTextOutline,
   fingerPrintOutline,
   gridOutline,
   logOutOutline,
@@ -103,6 +104,9 @@ export class HomePage implements OnInit {
       checkmarkCircleOutline,
       checkmarkDoneOutline,
       createOutline,
+      // Explicit kebab key so Exam tile resolves even if camelCase map is missed.
+      'document-text-outline': documentTextOutline,
+      documentTextOutline,
       fingerPrintOutline,
       gridOutline,
       logOutOutline,
@@ -183,7 +187,9 @@ export class HomePage implements OnInit {
       void this.showToast(`${title} is coming soon on mobile.`);
       return;
     }
-    void this.router.navigateByUrl(route);
+    // Absolute URL from tabs shell (same pattern as /homework, /timetable).
+    const url = route.startsWith('/') ? route : `/${route}`;
+    void this.router.navigateByUrl(url);
   }
 
   private timeGreeting(): string {

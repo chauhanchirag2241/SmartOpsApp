@@ -23,6 +23,11 @@ export class SoMultiSelectSheetComponent implements OnInit {
   @Input() value: string[] = [];
   @Input() title = 'Select';
   @Input() searchPlaceholder = 'Search';
+  /**
+   * Shared bag with the parent so selection survives Close / backdrop dismiss
+   * (not only the Done button).
+   */
+  @Input() selectionBag?: { ids: string[] };
 
   searchQuery = '';
   selected = new Set<string>();
@@ -33,6 +38,7 @@ export class SoMultiSelectSheetComponent implements OnInit {
 
   ngOnInit(): void {
     this.selected = new Set((this.value ?? []).filter(Boolean));
+    this.syncBag();
   }
 
   get filteredOptions(): SoSelectOption[] {
@@ -71,12 +77,14 @@ export class SoMultiSelectSheetComponent implements OnInit {
     } else {
       this.selected.add(option.value);
     }
+    this.syncBag();
   }
 
   selectAllFiltered(): void {
     for (const option of this.filteredOptions) {
       this.selected.add(option.value);
     }
+    this.syncBag();
   }
 
   clearSelection(): void {
@@ -85,16 +93,25 @@ export class SoMultiSelectSheetComponent implements OnInit {
       for (const option of filtered) {
         this.selected.delete(option.value);
       }
-      return;
+    } else {
+      this.selected.clear();
     }
-    this.selected.clear();
+    this.syncBag();
   }
 
   confirm(): void {
+    this.syncBag();
     void this.modalCtrl.dismiss([...this.selected], 'selected');
   }
 
+  /** Close keeps current selection (same as Done) — user expects picks to persist. */
   close(): void {
-    void this.modalCtrl.dismiss(null, 'cancel');
+    this.confirm();
+  }
+
+  private syncBag(): void {
+    if (this.selectionBag) {
+      this.selectionBag.ids = [...this.selected];
+    }
   }
 }

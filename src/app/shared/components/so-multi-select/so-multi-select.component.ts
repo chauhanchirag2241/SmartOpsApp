@@ -66,6 +66,8 @@ export class SoMultiSelectComponent implements ControlValueAccessor {
     if (this.disabled || this.isOpen) return;
 
     this.isOpen = true;
+    // Live selection bag — survives Close / backdrop / gesture dismiss (not only Done).
+    const selectionBag = { ids: [...this.value] };
     try {
       const modal = await this.modalCtrl.create({
         component: SoMultiSelectSheetComponent,
@@ -74,6 +76,7 @@ export class SoMultiSelectComponent implements ControlValueAccessor {
           value: this.value,
           title: this.placeholder,
           searchPlaceholder: this.searchPlaceholder,
+          selectionBag,
         },
         cssClass: 'so-search-select-modal',
         initialBreakpoint: 0.78,
@@ -86,15 +89,16 @@ export class SoMultiSelectComponent implements ControlValueAccessor {
       const { data, role } = await modal.onWillDismiss<string[]>();
       this.onTouched();
 
-      if (role === 'selected' && Array.isArray(data)) {
-        const next = [...data];
-        const same =
-          next.length === this.value.length && next.every((id) => this.value.includes(id));
-        if (!same) {
-          this.value = next;
-          this.onChange(this.value);
-          this.valueChange.emit(this.value);
-        }
+      const next =
+        role === 'selected' && Array.isArray(data)
+          ? [...data]
+          : [...(selectionBag.ids ?? [])];
+      const same =
+        next.length === this.value.length && next.every((id) => this.value.includes(id));
+      if (!same) {
+        this.value = next;
+        this.onChange(this.value);
+        this.valueChange.emit(this.value);
       }
     } finally {
       this.isOpen = false;

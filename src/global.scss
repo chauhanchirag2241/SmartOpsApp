@@ -67,6 +67,34 @@
   --so-radius-lg: 16px;
   --so-radius-xl: 16px;
   --so-radius-btn: 11px;
+
+  /* Persistent bottom nav (Home / Attendance / Notices / Profile). */
+  --so-tab-bar-height: 60px;
+  --so-bottom-nav-offset: calc(var(--so-tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  --so-content-bottom-gap: 16px;
+  --so-fab-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  --so-sticky-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+ion-app.has-bottom-nav {
+  --so-content-bottom-gap: calc(var(--so-bottom-nav-offset) + 16px);
+  --so-fab-bottom: calc(18px + var(--so-bottom-nav-offset));
+  --so-sticky-bottom: var(--so-bottom-nav-offset);
+}
+
+/* Feature pages: keep scroll content clear of the global footer. */
+ion-app.has-bottom-nav ion-content:not(.so-auth-page) {
+  --padding-bottom: var(--so-content-bottom-gap);
+}
+
+/* Sticky ion-footer actions (e.g. homework detail) sit above the nav. */
+ion-app.has-bottom-nav ion-footer {
+  margin-bottom: var(--so-bottom-nav-offset);
+}
+
+/* FABs sit above the persistent tab bar. */
+ion-app.has-bottom-nav ion-fab {
+  bottom: var(--so-fab-bottom);
 }
 
 html,
@@ -614,7 +642,7 @@ ion-modal.so-search-select-modal::part(content) {
 }
 
 .so-sticky-action-footer {
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  padding: 10px 16px calc(10px + var(--so-sticky-bottom));
   background: color-mix(in srgb, var(--so-card-bg) 94%, transparent);
   border-top: 1px solid var(--so-line);
   box-shadow: 0 -8px 24px rgb(31 42 26 / 8%);
@@ -834,8 +862,8 @@ ion-modal.so-date-modal {
 }
 
 .cal-sheet .kind-badge[data-kind='event'] {
-  background: #e3f2fd;
-  color: #1e88e5;
+  background: #e8eaf6;
+  color: #303f9f;
 }
 
 .cal-sheet .kind-badge[data-kind='exam'] {
@@ -854,8 +882,8 @@ ion-modal.so-date-modal {
 }
 
 .cal-sheet .kind-badge[data-kind='leave'] {
-  background: #e3f2fd;
-  color: #1e88e5;
+  background: #fce4ec;
+  color: #ad1457;
 }
 
 .cal-sheet .kind-badge[data-kind='late'] {
@@ -864,8 +892,8 @@ ion-modal.so-date-modal {
 }
 
 .cal-sheet .kind-badge[data-kind='halfday'] {
-  background: #e0f2f1;
-  color: #00897b;
+  background: #e0f7fa;
+  color: #00838f;
 }
 
 .cal-sheet .kind-badge[data-kind='absent'] {
@@ -981,11 +1009,12 @@ ion-modal.so-date-modal {
 
 .cal-sheet .day-item-kind[data-kind='present'] { color: #1b5e20; }
 .cal-sheet .day-item-kind[data-kind='weekend'] { color: #455a64; }
-.cal-sheet .day-item-kind[data-kind='leave'] { color: #1565c0; }
+.cal-sheet .day-item-kind[data-kind='leave'] { color: #ad1457; }
 .cal-sheet .day-item-kind[data-kind='exam'] { color: #e65100; }
 .cal-sheet .day-item-kind[data-kind='holiday'] { color: #6a1b9a; }
-.cal-sheet .day-item-kind[data-kind='late'],
-.cal-sheet .day-item-kind[data-kind='halfday'] { color: #f57f17; }
+.cal-sheet .day-item-kind[data-kind='event'] { color: #303f9f; }
+.cal-sheet .day-item-kind[data-kind='late'] { color: #f57f17; }
+.cal-sheet .day-item-kind[data-kind='halfday'] { color: #00838f; }
 
 .cal-sheet .day-item-chevron {
   margin-left: auto;
@@ -1034,8 +1063,8 @@ ion-modal.so-date-modal {
 }
 
 .cal-sheet .day-item-icon[data-kind='event'] {
-  background: #e3f2fd;
-  color: #1e88e5;
+  background: #c5cae9;
+  color: #303f9f;
 }
 
 .cal-sheet .day-item-icon[data-kind='exam'] {
@@ -1054,14 +1083,18 @@ ion-modal.so-date-modal {
 }
 
 .cal-sheet .day-item-icon[data-kind='leave'] {
-  background: #e3f2fd;
-  color: #1e88e5;
+  background: #f8bbd0;
+  color: #ad1457;
 }
 
-.cal-sheet .day-item-icon[data-kind='late'],
-.cal-sheet .day-item-icon[data-kind='halfday'] {
+.cal-sheet .day-item-icon[data-kind='late'] {
   background: #fff8e1;
   color: #f9a825;
+}
+
+.cal-sheet .day-item-icon[data-kind='halfday'] {
+  background: #b2ebf2;
+  color: #00838f;
 }
 
 .cal-sheet .day-item-icon[data-kind='absent'] {

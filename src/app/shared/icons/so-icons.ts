@@ -7,6 +7,7 @@ import {
   checkmarkOutline,
   closeCircleOutline,
   closeOutline,
+  documentTextOutline,
   informationCircleOutline,
   saveOutline,
   sendOutline,
@@ -27,6 +28,7 @@ export const SoIcons = {
   close: 'close-outline',
   approve: 'checkmark-circle-outline',
   reject: 'close-circle-outline',
+  documentText: 'document-text-outline',
 } as const;
 
 export type SoIconName = (typeof SoIcons)[keyof typeof SoIcons];
@@ -42,7 +44,7 @@ export const SoToastIcons: Record<SoToastTone, SoIconName | undefined> = {
   info: SoIcons.info,
 };
 
-/** Register common icons once at app bootstrap. */
+/** Register common icons once at app bootstrap (explicit kebab keys survive bundling/HMR). */
 export function registerSoIcons(): void {
   addIcons({
     calendarOutline,
@@ -56,5 +58,8 @@ export function registerSoIcons(): void {
     checkmarkOutline,
     closeOutline,
     closeCircleOutline,
+    // Explicit kebab keys — required so home tiles resolve before page constructors run.
+    'document-text-outline': documentTextOutline,
+    documentTextOutline,
   });
 }
