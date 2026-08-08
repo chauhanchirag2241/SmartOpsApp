@@ -1,0 +1,53 @@
+<app-header title="Salary" [showBack]="true" backHref="/tabs/home" />
+
+<ion-content class="so-page salary-list-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="salary-body">
+    <div class="section-head">
+      <p class="section-label">Payroll history</p>
+      <p class="section-sub">{{ subtitle }}</p>
+    </div>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (loadError && !months.length) {
+      <div class="empty-card">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <h3>Unable to load</h3>
+        <p>{{ loadError }}</p>
+      </div>
+    } @else if (!months.length) {
+      <div class="empty-card">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <h3>No payroll yet</h3>
+        <p>Processed salary months will appear here once payroll is run.</p>
+      </div>
+    } @else {
+      <div class="card-list">
+        @for (item of months; track item.entryId) {
+          <button type="button" class="month-card" (click)="openDetail(item)">
+            <div class="month-head">
+              <div class="month">
+                {{ item.monthLabel }}
+                @if (academicYearLabel(item); as ay) {
+                  <span>{{ ay }}</span>
+                }
+              </div>
+              <div class="amt">{{ formatRupee(item.netSalary) }}</div>
+            </div>
+            <div class="month-foot">
+              <div class="meta">Working days: {{ item.workingDays }}</div>
+              <div class="foot-right">
+                <span [class]="'stamp ' + statusClass(item)">{{ statusText(item) }}</span>
+                <ion-icon name="chevron-forward-outline" class="chev" aria-hidden="true"></ion-icon>
+              </div>
+            </div>
+          </button>
+        }
+      </div>
+    }
+  </main>
+</ion-content>

@@ -35,7 +35,9 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
+import { ClassService } from '../../core/services/class.service';
 import { PermissionService } from '../../core/services/permission.service';
+import { StudentService } from '../../core/services/student.service';
 import { ToastService } from '../../core/services/toast.service';
 import { buildHomeDashboardConfig, resolveHomeUserType } from './home-dashboard.config';
 import {
@@ -67,6 +69,8 @@ export class HomePage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly permissions = inject(PermissionService);
+  private readonly students = inject(StudentService);
+  private readonly classes = inject(ClassService);
   private readonly toast = inject(ToastService);
   readonly ay = inject(AcademicYearContextService);
 
@@ -161,7 +165,7 @@ export class HomePage implements OnInit {
 
     this.headerInfo = {
       greeting: this.timeGreeting(),
-      displayName: this.firstName(user?.name || user?.email || 'User'),
+      displayName: this.greetingName(user?.name || user?.email || 'User'),
       dateLabel: this.formatDate(new Date()),
       contextLine: yearName ? `${config.contextLine} • ${yearName}` : config.contextLine,
       roleBadge: config.roleBadge,
@@ -175,6 +179,57 @@ export class HomePage implements OnInit {
     this.myActionsTitle = config.myActionsTitle ?? 'My Actions';
     this.myActions = (config.myActions ?? []).filter((c) => this.allowed(c.requiresMenu));
     this.activeSpotIndex = 0;
+
+    if (userType === 'student') {
+      this.loadStudentHeaderBadge();
+    } else if (userType === 'teacher') {
+      this.loadTeacherClassBadge();
+    }
+  }
+
+  private loadStudentHeaderBadge(): void {
+    this.students.getMyPortalSummary().subscribe({
+      next: (summary) => {
+        const badge = this.formatStudentClassRoll(summary.className, summary.section, summary.rollNumber);
+        if (badge) {
+          this.headerInfo = { ...this.headerInfo, roleBadge: badge };
+        }
+      },
+      error: () => {
+        /* keep empty badge — role label intentionally hidden */
+      },
+    });
+  }
+
+  private loadTeacherClassBadge(): void {
+    this.classes.getMyClassTeacherAssignments().subscribe({
+      next: (rows) => {
+        const names = (rows ?? [])
+          .map((r) => (r.name || '').trim())
+          .filter(Boolean);
+        if (!names.length) return;
+        const badge = names.length <= 2 ? names.join(' · ') : `${names.slice(0, 2).join(' · ')} +${names.length - 2}`;
+        this.headerInfo = { ...this.headerInfo, roleBadge: badge };
+      },
+      error: () => {
+        /* keep config badge / empty */
+      },
+    });
+  }
+
+  private formatStudentClassRoll(
+    className?: string | null,
+    section?: string | null,
+    rollNumber?: string | null,
+  ): string {
+    const cls = (className ?? '').trim();
+    const sec = (section ?? '').trim();
+    const roll = (rollNumber ?? '').trim();
+    const classLabel = cls && sec ? `${cls} — ${sec}` : cls || sec;
+    if (classLabel && roll) return `${classLabel} • Roll ${roll}`;
+    if (classLabel) return classLabel;
+    if (roll) return `Roll ${roll}`;
+    return '';
   }
 
   private allowed(menuCode?: string): boolean {
@@ -199,10 +254,14 @@ export class HomePage implements OnInit {
     return 'Good evening';
   }
 
-  private firstName(full: string): string {
-    const part = full.trim().split(/\s+/)[0] || 'User';
-    if (part.includes('@')) return part.split('@')[0];
-    return part.charAt(0).toUpperCase() + part.slice(1);
+  private greetingName(full: string): string {
+    const cleaned = full.trim();
+    if (!cleaned) return 'User';
+    if (cleaned.includes('@')) {
+      const local = cleaned.split('@')[0] || 'User';
+      return local.charAt(0).toUpperCase() + local.slice(1);
+    }
+    return cleaned;
   }
 
   private initials(full: string): string {

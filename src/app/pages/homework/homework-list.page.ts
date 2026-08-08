@@ -9,6 +9,8 @@ import {
   IonFab,
   IonFabButton,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
@@ -24,9 +26,14 @@ import {
   schoolOutline,
   timeOutline,
 } from 'ionicons/icons';
-import { HomeworkListItem, HomeworkStats } from '../../core/models/homework.model';
+import {
+  HomeworkListItem,
+  HomeworkStats,
+  StudentHomeworkItem,
+} from '../../core/models/homework.model';
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PermissionService } from '../../core/services/permission.service';
 import {
   ClassDropdownItem,
@@ -43,7 +50,9 @@ import {
   SoMultiChipOption,
   SoMultiChipsComponent,
 } from '../../shared/components/so-multi-chips/so-multi-chips.component';
-import { pickStr } from '../../core/utils/api-mapper.util';
+import { SoSegmentComponent, SoSegmentOption } from '../../shared/components/so-segment/so-segment.component';
+import { pickStr, formatDisplayDate } from '../../core/utils/api-mapper.util';
+import { resolveHomeUserType } from '../home/home-dashboard.config';
 
 @Component({
   selector: 'app-homework-list',
@@ -55,6 +64,7 @@ import { pickStr } from '../../core/utils/api-mapper.util';
     SoFilterPopoverComponent,
     SoSelectComponent,
     SoMultiChipsComponent,
+    SoSegmentComponent,
     IonCard,
     IonCardContent,
     IonContent,
@@ -64,23 +74,33 @@ import { pickStr } from '../../core/utils/api-mapper.util';
     IonSpinner,
     IonRefresher,
     IonRefresherContent,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
   ],
 })
 export class HomeworkListPage implements OnInit, OnDestroy {
   private readonly homeworkService = inject(HomeworkService);
   private readonly header = inject(AppHeaderService);
   private subs = new Subscription();
+  private studentLoadSub: Subscription | null = null;
   private readonly classService = inject(ClassService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly auth = inject(AuthService);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
 
+  readonly isStudent = resolveHomeUserType(this.auth.currentUser) === 'student';
+
   items: HomeworkListItem[] = [];
+  studentItems: StudentHomeworkItem[] = [];
+  studentPageIndex = 1;
+  readonly studentPageSize = 10;
+  studentHasMore = false;
+  studentLoadingMore = false;
   classGroups: ClassDropdownItem[] = [];
   sections: ClassDropdownItem[] = [];
   groupSubjects: ClassGroupSubjectItem[] = [];
-  /** Fallback section list when classes API is unavailable. */
   private allSections: ClassDropdownItem[] = [];
   stats: HomeworkStats = { totalAssigned: 0, dueToday: 0, totalSubmissions: 0, overdue: 0 };
 
@@ -88,9 +108,11 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   sectionFilterIds: string[] = [];
   subjectFilterIds: string[] = [];
   chipFilter = 'all';
+  studentTab = 'all';
   filterOpen = false;
   searchQuery = '';
   loading = false;
+  studentClassLabel = '';
 
   readonly chipOptions = [
     { value: 'all', label: 'All' },
@@ -98,6 +120,13 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     { value: 'today', label: 'Due today' },
     { value: 'overdue', label: 'Overdue' },
     { value: 'done', label: 'Done' },
+  ];
+
+  readonly studentTabOptions: SoSegmentOption[] = [
+    { value: 'all', label: 'All' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'submitted', label: 'Done' },
+    { value: 'overdue', label: 'Overdue' },
   ];
 
   constructor() {
@@ -114,6 +143,7 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   }
 
   get canManage(): boolean {
+    if (this.isStudent) return false;
     return !this.ayContext.isReadOnlyScope() && this.permissions.canAdd(MenuCodes.Homework);
   }
 
@@ -174,9 +204,10 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadDropdowns();
-    this.loadStats();
-    // Single initial fetch — search$ BehaviorSubject would replay '' and reload again.
+    if (!this.isStudent) {
+      this.loadDropdowns();
+      this.loadStats();
+    }
     this.loadList();
     this.subs.add(
       this.header.searchQuery$
@@ -186,14 +217,17 @@ export class HomeworkListPage implements OnInit, OnDestroy {
           this.loadList();
         }),
     );
-    this.subs.add(
-      this.header.filterClick$.subscribe(() => {
-        this.filterOpen = true;
-      }),
-    );
+    if (!this.isStudent) {
+      this.subs.add(
+        this.header.filterClick$.subscribe(() => {
+          this.filterOpen = true;
+        }),
+      );
+    }
   }
 
   ngOnDestroy(): void {
+    this.studentLoadSub?.unsubscribe();
     this.subs.unsubscribe();
   }
 
@@ -237,6 +271,11 @@ export class HomeworkListPage implements OnInit, OnDestroy {
   }
 
   loadList(): void {
+    if (this.isStudent) {
+      this.loadStudentList(true);
+      return;
+    }
+
     this.loading = true;
     const status = this.chipFilter === 'all' ? undefined : this.chipFilter;
     const effectiveClassIds = this.resolveEffectiveClassIds();
@@ -268,8 +307,62 @@ export class HomeworkListPage implements OnInit, OnDestroy {
       });
   }
 
+  onStudentTabChange(value: string): void {
+    this.studentTab = value || 'all';
+    this.loadStudentList(true);
+  }
+
+  onStudentInfinite(ev: CustomEvent): void {
+    if (!this.studentHasMore || this.studentLoadingMore) {
+      (ev.target as HTMLIonInfiniteScrollElement).complete();
+      return;
+    }
+    this.studentPageIndex += 1;
+    this.loadStudentList(false, () => (ev.target as HTMLIonInfiniteScrollElement).complete());
+  }
+
+  private loadStudentList(reset: boolean, done?: () => void): void {
+    if (reset) {
+      this.studentPageIndex = 1;
+      this.studentHasMore = true;
+      this.loading = true;
+      this.studentItems = [];
+      this.studentLoadSub?.unsubscribe();
+    } else {
+      this.studentLoadingMore = true;
+    }
+
+    const status = this.studentTab === 'all' ? undefined : this.studentTab;
+    this.studentLoadSub = this.homeworkService
+      .getMyList(status, this.searchQuery || undefined, this.studentPageIndex, this.studentPageSize)
+      .subscribe({
+        next: (page) => {
+          const rows = page.items || [];
+          this.studentItems = reset ? rows : [...this.studentItems, ...rows];
+          if (!this.studentClassLabel) {
+            this.studentClassLabel = this.studentItems[0]?.className?.trim() || '';
+          }
+          this.studentHasMore = page.pageIndex < page.totalPages;
+          this.loading = false;
+          this.studentLoadingMore = false;
+          done?.();
+        },
+        error: () => {
+          this.loading = false;
+          this.studentLoadingMore = false;
+          if (reset) this.studentItems = [];
+          void this.showToast('Failed to load homework');
+          done?.();
+        },
+      });
+  }
+
   onRefresh(event: CustomEvent): void {
-    this.loadStats();
+    if (!this.isStudent) this.loadStats();
+    if (this.isStudent) {
+      this.loadStudentList(true, () => (event.target as HTMLIonRefresherElement).complete());
+      return;
+    }
     this.loadList();
     (event.target as HTMLIonRefresherElement).complete();
   }
@@ -297,12 +390,16 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     void this.router.navigate(['/homework', id]);
   }
 
-  statusClass(status: string): string {
-    return `status-${status}`;
+  formatDue(iso: string): string {
+    if (!iso) return '';
+    const day = iso.includes('T') ? iso.slice(0, 10) : iso;
+    return formatDisplayDate(day);
   }
 
-  progressPct(item: HomeworkListItem): number {
-    return item.total ? Math.min(100, Math.round((item.submitted / item.total) * 100)) : 0;
+  stampLabel(status: string): string {
+    if (status === 'submitted' || status === 'late') return 'Submitted';
+    if (status === 'overdue') return 'Overdue';
+    return 'Pending';
   }
 
   private loadSectionsForGroup(classGroupId: string): void {
@@ -332,7 +429,6 @@ export class HomeworkListPage implements OnInit, OnDestroy {
     return idx >= 0 ? name.slice(idx + 3) : name;
   }
 
-  /** null = no class restriction; array = restrict to these class ids. */
   private resolveEffectiveClassIds(): string[] | null {
     if (!this.classGroupFilter) return null;
     if (!this.sections.length) return [];
@@ -352,6 +448,10 @@ export class HomeworkListPage implements OnInit, OnDestroy {
       return null;
     }
     return [...this.subjectFilterIds];
+  }
+
+  progressPct(item: HomeworkListItem): number {
+    return item.total ? Math.min(100, Math.round((item.submitted / item.total) * 100)) : 0;
   }
 
   private normalizeListItem(raw: HomeworkListItem | Record<string, unknown>): HomeworkListItem {

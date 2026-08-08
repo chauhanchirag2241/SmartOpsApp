@@ -198,4 +198,19 @@ export class ClassService {
     this.sectionsByGroupCache.clear();
     this.subjectsByGroupCache.clear();
   }
+
+  /** Class-teacher sections for the signed-in employee. */
+  getMyClassTeacherAssignments(): Observable<ClassDropdownItem[]> {
+    return this.api.get<Array<Record<string, unknown>>>('class-settings/mine').pipe(
+      map((rows) =>
+        (Array.isArray(rows) ? rows : [])
+          .map((row) => {
+            const id = String(row['id'] ?? row['Id'] ?? row['classId'] ?? row['ClassId'] ?? '').trim();
+            const name = String(row['className'] ?? row['ClassName'] ?? '').trim();
+            return { id, name };
+          })
+          .filter((r) => !!r.id && !!r.name),
+      ),
+    );
+  }
 }

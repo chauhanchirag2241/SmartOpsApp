@@ -1,0 +1,133 @@
+<app-header [title]="headerTitle" [showBack]="true" backHref="/salary" />
+
+<ion-content class="so-page salary-detail-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="salary-body">
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (loadError && !payslip) {
+      <div class="empty-card">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <h3>Unable to load</h3>
+        <p>{{ loadError }}</p>
+      </div>
+    } @else if (payslip) {
+      <div class="so-toolbar-segment">
+        <so-segment
+          [options]="tabOptions"
+          [value]="activeTab"
+          ariaLabel="Salary sections"
+          (valueChange)="onTabChange($event)"
+        />
+      </div>
+
+      @if (activeTab === 'details') {
+        <article class="info-card">
+          <div class="card-label">Employee</div>
+          <div class="info-row">
+            <span class="flabel">Name</span>
+            <span class="fvalue serif">{{ payslip.employeeName || '—' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="flabel">Department</span>
+            <span class="fvalue serif">{{ payslip.department || '—' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="flabel">Designation</span>
+            <span class="fvalue serif">{{ payslip.designation || '—' }}</span>
+          </div>
+        </article>
+
+        <article class="info-card">
+          <div class="card-label">Salary information</div>
+          <div class="info-row">
+            <span class="flabel">Monthly salary</span>
+            <span class="fvalue">{{ formatRupee(payslip.grossSalary) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="flabel">Working days</span>
+            <span class="fvalue">{{ payslip.workingDays }}</span>
+          </div>
+          @if (payslip.useAttendanceWiseSalary) {
+            <div class="info-row">
+              <span class="flabel">Present days</span>
+              <span class="fvalue">{{ payslip.presentDays }}</span>
+            </div>
+          }
+          <div class="info-row">
+            <span class="flabel">Paid date</span>
+            <span class="fvalue">{{ paidDateLabel }}</span>
+          </div>
+          <div class="info-row">
+            <span class="flabel">Bank account number</span>
+            <span class="fvalue">{{ maskedBank(payslip.bankAccountNumber) }}</span>
+          </div>
+          @if (payslip.panNo) {
+            <div class="info-row">
+              <span class="flabel">PAN number</span>
+              <span class="fvalue">{{ payslip.panNo }}</span>
+            </div>
+          }
+        </article>
+      } @else if (activeTab === 'earnings') {
+        <article class="info-card">
+          <div class="card-label">Earnings</div>
+          @for (line of payslip.earnings; track line.name + line.amount) {
+            <div class="line-row earn">
+              <span>{{ line.name }}</span>
+              <span class="amt">{{ formatRupee(line.amount) }}</span>
+            </div>
+          }
+          <div class="line-total earn">
+            <span>Total earnings</span>
+            <span class="amt">{{ formatRupee(payslip.grossSalary) }}</span>
+          </div>
+        </article>
+
+        <article class="info-card">
+          <div class="card-label">Deductions</div>
+          @for (line of payslip.deductions; track line.name + line.amount) {
+            <div class="line-row deduct">
+              <span>{{ line.name }}</span>
+              <span class="amt">{{ formatRupee(line.amount, true) }}</span>
+            </div>
+          }
+          <div class="line-total deduct">
+            <span>Total deductions</span>
+            <span class="amt">{{ formatRupee(payslip.totalDeductions, true) }}</span>
+          </div>
+        </article>
+
+        <article class="netpay-card compact">
+          <div class="nlabel">Total salary</div>
+          <div class="nval">{{ formatRupee(payslip.netSalary) }}</div>
+          <div class="nsub">Total earnings − total deductions</div>
+        </article>
+      } @else {
+        <article class="netpay-card">
+          <div class="nlabel">Net pay</div>
+          <div class="nval">{{ formatRupee(payslip.netSalary) }}</div>
+          <div class="nsub">for {{ monthLabel }}</div>
+          <div class="netpay-breakdown">
+            <div class="b plus">
+              <div class="num">{{ formatRupee(payslip.grossSalary) }}</div>
+              <div class="lbl">Earnings</div>
+            </div>
+            <div class="b minus">
+              <div class="num">{{ formatRupee(payslip.totalDeductions, true) }}</div>
+              <div class="lbl">Deductions</div>
+            </div>
+            <div class="b">
+              <div class="num">{{ formatRupee(payslip.netSalary) }}</div>
+              <div class="lbl">Net pay</div>
+            </div>
+          </div>
+        </article>
+        <p class="section-sub center">Net pay = Total earnings − Total deductions</p>
+      }
+    }
+  </main>
+</ion-content>

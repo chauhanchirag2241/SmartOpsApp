@@ -1,0 +1,332 @@
+.fees-page {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: var(--so-content-bottom-gap);
+}
+
+.fees-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: calc(var(--so-content-bottom-gap) + 8px);
+}
+
+.section-head {
+  margin-top: 2px;
+}
+
+.section-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+}
+
+.section-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--so-ink-soft);
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.student-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.student-photo {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--so-primary-dark);
+  background: var(--so-primary-tint);
+}
+
+.student-main {
+  min-width: 0;
+
+  .name {
+    font-size: 16px;
+    font-weight: 750;
+    color: var(--so-ink);
+  }
+
+  .sub,
+  .meta {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--so-ink-soft);
+  }
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: var(--so-radius-lg);
+  box-shadow: var(--so-shadow);
+  text-align: center;
+  padding: 28px 18px;
+  color: var(--so-ink-faint);
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--so-primary);
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    color: var(--so-ink);
+    font-size: 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+}
+
+.fee-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: 16px;
+  box-shadow: var(--so-shadow);
+  padding: 16px;
+}
+
+.fee-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.title-wrap {
+  min-width: 0;
+}
+
+.fc-title {
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--so-ink);
+  line-height: 1.25;
+}
+
+.fc-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--so-ink-soft);
+}
+
+.head-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--so-ink-soft);
+  }
+}
+
+.note {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--so-warning);
+}
+
+.fee-head-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &.nested {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--so-line);
+  }
+}
+
+.fee-head-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.fh-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--so-ink);
+  min-width: 0;
+
+  .req {
+    color: var(--so-danger, #c62828);
+    margin-left: 2px;
+  }
+}
+
+.fh-amt {
+  text-align: right;
+  flex-shrink: 0;
+
+  span {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--so-ink);
+  }
+
+  small {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--so-success);
+  }
+}
+
+.fee-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--so-line);
+
+  &.compact {
+    margin-top: 10px;
+  }
+
+  .foot-label {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--so-ink-soft);
+  }
+
+  b {
+    font-size: 16px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    color: var(--so-warning);
+  }
+}
+
+.history-toggle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.payment-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-block {
+  background: var(--so-primary-tint);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.pay-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pay-amt {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--so-ink);
+}
+
+.pay-meta,
+.collector {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--so-ink-soft);
+}
+
+.collector {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.remarks {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--so-ink-soft);
+}
+
+.empty-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--so-ink-soft);
+  text-align: center;
+}
+
+.stamp {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1.5px solid;
+  transform: rotate(-3deg);
+  white-space: nowrap;
+}
+
+.stamp.status-paid {
+  color: var(--so-success);
+  border-color: var(--so-success);
+  background: var(--so-success-bg);
+}
+
+.stamp.status-partial {
+  color: var(--so-warning);
+  border-color: var(--so-warning);
+  background: var(--so-warning-bg);
+}
+
+.stamp.status-pending {
+  color: var(--so-ink-soft);
+  border-color: var(--so-ink-soft);
+  background: var(--so-primary-tint);
+}

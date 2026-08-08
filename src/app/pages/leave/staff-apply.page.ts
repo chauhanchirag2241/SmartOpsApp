@@ -21,6 +21,7 @@ import {
 } from '../../core/services/leave.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 import { localDateString } from '../../core/utils/api-mapper.util';
 
 interface HalfDayRow {
@@ -193,7 +194,7 @@ export class StaffApplyPage implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        const msg = typeof err?.error === 'string' ? err.error : 'Submit failed';
+        const msg = getUserFacingApiError(err, 'Submit failed');
         void this.toast.error(msg, 2500);
       },
     });
@@ -221,7 +222,7 @@ export class StaffApplyPage implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        const msg = typeof err?.error === 'string' ? err.error : 'Failed to load leave form';
+        const msg = getUserFacingApiError(err, 'Failed to load leave form');
         void this.toast.error(msg, 2500);
       },
     });

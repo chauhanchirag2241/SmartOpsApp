@@ -66,8 +66,8 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
   [MenuCodes.LeaveStudent]: {
     menuCode: MenuCodes.LeaveStudent,
     title: 'Student Leave',
-    subtitle: 'Apply leave for your child',
-    route: '/leave/student-apply',
+    subtitle: 'Apply and track your leave',
+    route: '/leave/student-mine',
     icon: 'school-outline',
     color: 'primary',
   },
@@ -118,5 +118,21 @@ export const MOBILE_MENU_ROUTES: Record<string, MobileMenuRoute> = {
     route: '/exams',
     icon: 'document-text-outline',
     color: 'primary',
+  },
+  [MenuCodes.ExamMarksEntry]: {
+    menuCode: MenuCodes.ExamMarksEntry,
+    title: 'Enter Marks',
+    subtitle: 'Enter exam marks by subject',
+    route: '/marks-entry',
+    icon: 'create-outline',
+    color: 'primary',
+  },
+  [MenuCodes.FeeCollection]: {
+    menuCode: MenuCodes.FeeCollection,
+    title: 'Fees',
+    subtitle: 'Pending dues and payment history',
+    route: '/fees',
+    icon: 'card-outline',
+    color: 'warning',
   },
 };

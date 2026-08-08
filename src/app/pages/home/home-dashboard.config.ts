@@ -42,7 +42,7 @@ export function buildHomeDashboardConfig(userType: HomeUserType): HomeDashboardC
 function teacherConfig(): HomeDashboardConfig {
   return {
     userType: 'teacher',
-    roleBadge: 'Teacher',
+    roleBadge: '',
     contextLine: 'School staff • Class Teacher',
     spotlight: [
       {
@@ -78,6 +78,8 @@ function teacherConfig(): HomeDashboardConfig {
         icon: 'create-outline',
         iconBg: '#E0F2F1',
         iconColor: '#00897B',
+        route: '/marks-entry',
+        requiresMenu: MenuCodes.ExamMarksEntry,
       },
       {
         id: 'm-exam',
@@ -124,7 +126,7 @@ function teacherConfig(): HomeDashboardConfig {
       },
       {
         id: 'm-actions',
-        title: 'Approvals',
+        title: 'My Actions',
         icon: 'checkmark-circle-outline',
         iconBg: '#EFEBE9',
         iconColor: '#6D4C41',
@@ -160,6 +162,14 @@ function teacherConfig(): HomeDashboardConfig {
         route: '/leave/mine',
         requiresMenu: MenuCodes.LeaveStaff,
       },
+      {
+        id: 'my-salary',
+        title: 'Salary',
+        icon: 'wallet-outline',
+        iconBg: '#E8F5E9',
+        iconColor: '#2E7D32',
+        route: '/salary',
+      },
     ],
   };
 }
@@ -167,7 +177,7 @@ function teacherConfig(): HomeDashboardConfig {
 function studentConfig(): HomeDashboardConfig {
   return {
     userType: 'student',
-    roleBadge: 'Student',
+    roleBadge: '',
     contextLine: 'Student portal',
     spotlight: [
       {
@@ -182,37 +192,17 @@ function studentConfig(): HomeDashboardConfig {
         requiresMenu: MenuCodes.Homework,
       },
       {
-        id: 'att-view',
-        title: 'My Attendance',
-        viewAllLabel: 'View all',
-        progressLabel: 'Check your attendance record',
-        ctaLabel: 'View Attendance',
-        ctaIcon: 'checkmark-circle',
-        route: '/attendance',
+        id: 'cal-mine',
+        title: 'Calendar',
+        viewAllLabel: 'Open',
+        progressLabel: 'Attendance, exams, and school events',
+        ctaLabel: 'Open Calendar',
+        ctaIcon: 'calendar-outline',
+        route: '/calendar',
         tone: 'green',
-        requiresMenu: MenuCodes.Attendance,
       },
     ],
-    primaryActions: [
-      {
-        id: 'pa-hw',
-        title: 'Homework',
-        subtitle: 'Assigned work',
-        icon: 'book-outline',
-        route: '/homework',
-        tone: 'purple',
-        requiresMenu: MenuCodes.Homework,
-      },
-      {
-        id: 'pa-att',
-        title: 'Attendance',
-        subtitle: 'View record',
-        icon: 'checkbox-outline',
-        route: '/attendance',
-        tone: 'green',
-        requiresMenu: MenuCodes.Attendance,
-      },
-    ],
+    primaryActions: [],
     moreActions: [
       {
         id: 'm-calendar',
@@ -244,8 +234,17 @@ function studentConfig(): HomeDashboardConfig {
         icon: 'airplane-outline',
         iconBg: '#FFF3E0',
         iconColor: '#FB8C00',
-        route: '/leave/student-apply',
+        route: '/leave/student-mine',
         requiresMenu: MenuCodes.LeaveStudent,
+      },
+      {
+        id: 'm-fee',
+        title: 'Fees',
+        icon: 'card-outline',
+        iconBg: '#E0F2F1',
+        iconColor: '#00897B',
+        route: '/fees',
+        requiresMenu: MenuCodes.FeeCollection,
       },
       {
         id: 'm-hw',
@@ -301,10 +300,10 @@ function parentConfig(): HomeDashboardConfig {
       },
       {
         id: 'pa-leave',
-        title: 'Apply Leave',
-        subtitle: 'For your child',
+        title: 'Leave',
+        subtitle: 'History & apply',
         icon: 'airplane-outline',
-        route: '/leave/student-apply',
+        route: '/leave/student-mine',
         tone: 'orange',
         requiresMenu: MenuCodes.LeaveStudent,
       },
@@ -442,6 +441,34 @@ function accountantConfig(): HomeDashboardConfig {
         requiresMenu: MenuCodes.StaffAttendance,
       },
     ],
+    myActionsTitle: 'My Actions',
+    myActions: [
+      {
+        id: 'my-salary',
+        title: 'Salary',
+        icon: 'wallet-outline',
+        iconBg: '#E8F5E9',
+        iconColor: '#2E7D32',
+        route: '/salary',
+      },
+      {
+        id: 'my-attendance',
+        title: 'My Attendance',
+        icon: 'finger-print-outline',
+        iconBg: '#EAF3DE',
+        iconColor: '#3B6D11',
+        route: '/staff-attendance',
+        requiresMenu: MenuCodes.StaffAttendance,
+      },
+      {
+        id: 'my-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
+      },
+    ],
   };
 }
 
@@ -554,6 +581,43 @@ function adminConfig(): HomeDashboardConfig {
         iconColor: '#E91E63',
         route: '/timetable',
         requiresMenu: MenuCodes.MyTimetable,
+      },
+    ],
+    myActionsTitle: 'My Actions',
+    myActions: [
+      {
+        id: 'my-salary',
+        title: 'Salary',
+        icon: 'wallet-outline',
+        iconBg: '#E8F5E9',
+        iconColor: '#2E7D32',
+        route: '/salary',
+      },
+      {
+        id: 'my-leave',
+        title: 'Leave',
+        icon: 'airplane-outline',
+        iconBg: '#FFF3E0',
+        iconColor: '#FB8C00',
+        route: '/leave/mine',
+        requiresMenu: MenuCodes.LeaveStaff,
+      },
+      {
+        id: 'my-attendance',
+        title: 'My Attendance',
+        icon: 'finger-print-outline',
+        iconBg: '#EAF3DE',
+        iconColor: '#3B6D11',
+        route: '/staff-attendance',
+        requiresMenu: MenuCodes.StaffAttendance,
+      },
+      {
+        id: 'my-calendar',
+        title: 'Calendar',
+        icon: 'calendar-outline',
+        iconBg: '#E3F2FD',
+        iconColor: '#1E88E5',
+        route: '/calendar',
       },
     ],
   };

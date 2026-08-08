@@ -1,0 +1,186 @@
+<app-header title="Fees" [showBack]="true" backHref="/tabs/home" />
+
+<ion-content class="so-page fees-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="fees-body">
+    <div class="so-toolbar-segment">
+      <so-segment
+        [options]="tabOptions"
+        [value]="activeTab"
+        ariaLabel="Fee sections"
+        (valueChange)="onTabChange($event)"
+      />
+    </div>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (loadError && !detail) {
+      <div class="empty-card">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <h3>Unable to load</h3>
+        <p>{{ loadError }}</p>
+      </div>
+    } @else {
+      @if (detail; as d) {
+        <article class="student-card so-card">
+          <div class="student-photo" aria-hidden="true">{{ d.student.initials }}</div>
+          <div class="student-main">
+            <div class="name">{{ d.student.studentName || 'Student' }}</div>
+            <div class="sub">{{ subtitle }}</div>
+            @if (studentMeta) {
+              <div class="meta">{{ studentMeta }}</div>
+            }
+          </div>
+        </article>
+      }
+
+      @if (activeTab === 'pending') {
+        <div class="section-head">
+          <p class="section-label">Pending fees</p>
+          <p class="section-sub">Fees assigned to you that still have a balance</p>
+        </div>
+
+        @if (!pendingCards.length) {
+          <div class="empty-card">
+            <ion-icon name="card-outline"></ion-icon>
+            <h3>No pending fees</h3>
+            <p>You’re all caught up. New dues will appear here when assigned.</p>
+          </div>
+        } @else {
+          <div class="card-list">
+            @for (card of pendingCards; track card.feeMasterId + (card.academicPeriodId || '')) {
+              <article class="fee-card">
+                <div class="fee-card-head">
+                  <div class="title-wrap">
+                    <div class="fc-title">{{ cardTitle(card) }}</div>
+                    @if (cardSubtitle(card); as sub) {
+                      <div class="fc-sub">{{ sub }}</div>
+                    }
+                  </div>
+                  <span [class]="'stamp ' + statusClass(card.status)">{{ card.status }}</span>
+                </div>
+
+                <div class="fee-head-list">
+                  @for (head of card.heads; track head.feeHeadId) {
+                    @if (!head.isExcluded) {
+                      <div class="fee-head-row">
+                        <div class="fh-name">
+                          {{ head.feeHeadName }}
+                          @if (head.isMandatory) {
+                            <span class="req">*</span>
+                          }
+                        </div>
+                        <div class="fh-amt">
+                          <span>{{ formatRupee(head.dueAmount) }}</span>
+                          @if (head.paidAmount >= head.dueAmount && head.dueAmount > 0) {
+                            <small>Paid</small>
+                          } @else if (head.paidAmount > 0) {
+                            <small>{{ formatRupee(head.paidAmount) }} paid</small>
+                          }
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+
+                <div class="fee-card-foot">
+                  <span class="foot-label">Pending</span>
+                  <b>{{ formatRupee(card.totalPending) }}</b>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      } @else {
+        <div class="section-head">
+          <p class="section-label">Fee history</p>
+          <p class="section-sub">Payments and balances for each fee</p>
+        </div>
+
+        @if (!historyRows.length) {
+          <div class="empty-card">
+            <ion-icon name="wallet-outline"></ion-icon>
+            <h3>No fee history</h3>
+            <p>Payment history will show here after collections are recorded.</p>
+          </div>
+        } @else {
+          <div class="card-list">
+            @for (row of historyRows; track row.feeMasterId) {
+              <article class="fee-card history-card">
+                <button type="button" class="history-toggle" (click)="toggleHistory(row)">
+                  <div class="fee-card-head">
+                    <div class="title-wrap">
+                      <div class="fc-title">{{ row.feeName }}</div>
+                      <div class="fc-sub">
+                        Total {{ formatRupee(row.totalDue) }} · Paid {{ formatRupee(row.totalPaid) }}
+                      </div>
+                    </div>
+                    <div class="head-right">
+                      <span [class]="'stamp ' + statusClass(row.status)">{{ row.status }}</span>
+                      <ion-icon
+                        [name]="isExpanded(row) ? 'chevron-up-outline' : 'chevron-down-outline'"
+                        aria-hidden="true"
+                      ></ion-icon>
+                    </div>
+                  </div>
+                  <div class="fee-card-foot compact">
+                    <span class="foot-label">Pending</span>
+                    <b>{{ formatRupee(row.totalPending) }}</b>
+                  </div>
+                </button>
+
+                @if (isExpanded(row)) {
+                  @if (!row.payments.length) {
+                    <p class="empty-note">No payments recorded for this fee yet.</p>
+                  } @else {
+                    <div class="payment-list">
+                      @for (pay of row.payments; track pay.paymentId) {
+                        <div class="payment-block">
+                          <div class="pay-head">
+                            <div>
+                              <div class="pay-amt">{{ formatRupee(pay.totalAmount) }}</div>
+                              <div class="pay-meta">
+                                {{ formatDateTime(pay.paymentDate) }}
+                                @if (pay.paymentMethod) {
+                                  · {{ pay.paymentMethod }}
+                                }
+                                @if (pay.periodLabel) {
+                                  · {{ pay.periodLabel }}
+                                }
+                              </div>
+                            </div>
+                            @if (pay.collectedBy) {
+                              <div class="collector">{{ pay.collectedBy }}</div>
+                            }
+                          </div>
+                          @if (pay.lines.length) {
+                            <div class="fee-head-list nested">
+                              @for (line of pay.lines; track line.feeHeadId) {
+                                <div class="fee-head-row">
+                                  <div class="fh-name">{{ line.feeHeadName }}</div>
+                                  <div class="fh-amt">
+                                    <span>{{ formatRupee(line.paidAmount) }}</span>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          }
+                          @if (pay.remarks) {
+                            <p class="remarks">{{ pay.remarks }}</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </article>
+            }
+          </div>
+        }
+      }
+    }
+  </main>
+</ion-content>

@@ -1,16 +1,67 @@
 <app-header
-  title="Homework"
+  [title]="isStudent ? (studentDetail?.subjectName || 'Homework') : 'Homework'"
   [showBack]="true"
-  [showFilter]="true"
+  [showFilter]="!isStudent"
   backHref="/homework"
-  searchPlaceholder="Search students..."
+  [searchPlaceholder]="isStudent ? '' : 'Search students...'"
 />
 
-<ion-content class="so-page hw-detail-page">
+<ion-content class="so-page hw-detail-page" [class.student-detail]="isStudent">
   @if (loading) {
     <div class="loading-wrap"><ion-spinner></ion-spinner></div>
   } @else if (loadError) {
     <div class="so-empty"><h3>{{ loadError }}</h3></div>
+  } @else if (isStudent && studentDetail; as hw) {
+    <main class="student-detail-body">
+      <div class="subject-tag detail-tag">
+        <span class="dot" aria-hidden="true"></span>
+        {{ hw.subjectName || 'Subject' }}
+      </div>
+      <h1 class="detail-title">{{ hw.title }}</h1>
+
+      <div class="status-banner" [attr.data-status]="hw.myStatus">
+        <ion-icon
+          [name]="hw.myStatus === 'submitted' || hw.myStatus === 'late' ? 'checkmark-circle' : hw.myStatus === 'overdue' ? 'warning' : 'hourglass'"
+          aria-hidden="true"
+        ></ion-icon>
+        <span>{{ studentStatusBanner() }}</span>
+      </div>
+
+      <div class="info-card">
+        <div class="card-label">Details</div>
+        <div class="info-row">
+          <span class="flabel">Class</span>
+          <span class="fvalue">{{ hw.className || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="flabel">Assigned on</span>
+          <span class="fvalue">{{ formatDate(hw.assignDate) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="flabel">Due date</span>
+          <span class="fvalue">{{ formatDate(hw.dueDate) }}</span>
+        </div>
+        @if (hw.marks != null) {
+          <div class="info-row">
+            <span class="flabel">Marks</span>
+            <span class="fvalue">{{ hw.marks }}</span>
+          </div>
+        }
+        @if (hw.submittedOn) {
+          <div class="info-row">
+            <span class="flabel">Submitted on</span>
+            <span class="fvalue">{{ formatDate(hw.submittedOn) }}</span>
+          </div>
+        }
+      </div>
+
+      @if (hw.description) {
+        <div class="info-card">
+          <div class="card-label">Description</div>
+          <p class="desc-text">{{ hw.description }}</p>
+        </div>
+      }
+    </main>
   } @else if (detail) {
     <ion-card class="detail-header">
       <ion-card-content>
@@ -170,32 +221,34 @@
         <ion-spinner name="crescent"></ion-spinner>
       } @else {
         <so-icon slot="start" [name]="saveIcon"></so-icon>
-        {{ isSubmissionsSubmitted ? 'Update submissions' : 'Submit submissions' }}
+        {{ isSubmissionsSubmitted ? 'Update' : 'Submit' }}
       }
     </ion-button>
   </ion-footer>
 }
 
-<so-filter-popover
-  [isOpen]="filterOpen"
-  [initialBreakpoint]="0.38"
-  (closed)="filterOpen = false"
-  (cleared)="clearFilters()"
-  (applied)="filterOpen = false"
->
-  <div class="filter-field">
-    <label>Submission status</label>
-    <div class="filter-chip-group">
-      @for (f of studentFilterOptions; track f) {
-        <button
-          type="button"
-          class="filter-chip-option"
-          [class.active]="studentFilter === f"
-          (click)="setStudentFilter(f)"
-        >
-          {{ filterLabel(f) }}
-        </button>
-      }
+@if (!isStudent) {
+  <so-filter-popover
+    [isOpen]="filterOpen"
+    [initialBreakpoint]="0.38"
+    (closed)="filterOpen = false"
+    (cleared)="clearFilters()"
+    (applied)="filterOpen = false"
+  >
+    <div class="filter-field">
+      <label>Submission status</label>
+      <div class="filter-chip-group">
+        @for (f of studentFilterOptions; track f) {
+          <button
+            type="button"
+            class="filter-chip-option"
+            [class.active]="studentFilter === f"
+            (click)="setStudentFilter(f)"
+          >
+            {{ filterLabel(f) }}
+          </button>
+        }
+      </div>
     </div>
-  </div>
-</so-filter-popover>
+  </so-filter-popover>
+}

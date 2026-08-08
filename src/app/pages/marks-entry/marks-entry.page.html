@@ -1,0 +1,174 @@
+<app-header
+  title="Marks Entry"
+  [showBack]="true"
+  backHref="/marks-entry"
+  searchPlaceholder="Search roll or student name..."
+/>
+
+<ion-content class="so-page marks-entry-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="marks-entry-body">
+    <p class="page-hint">Enter marks per component; mark absentees</p>
+
+    <div class="selectors">
+      @if (examLocked) {
+        <label>Exam</label>
+        <div class="exam-readonly">{{ examLabel }}</div>
+      }
+
+      <label>Class</label>
+      <so-select
+        [options]="classOptions"
+        placeholder="Select class"
+        [showSearch]="true"
+        [(ngModel)]="classId"
+        name="classId"
+        (valueChange)="onClassChange()"
+      />
+    </div>
+
+    @if (loadingExams || loadingSubjects) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (!examId || !classId) {
+      <div class="empty-card compact">
+        <p>Select a class to start.</p>
+      </div>
+    } @else if (!subjectProgress.length) {
+      <div class="empty-card compact">
+        <p>No scheduled subjects for this exam/class. Schedule subjects first.</p>
+      </div>
+    } @else {
+      <div class="subj-tabs" role="tablist">
+        @for (subj of subjectProgress; track subj.examScheduleId) {
+          <button
+            type="button"
+            class="subj-tab"
+            role="tab"
+            [class.active]="subj.examScheduleId === selectedScheduleId"
+            (click)="selectSubject(subj)"
+          >
+            {{ subj.subjectName }}
+            <span class="cnt">{{ subj.entered }}/{{ subj.total }}</span>
+          </button>
+        }
+      </div>
+
+      @if (grid) {
+        <div class="subj-info">
+          <div class="si-title">
+            <ion-icon name="create-outline"></ion-icon>
+            {{ grid.subjectName }} — {{ grid.className }}
+          </div>
+          <div class="si-badges">
+            <span class="si-badge">Max {{ maxTotal }}</span>
+            <span class="si-badge">{{ enteredCount }}/{{ rows.length }} entered</span>
+          </div>
+        </div>
+      }
+
+      @if (loadingGrid) {
+        <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (!filteredRows.length) {
+        <div class="empty-card compact">
+          <p>{{ rows.length ? 'No students match your search.' : 'No students found.' }}</p>
+        </div>
+      } @else {
+        <div class="student-list">
+          @for (row of filteredRows; track row.studentId) {
+            <article class="stu-card" [class.absent]="row.isAbsent">
+              <div class="stu-top">
+                <div class="stu-left">
+                  <span class="roll-badge">{{ row.rollNo || '—' }}</span>
+                  <span class="avatar">{{ initials(row.studentName) }}</span>
+                  <span class="stu-name">{{ row.studentName }}</span>
+                </div>
+                <label class="absent-toggle">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="row.isAbsent"
+                    [name]="'absent' + row.studentId"
+                    [disabled]="!canEdit"
+                    (ngModelChange)="toggleAbsent(row)"
+                  />
+                  Absent
+                </label>
+              </div>
+
+              @if (grid) {
+                <div class="comp-grid">
+                  @for (comp of grid.components; track comp.id || comp.name; let i = $index) {
+                    <div class="comp-field">
+                      <label>
+                        {{ comp.name }}
+                        <span class="max">/{{ comp.maxMarks }}</span>
+                      </label>
+                      <input
+                        class="mark-input"
+                        type="number"
+                        min="0"
+                        [max]="comp.maxMarks"
+                        [disabled]="!canEdit || row.isAbsent"
+                        [ngModel]="row.cells[i].value"
+                        [name]="'mark' + row.studentId + i"
+                        (ngModelChange)="onMarkInput(row, i, $event)"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+
+              <div class="stu-summary">
+                <div>Total: <b>{{ total(row) ?? '—' }}</b></div>
+                <div>%: <b>{{ percent(row) !== null ? percent(row) + '%' : '—' }}</b></div>
+                <span class="result-tag" [class]="resultKey(row)">{{ resultLabel(row) }}</span>
+              </div>
+
+              <button
+                type="button"
+                class="remark-toggle"
+                (click)="toggleRemark(row.studentId)"
+              >
+                {{ isRemarkOpen(row.studentId) ? '− Hide remark' : '+ Add remark' }}
+              </button>
+              @if (isRemarkOpen(row.studentId)) {
+                <textarea
+                  class="remark-box"
+                  rows="2"
+                  placeholder="Optional remark..."
+                  [(ngModel)]="row.remark"
+                  [name]="'remark' + row.studentId"
+                  [disabled]="!canEdit"
+                  (ngModelChange)="markDirty()"
+                ></textarea>
+              }
+            </article>
+          }
+        </div>
+      }
+    }
+  </main>
+</ion-content>
+
+@if (grid && canEdit) {
+  <div class="marks-save-bar">
+    <div class="save-info">
+      <b>{{ enteredCount }}</b>/{{ rows.length }} marks entered
+    </div>
+    <button
+      type="button"
+      class="save-btn sticky"
+      [disabled]="saving || !dirty"
+      (click)="save()"
+    >
+      @if (saving) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Save marks
+      }
+    </button>
+  </div>
+}

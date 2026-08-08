@@ -27,20 +27,24 @@ import {
 import {
   HomeworkDetail,
   HomeworkSubmissionStatus,
+  StudentHomeworkItem,
   StudentHomeworkSubmissionItem,
 } from '../../core/models/homework.model';
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { HomeworkService } from '../../core/services/homework.service';
 import { AppHeaderService } from '../../core/services/app-header.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { SoDateInputComponent } from '../../shared/components/so-date-input/so-date-input.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
 import { SoIconComponent } from '../../shared/components/so-icon/so-icon.component';
 import { SoIcons } from '../../shared/icons/so-icons';
-import { localDateString, normalizeHomeworkStatus } from '../../core/utils/api-mapper.util';
+import { formatDisplayDate, localDateString, normalizeHomeworkStatus } from '../../core/utils/api-mapper.util';
+import { resolveHomeUserType } from '../home/home-dashboard.config';
 
 interface StudentRow {
   studentId: string;
@@ -81,18 +85,21 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
   private readonly homeworkService = inject(HomeworkService);
   private readonly toast = inject(ToastService);
   private readonly alert = inject(AlertController);
+  private readonly auth = inject(AuthService);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
   private readonly header = inject(AppHeaderService);
   private subs = new Subscription();
   headerSearch = '';
   readonly saveIcon = SoIcons.save;
+  readonly isStudent = resolveHomeUserType(this.auth.currentUser) === 'student';
 
   HomeworkSubmissionStatus = HomeworkSubmissionStatus;
   readonly studentFilterOptions = ['all', 'submitted', 'pending', 'late'] as const;
 
   homeworkId = '';
   detail: HomeworkDetail | null = null;
+  studentDetail: StudentHomeworkItem | null = null;
   studentRows: StudentRow[] = [];
   filteredStudents: StudentRow[] = [];
   studentFilter = 'all';
@@ -124,10 +131,12 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
   }
 
   get canEdit(): boolean {
+    if (this.isStudent) return false;
     return !this.ayContext.isReadOnlyScope() && this.permissions.canEdit(MenuCodes.Homework);
   }
 
   get canDelete(): boolean {
+    if (this.isStudent) return false;
     return !this.ayContext.isReadOnlyScope() && this.permissions.canDelete(MenuCodes.Homework);
   }
 
@@ -136,17 +145,19 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subs.add(
-      this.header.searchQuery$.subscribe((q) => {
-        this.headerSearch = q.trim().toLowerCase();
-        this.applyFilter();
-      }),
-    );
-    this.subs.add(
-      this.header.filterClick$.subscribe(() => {
-        this.filterOpen = true;
-      }),
-    );
+    if (!this.isStudent) {
+      this.subs.add(
+        this.header.searchQuery$.subscribe((q) => {
+          this.headerSearch = q.trim().toLowerCase();
+          this.applyFilter();
+        }),
+      );
+      this.subs.add(
+        this.header.filterClick$.subscribe(() => {
+          this.filterOpen = true;
+        }),
+      );
+    }
     this.route.paramMap.subscribe((params) => {
       const id = (params.get('id') ?? '').trim();
       if (!id) {
@@ -165,6 +176,21 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
   loadDetail(): void {
     this.loading = true;
     this.loadError = '';
+    if (this.isStudent) {
+      this.homeworkService.getMyById(this.homeworkId).subscribe({
+        next: (item) => {
+          this.studentDetail = item;
+          this.detail = null;
+          this.loading = false;
+        },
+        error: (err) => {
+          this.loading = false;
+          this.loadError = getUserFacingApiError(err, 'Failed to load');
+        },
+      });
+      return;
+    }
+
     this.homeworkService.getById(this.homeworkId).subscribe({
       next: (d) => {
         const raw = d as unknown as Record<string, unknown>;
@@ -206,9 +232,26 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        this.loadError = typeof err?.error === 'string' ? err.error : 'Failed to load';
+        this.loadError = getUserFacingApiError(err, 'Failed to load');
       },
     });
+  }
+
+  formatDate(iso?: string | null): string {
+    if (!iso) return '—';
+    const day = iso.includes('T') ? iso.slice(0, 10) : iso;
+    return formatDisplayDate(day);
+  }
+
+  studentStatusBanner(): string {
+    const d = this.studentDetail;
+    if (!d) return '';
+    const due = this.formatDate(d.dueDate);
+    if (d.myStatus === 'submitted' || d.myStatus === 'late') {
+      return d.myStatus === 'late' ? `Submitted late · due was ${due}` : 'Submitted';
+    }
+    if (d.myStatus === 'overdue') return `Overdue · was due ${due}`;
+    return `Pending · due ${due}`;
   }
 
   setStudentFilter(f: string): void {
@@ -337,7 +380,7 @@ export class HomeworkDetailPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isSubmitting = false;
-        void this.showToast(typeof err?.error === 'string' ? err.error : 'Save failed');
+        void this.showToast(getUserFacingApiError(err, 'Save failed'));
       },
     });
   }

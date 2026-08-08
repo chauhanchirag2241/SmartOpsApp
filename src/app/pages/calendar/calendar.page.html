@@ -51,15 +51,18 @@
       </div>
     }
 
-    <div class="cal-legend">
-      <span data-tone="present">Present</span>
-      <span data-tone="leave">Leave</span>
-      <span data-tone="late">Late</span>
-      <span data-tone="halfday">Half Day</span>
-      <span data-tone="holiday">Holiday</span>
-      <span data-tone="weekend">Weekend</span>
-      <span data-tone="exam">Exam</span>
-      <span data-tone="event">Event</span>
+    <div class="cal-legend" role="group" aria-label="Calendar type filters">
+      @for (f of legendFilters; track f.kind) {
+        <button
+          type="button"
+          class="legend-chip"
+          [class.active]="isFilterActive(f.kind)"
+          [attr.data-tone]="f.kind"
+          (click)="toggleFilter(f.kind)"
+        >
+          {{ f.label }}
+        </button>
+      }
     </div>
   </section>
 
@@ -71,7 +74,7 @@
 @if (dayPickerOpen) {
   <ion-modal
     [isOpen]="true"
-    (didDismiss)="closeDayPicker()"
+    (didDismiss)="onDayPickerDismissed()"
     [initialBreakpoint]="0.42"
     [breakpoints]="[0, 0.42, 0.7]"
     cssClass="cal-detail-modal"

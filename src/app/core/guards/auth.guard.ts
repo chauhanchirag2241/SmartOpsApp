@@ -17,6 +17,13 @@ export const authGuard: CanActivateFn = () => {
     return router.createUrlTree(['/login']);
   }
 
+  if (!auth.hasActiveRole) {
+    auth.clearSessionForNoActiveRole();
+    return router.createUrlTree(['/login'], {
+      queryParams: { noActiveRole: '1' },
+    });
+  }
+
   if (auth.mustChangePassword) {
     return router.createUrlTree(['/change-password']);
   }

@@ -13,6 +13,9 @@ import { TenantService } from './tenant.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  static readonly NO_ACTIVE_ROLE_MESSAGE =
+    'You do not have an active role. Contact your school administrator.';
+
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
   private readonly api = inject(ApiService);
@@ -43,6 +46,11 @@ export class AuthService {
     return !!this.currentUser?.mustChangePassword;
   }
 
+  /** True when the signed-in user has at least one assigned portal role. */
+  get hasActiveRole(): boolean {
+    return AuthService.userHasActiveRole(this.currentUser);
+  }
+
   ensureValidSessionOrClear(): void {
     const token = this.getToken();
     if (!isUsableAccessToken(token)) {
@@ -68,11 +76,16 @@ export class AuthService {
         }
         this.storage.set(this.tokenKey, accessToken);
         return this.api.get<UserProfile>('auth/me').pipe(
-          map((profile) => ({
-            accessToken,
-            profile,
-            mustChangePassword: !!(raw.mustChangePassword ?? profile.mustChangePassword),
-          })),
+          switchMap((profile) => {
+            if (!AuthService.profileHasActiveRole(profile)) {
+              return this.rejectNoActiveRole();
+            }
+            return of({
+              accessToken,
+              profile,
+              mustChangePassword: !!(raw.mustChangePassword ?? profile.mustChangePassword),
+            });
+          }),
         );
       }),
       switchMap(({ accessToken, profile, mustChangePassword }) => {
@@ -92,6 +105,15 @@ export class AuthService {
         ),
       ),
     );
+  }
+
+  /** Clears a partial login when the account has no portal role. */
+  clearSessionForNoActiveRole(): void {
+    this.permissionService.clear();
+    this.filterLookups.clear();
+    this.branchContext.clear();
+    this.clearSessionStorage();
+    this.currentUserSubject.next(null);
   }
 
   changePassword(oldPassword: string, newPassword: string, confirmNewPassword: string): Observable<void> {
@@ -176,11 +198,15 @@ export class AuthService {
   }
 
   private mapProfileToUser(profile: UserProfile, mustChangePassword = false): User {
-    const roles = profile.roles ?? [];
-    const primaryRole = roles[0] ?? 'School Admin';
+    const roles = (profile.roles ?? []).filter((r) => typeof r === 'string' && r.trim().length > 0);
+    const primaryRole = roles[0] ?? '';
+    const raw = profile as UserProfile & { FirstName?: string; LastName?: string };
+    const first = (profile.firstName || raw.FirstName || '').trim();
+    const last = (profile.lastName || raw.LastName || '').trim();
+    const fullName = `${first} ${last}`.trim();
     return {
       id: profile.id,
-      name: profile.username || profile.email,
+      name: fullName || profile.username || profile.email,
       email: profile.email,
       role: this.mapRole(primaryRole),
       roles,
@@ -190,11 +216,49 @@ export class AuthService {
     };
   }
 
-  private mapRole(role?: string): UserRole {
-    const known: UserRole[] = ['teacher', 'student', 'parent', 'admin', 'Admin', 'Accountant', 'SmartOpsAdmin', 'School Admin'];
-    if (known.includes(role as UserRole)) {
-      return role as UserRole;
+    private mapRole(role?: string): UserRole {
+    const normalized = (role ?? '').trim();
+    const known: UserRole[] = [
+      'teacher',
+      'student',
+      'Student',
+      'parent',
+      'admin',
+      'Admin',
+      'Accountant',
+      'SmartOpsAdmin',
+      'School Admin',
+    ];
+    if (known.includes(normalized as UserRole)) {
+      return normalized as UserRole;
     }
-    return 'Admin';
+    return (normalized || 'Admin') as UserRole;
+  }
+
+  private rejectNoActiveRole(): Observable<never> {
+    this.clearSessionForNoActiveRole();
+    return throwError(() => new Error(AuthService.NO_ACTIVE_ROLE_MESSAGE));
+  }
+
+  static profileHasActiveRole(profile: UserProfile | null | undefined): boolean {
+    if (!profile) {
+      return false;
+    }
+    const roles = profile.roles ?? [];
+    if (roles.some((r) => typeof r === 'string' && r.trim().length > 0)) {
+      return true;
+    }
+    return !!(profile.roleId && String(profile.roleId).trim());
+  }
+
+  static userHasActiveRole(user: User | null | undefined): boolean {
+    if (!user) {
+      return false;
+    }
+    const roles = user.roles ?? [];
+    if (roles.some((r) => typeof r === 'string' && r.trim().length > 0)) {
+      return true;
+    }
+    return !!(user.roleId && String(user.roleId).trim());
   }
 }

@@ -1,4 +1,13 @@
-export type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'Admin' | 'Accountant' | 'SmartOpsAdmin' | 'School Admin';
+export type UserRole =
+  | 'admin'
+  | 'teacher'
+  | 'student'
+  | 'Student'
+  | 'parent'
+  | 'Admin'
+  | 'Accountant'
+  | 'SmartOpsAdmin'
+  | 'School Admin';
 
 export interface User {
   id: string;
@@ -23,6 +32,8 @@ export interface UserProfile {
   id: string;
   email: string;
   username: string;
+  firstName?: string;
+  lastName?: string;
   isActive: boolean;
   createdOn: string;
   roles: string[];

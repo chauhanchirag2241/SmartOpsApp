@@ -9,6 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-change-password',
@@ -30,6 +31,14 @@ export class ChangePasswordPage implements OnInit {
   ngOnInit(): void {
     if (!this.auth.isLoggedIn) {
       void this.router.navigate(['/login'], { replaceUrl: true });
+      return;
+    }
+    if (!this.auth.hasActiveRole) {
+      this.auth.clearSessionForNoActiveRole();
+      void this.router.navigate(['/login'], {
+        queryParams: { noActiveRole: '1' },
+        replaceUrl: true,
+      });
       return;
     }
     if (!this.auth.mustChangePassword) {
@@ -65,13 +74,7 @@ export class ChangePasswordPage implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        const msg =
-          typeof err?.error === 'string'
-            ? err.error
-            : Array.isArray(err?.error)
-              ? err.error.join(', ')
-              : err?.message || 'Unable to update password';
-        this.errorMessage = msg;
+        this.errorMessage = getUserFacingApiError(err, 'Unable to update password');
       },
     });
   }

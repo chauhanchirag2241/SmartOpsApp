@@ -76,7 +76,9 @@
         <div class="hd-profile-avatar">{{ headerInfo.initials }}</div>
         <div>
           <strong>{{ headerInfo.displayName }}</strong>
-          <p>{{ headerInfo.roleBadge }}</p>
+          @if (headerInfo.roleBadge) {
+            <p>{{ headerInfo.roleBadge }}</p>
+          }
           @if (ay.currentYear(); as year) {
             <p class="hd-year">{{ year.name }}</p>
           }

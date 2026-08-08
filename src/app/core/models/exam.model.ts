@@ -117,6 +117,18 @@ export interface ExamScheduleItem {
   status: string;
 }
 
+/** Shared with SmartOpsUI — used by web and mobile. */
+export interface SaveExamScheduleRequest {
+  examId: string;
+  classId: string;
+  subjectId: string;
+  examDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  roomNo?: string | null;
+  invigilatorId?: string | null;
+}
+
 export interface BulkExamScheduleSlot {
   classId: string;
   subjectId: string;
@@ -135,4 +147,53 @@ export interface BulkCreateExamSchedulesRequest {
 export interface BulkCreateExamSchedulesResult {
   createdCount: number;
   created: ExamScheduleItem[];
+}
+
+// ── Marks entry (shared with SmartOpsUI — used by web and mobile) ──
+
+export interface ExamComponentMark {
+  componentId: string;
+  marksObtained?: number | null;
+}
+
+export interface ExamStudentMarksRow {
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  isAbsent: boolean;
+  remark?: string | null;
+  marks: ExamComponentMark[];
+}
+
+export interface ExamMarksGrid {
+  examScheduleId: string;
+  examId: string;
+  examName: string;
+  classId: string;
+  className: string;
+  subjectId: string;
+  subjectName: string;
+  minPassPercent: number;
+  components: ExamMarkComponent[];
+  students: ExamStudentMarksRow[];
+}
+
+export interface SaveStudentMarks {
+  studentId: string;
+  isAbsent: boolean;
+  remark?: string | null;
+  marks: ExamComponentMark[];
+}
+
+export interface SaveExamMarksRequest {
+  examScheduleId: string;
+  students: SaveStudentMarks[];
+}
+
+export interface ExamSubjectProgress {
+  examScheduleId: string;
+  subjectId: string;
+  subjectName: string;
+  entered: number;
+  total: number;
 }

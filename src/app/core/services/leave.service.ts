@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 
-/** @deprecated Prefer leaveTypeId. Kept for older student apply. */
+/** @deprecated Prefer leaveTypeId for staff. Student apply still uses enum. */
 export enum LeaveType {
   Casual = 1,
   Sick = 2,
@@ -34,10 +34,32 @@ export interface CreateStaffLeaveRequest {
   halfDays?: LeaveHalfDay[];
 }
 
+export interface CreateStudentLeaveRequest {
+  studentId: string;
+  fromDate: string;
+  toDate: string;
+  leaveType: LeaveType;
+  reason: string;
+  submitImmediately?: boolean;
+}
+
 export interface LeaveApplicant {
   employeeId: string;
   employeeName: string;
   reportingManager?: { id: string; name: string } | null;
+}
+
+export interface StudentLeaveApplicant {
+  studentId: string;
+  studentName: string;
+  className?: string | null;
+  classTeacher?: { id: string; name: string } | null;
+}
+
+export interface LinkedStudent {
+  id: string;
+  name: string;
+  className?: string | null;
 }
 
 export interface LeaveTypeDto {
@@ -81,6 +103,8 @@ export interface LeaveListItem {
   approvedByName?: string | null;
   approvedOn?: string | null;
   createdOn?: string;
+  studentName?: string | null;
+  className?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -111,15 +135,19 @@ export class LeaveService {
     return this.api.post(`leave/staff/${id}/submit`, {});
   }
 
-  getStudentMine(): Observable<unknown[]> {
-    return this.api.get('leave/students/mine');
+  getStudentMine(): Observable<LeaveListItem[]> {
+    return this.api.get<LeaveListItem[]>('leave/students/mine');
   }
 
-  getLinkedStudents(): Observable<unknown[]> {
-    return this.api.get('leave/students/children');
+  getStudentApplicant(): Observable<StudentLeaveApplicant> {
+    return this.api.get<StudentLeaveApplicant>('leave/students/applicant');
   }
 
-  createStudent(body: unknown): Observable<unknown> {
+  getLinkedStudents(): Observable<LinkedStudent[]> {
+    return this.api.get<LinkedStudent[]>('leave/students/children');
+  }
+
+  createStudent(body: CreateStudentLeaveRequest): Observable<unknown> {
     return this.api.post('leave/students', body);
   }
 }

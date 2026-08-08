@@ -318,3 +318,116 @@ ion-card {
   justify-content: center;
   padding: 48px;
 }
+
+/* Student portal detail */
+.student-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 16px 28px;
+}
+
+.student-detail .subject-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--so-primary);
+  }
+}
+
+.detail-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 750;
+  color: var(--so-ink);
+  line-height: 1.3;
+}
+
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 650;
+
+  ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  &[data-status='pending'] {
+    background: #f7efd0;
+    color: #7a5f1e;
+  }
+
+  &[data-status='submitted'],
+  &[data-status='late'] {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &[data-status='overdue'] {
+    background: #fef3f2;
+    color: #b42318;
+  }
+}
+
+.info-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: var(--so-radius-md, 14px);
+  box-shadow: var(--so-shadow);
+  padding: 16px 18px;
+}
+
+.card-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+  margin-bottom: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .flabel {
+    font-size: 13px;
+    color: var(--so-ink-soft);
+  }
+
+  .fvalue {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--so-ink);
+    text-align: right;
+  }
+}
+
+.desc-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--so-ink);
+  line-height: 1.6;
+}

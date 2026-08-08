@@ -1,0 +1,49 @@
+<app-header title="Enter Marks" [showBack]="true" backHref="/tabs/home" />
+
+<ion-content class="so-page marks-list-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="marks-list-body">
+    <p class="page-hint">Pick an exam to enter subject marks for its classes.</p>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (!exams.length) {
+      <div class="empty-card">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h3>No exams found</h3>
+        <p>Create and schedule an exam first, then enter marks here.</p>
+      </div>
+    } @else {
+      <div class="card-list">
+        @for (exam of exams; track exam.id) {
+          <article class="exam-card">
+            <div class="exam-card-top">
+              <div class="exam-copy">
+                <h2>{{ exam.name }}</h2>
+                <p class="meta">{{ exam.examType }} · {{ exam.examGroupName }}</p>
+                <p class="meta">{{ classesLabel(exam) }}</p>
+              </div>
+              <span class="status-badge">{{ exam.statusLabel }}</span>
+            </div>
+            <div class="exam-card-footer">
+              <span class="marks">Max {{ exam.totalMaxMarks }}</span>
+              @if (canEnter) {
+                <button
+                  type="button"
+                  class="marks-entry-btn"
+                  (click)="openMarksEntry(exam, $event)"
+                >
+                  <ion-icon name="create-outline"></ion-icon>
+                  Marks entry
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </main>
+</ion-content>

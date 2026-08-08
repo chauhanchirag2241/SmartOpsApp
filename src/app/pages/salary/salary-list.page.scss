@@ -1,0 +1,181 @@
+.salary-list-page {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: var(--so-content-bottom-gap);
+}
+
+.salary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: calc(var(--so-content-bottom-gap) + 8px);
+}
+
+.section-head {
+  margin-top: 2px;
+}
+
+.section-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+}
+
+.section-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--so-ink-soft);
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: var(--so-radius-lg);
+  box-shadow: var(--so-shadow);
+  text-align: center;
+  padding: 28px 18px;
+  color: var(--so-ink-faint);
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--so-primary);
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    color: var(--so-ink);
+    font-size: 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+}
+
+.month-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: 16px;
+  box-shadow: var(--so-shadow);
+  padding: 16px 18px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.month-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.month {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--so-ink);
+  line-height: 1.25;
+  min-width: 0;
+
+  span {
+    display: block;
+    margin-top: 3px;
+    font-size: 10.5px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--so-ink-soft);
+  }
+}
+
+.amt {
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--so-ink);
+}
+
+.month-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--so-line);
+}
+
+.meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--so-ink-soft);
+}
+
+.foot-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chev {
+  font-size: 16px;
+  color: var(--so-ink-soft);
+}
+
+.stamp {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1.5px solid;
+  transform: rotate(-3deg);
+  white-space: nowrap;
+}
+
+.stamp.status-paid {
+  color: var(--so-success);
+  border-color: var(--so-success);
+  background: var(--so-success-bg);
+}
+
+.stamp.status-processing {
+  color: var(--so-warning);
+  border-color: var(--so-warning);
+  background: var(--so-warning-bg);
+}
+
+.stamp.status-draft {
+  color: var(--so-ink-soft);
+  border-color: var(--so-ink-soft);
+  background: var(--so-primary-tint);
+}

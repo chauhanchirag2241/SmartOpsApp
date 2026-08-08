@@ -31,6 +31,7 @@ import { ClassDropdownItem, ClassService } from '../../core/services/class.servi
 import { StudentService } from '../../core/services/student.service';
 import { AppHeaderService } from '../../core/services/app-header.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { SoDateInputComponent } from '../../shared/components/so-date-input/so-date-input.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
@@ -87,6 +88,7 @@ export class AttendancePage implements OnInit, OnDestroy {
   students: StudentRow[] = [];
   status: Record<string, AttendanceStatusKey> = {};
   notes: Record<string, string> = {};
+  leaveLocked: Record<string, boolean> = {};
   private initialStatus: Record<string, AttendanceStatusKey> = {};
   private initialNotes: Record<string, string> = {};
 
@@ -284,12 +286,14 @@ export class AttendancePage implements OnInit, OnDestroy {
 
         this.status = {};
         this.notes = {};
+        this.leaveLocked = {};
         for (const s of this.students) {
           const saved = attByStudent.get(s.id.toLowerCase());
           this.status[s.id] = saved
             ? parseAttendanceStatusFromApi(saved['status'] ?? saved['Status'])
             : '';
           this.notes[s.id] = saved ? String(saved['remarks'] ?? saved['Remarks'] ?? '') : '';
+          this.leaveLocked[s.id] = !!(saved?.['isLeaveLocked'] ?? saved?.['IsLeaveLocked']);
         }
 
         this.isSubmitted = !!(attRaw['isSubmitted'] ?? attRaw['IsSubmitted']);
@@ -308,7 +312,7 @@ export class AttendancePage implements OnInit, OnDestroy {
   }
 
   setStatus(studentId: string, key: AttendanceStatusKey): void {
-    if (!this.canEdit || !studentId) return;
+    if (!this.canEdit || !studentId || this.leaveLocked[studentId]) return;
     const prev = this.status[studentId];
     this.status = {
       ...this.status,
@@ -318,7 +322,7 @@ export class AttendancePage implements OnInit, OnDestroy {
   }
 
   cycleStatus(studentId: string): void {
-    if (!this.canEdit || !studentId) return;
+    if (!this.canEdit || !studentId || this.leaveLocked[studentId]) return;
     const current = this.status[studentId] || '';
     const next: Record<AttendanceStatusKey, AttendanceStatusKey> = {
       '': 'present',
@@ -338,7 +342,11 @@ export class AttendancePage implements OnInit, OnDestroy {
   markAllPresent(): void {
     if (!this.canEdit) return;
     const next = { ...this.status };
-    this.visibleStudents.forEach((student) => (next[student.id] = 'present'));
+    this.visibleStudents.forEach((student) => {
+      if (!this.leaveLocked[student.id]) {
+        next[student.id] = 'present';
+      }
+    });
     this.status = next;
     this.cdr.markForCheck();
   }
@@ -346,13 +354,21 @@ export class AttendancePage implements OnInit, OnDestroy {
   resetVisible(): void {
     if (!this.canEdit) return;
     const next = { ...this.status };
-    this.visibleStudents.forEach((student) => (next[student.id] = ''));
+    this.visibleStudents.forEach((student) => {
+      if (!this.leaveLocked[student.id]) {
+        next[student.id] = '';
+      }
+    });
     this.status = next;
     this.cdr.markForCheck();
   }
 
   isStatusActive(studentId: string, key: AttendanceStatusKey): boolean {
     return this.status[studentId] === key;
+  }
+
+  isLeaveLocked(studentId: string): boolean {
+    return !!this.leaveLocked[studentId];
   }
 
   filterBy(f: StatusFilter): void {
@@ -362,7 +378,7 @@ export class AttendancePage implements OnInit, OnDestroy {
 
   openRemarks(studentId: string, event?: Event): void {
     event?.stopPropagation();
-    if (!this.canEdit || !studentId) return;
+    if (!this.canEdit || !studentId || this.leaveLocked[studentId]) return;
     this.remarkTargetId = studentId;
     this.tempRemark = this.notes[studentId] || '';
     this.remarksOpen = true;
@@ -448,9 +464,7 @@ export class AttendancePage implements OnInit, OnDestroy {
           const msg =
             err?.status === 403
               ? 'No permission for this class'
-              : typeof err?.error === 'string'
-                ? err.error
-                : 'Submit failed';
+              : getUserFacingApiError(err, 'Submit failed');
           void this.showToast(msg);
           this.cdr.markForCheck();
         },

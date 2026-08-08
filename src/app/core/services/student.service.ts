@@ -1,7 +1,12 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
-import { PagedStudentsResult, StudentFilter, StudentListItem } from '../models/student.model';
+import {
+  MyStudentPortalSummary,
+  PagedStudentsResult,
+  StudentFilter,
+  StudentListItem,
+} from '../models/student.model';
 import { ApiService } from './api.service';
 
 /** Chunk size for roster paging — not a hard cap on how many students load. */
@@ -10,6 +15,22 @@ const ROSTER_PAGE_SIZE = 100;
 @Injectable({ providedIn: 'root' })
 export class StudentService {
   private readonly api = inject(ApiService);
+
+  /** Own class + roll for student portal home header. */
+  getMyPortalSummary(): Observable<MyStudentPortalSummary> {
+    return this.api.get<MyStudentPortalSummary | Record<string, unknown>>('students/me').pipe(
+      map((raw) => {
+        const r = raw as Record<string, unknown>;
+        return {
+          studentId: String(r['studentId'] ?? r['StudentId'] ?? ''),
+          studentName: String(r['studentName'] ?? r['StudentName'] ?? ''),
+          className: (r['className'] ?? r['ClassName']) as string | null,
+          section: (r['section'] ?? r['Section']) as string | null,
+          rollNumber: (r['rollNumber'] ?? r['RollNumber']) as string | null,
+        };
+      }),
+    );
+  }
 
   getStudents(
     pageIndex = 1,

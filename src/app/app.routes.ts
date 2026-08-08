@@ -50,6 +50,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'salary',
+    loadComponent: () => import('./pages/salary/salary-list.page').then((m) => m.SalaryListPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'salary/:entryId',
+    loadComponent: () => import('./pages/salary/salary-detail.page').then((m) => m.SalaryDetailPage),
+    canActivate: [authGuard],
+  },
+  {
     path: 'homework/new',
     loadComponent: () => import('./pages/homework/homework-form.page').then((m) => m.HomeworkFormPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.Homework)],
@@ -90,6 +100,12 @@ export const routes: Routes = [
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStaff)],
   },
   {
+    path: 'leave/student-mine',
+    loadComponent: () =>
+      import('./pages/leave/student-leave-mine.page').then((m) => m.StudentLeaveMinePage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStudent)],
+  },
+  {
     path: 'leave/student-apply',
     loadComponent: () => import('./pages/leave/student-apply.page').then((m) => m.StudentApplyPage),
     canActivate: [authGuard, menuPermissionGuard(MenuCodes.LeaveStudent)],
@@ -119,6 +135,23 @@ export const routes: Routes = [
       authGuard,
       anyMenuPermissionGuard(MenuCodes.Exams, MenuCodes.ExamSchedule),
     ],
+  },
+  {
+    path: 'marks-entry/enter',
+    loadComponent: () =>
+      import('./pages/marks-entry/marks-entry.page').then((m) => m.MarksEntryPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.ExamMarksEntry)],
+  },
+  {
+    path: 'marks-entry',
+    loadComponent: () =>
+      import('./pages/marks-entry/marks-entry-list.page').then((m) => m.MarksEntryListPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.ExamMarksEntry)],
+  },
+  {
+    path: 'fees',
+    loadComponent: () => import('./pages/fees/fees.page').then((m) => m.FeesPage),
+    canActivate: [authGuard, menuPermissionGuard(MenuCodes.FeeCollection)],
   },
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
 ];

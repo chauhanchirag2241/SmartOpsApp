@@ -423,3 +423,7 @@
   }
 }
 
+
+.student-card.leave-locked { opacity: 0.92; border-color: color-mix(in srgb, var(--so-warning, #fb8c00) 35%, var(--so-line)); }
+.leave-note { margin: 4px 0 0; font-size: 11.5px; line-height: 1.35; color: var(--so-ink-soft); font-style: italic; }
+

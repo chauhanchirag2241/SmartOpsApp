@@ -1,0 +1,64 @@
+<app-header title="Student Leave" [showBack]="true" backHref="/tabs/home" />
+
+<ion-content class="so-page leave-mine-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="leave-body">
+    <div class="section-head">
+      <p class="section-label">Leave history</p>
+      <p class="section-sub">Your leave applications and class teacher approval status</p>
+    </div>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (!history.length) {
+      <div class="empty-card">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h3>No leave history</h3>
+        <p>Applied leave requests will show up here.</p>
+      </div>
+    } @else {
+      <div class="timeline">
+        @for (item of history; track item.id) {
+          <div [class]="'entry ' + statusClass(item)">
+            <div class="dot" aria-hidden="true"></div>
+            <article class="entry-card">
+              <div class="entry-head">
+                <div class="type">
+                  {{ item.leaveTypeName || item.leaveTypeLabel || 'Leave' }}
+                  <span class="days">{{ daysLabel(item) }}</span>
+                </div>
+                <span [class]="'stamp ' + statusClass(item)">{{ statusText(item) }}</span>
+              </div>
+
+              <div class="entry-date">
+                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+                <span>{{ dateRangeLabel(item) }}</span>
+              </div>
+
+              @if (approvedLabel(item); as approver) {
+                <div class="entry-status-note">{{ approver }}</div>
+              } @else if (statusText(item) === 'Pending') {
+                <div class="entry-status-note">Waiting for class teacher approval</div>
+              }
+
+              @if (item.reason?.trim()) {
+                <p class="entry-remark">{{ item.reason }}</p>
+              }
+            </article>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+  @if (canApply) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button color="primary" (click)="openApply()" aria-label="Apply leave">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+</ion-content>

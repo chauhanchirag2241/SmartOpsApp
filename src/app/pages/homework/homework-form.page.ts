@@ -15,9 +15,8 @@ import {
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
 import { PermissionService } from '../../core/services/permission.service';
-import { ClassDropdownItem, ClassService } from '../../core/services/class.service';
+import { ClassDropdownItem, ClassGroupSubjectItem, ClassService } from '../../core/services/class.service';
 import { HomeworkService } from '../../core/services/homework.service';
-import { SubjectDropdownItem, SubjectService } from '../../core/services/subject.service';
 import { ToastService } from '../../core/services/toast.service';
 import { localDateString } from '../../core/utils/api-mapper.util';
 
@@ -40,7 +39,6 @@ export class HomeworkFormPage implements OnInit {
   private readonly router = inject(Router);
   private readonly homeworkService = inject(HomeworkService);
   private readonly classService = inject(ClassService);
-  private readonly subjectService = inject(SubjectService);
   private readonly toast = inject(ToastService);
   readonly ayContext = inject(AcademicYearContextService);
   private readonly permissions = inject(PermissionService);
@@ -51,7 +49,8 @@ export class HomeworkFormPage implements OnInit {
 
   homeworkId: string | null = null;
   classes: ClassDropdownItem[] = [];
-  subjects: SubjectDropdownItem[] = [];
+  subjects: ClassGroupSubjectItem[] = [];
+  subjectsLoading = false;
   saving = false;
   loading = false;
 
@@ -73,22 +72,62 @@ export class HomeworkFormPage implements OnInit {
   }
 
   get subjectOptions(): SoSelectOption[] {
-    return this.subjects.map((item) => ({ value: item.id, label: this.subjectLabel(item) }));
+    return this.subjects.map((item) => ({
+      value: item.subjectId,
+      label: item.subjectName || 'Subject',
+    }));
+  }
+
+  get subjectPlaceholder(): string {
+    if (!this.form.classId) return 'Select class first';
+    if (this.subjectsLoading) return 'Loading subjects…';
+    if (!this.subjects.length) return 'No subjects for this class';
+    return 'Select subject';
   }
 
   ngOnInit(): void {
     const isEdit = this.route.snapshot.url.some((s) => s.path === 'edit');
     const id = this.route.snapshot.paramMap.get('id');
+    this.classService.getClassDropdown().subscribe({ next: (c) => (this.classes = c || []) });
     if (isEdit && id) {
       this.homeworkId = id;
       this.loadForEdit(id);
     }
-    this.loadDropdowns();
   }
 
-  loadDropdowns(): void {
-    this.classService.getClassDropdown().subscribe({ next: (c) => (this.classes = c || []) });
-    this.subjectService.getSubjectDropdown().subscribe({ next: (s) => (this.subjects = s || []) });
+  onClassChange(classId: string): void {
+    this.form.classId = classId ?? '';
+    this.form.subjectId = '';
+    this.loadSubjectsForClass(this.form.classId);
+  }
+
+  loadSubjectsForClass(classId: string, keepSubjectId?: string): void {
+    const id = (classId || '').trim();
+    if (!id) {
+      this.subjects = [];
+      this.subjectsLoading = false;
+      return;
+    }
+
+    this.subjectsLoading = true;
+    const yearId = this.ayContext.effectiveYearId();
+    this.classService.getTeachingSubjectsForClass(id, yearId).subscribe({
+      next: (list) => {
+        this.subjects = list || [];
+        this.subjectsLoading = false;
+        if (keepSubjectId && this.subjects.some((s) => s.subjectId === keepSubjectId)) {
+          this.form.subjectId = keepSubjectId;
+        } else if (this.form.subjectId && !this.subjects.some((s) => s.subjectId === this.form.subjectId)) {
+          this.form.subjectId = '';
+        }
+      },
+      error: () => {
+        this.subjects = [];
+        this.subjectsLoading = false;
+        this.form.subjectId = '';
+        void this.toast.error('Failed to load subjects for class');
+      },
+    });
   }
 
   loadForEdit(id: string): void {
@@ -96,9 +135,11 @@ export class HomeworkFormPage implements OnInit {
     this.homeworkService.getById(id).subscribe({
       next: (d) => {
         const raw = d as unknown as Record<string, unknown>;
+        const classId = String(raw['classId'] ?? raw['ClassId'] ?? '');
+        const subjectId = String(raw['subjectId'] ?? raw['SubjectId'] ?? '');
         this.form = {
-          classId: String(raw['classId'] ?? raw['ClassId'] ?? ''),
-          subjectId: String(raw['subjectId'] ?? raw['SubjectId'] ?? ''),
+          classId,
+          subjectId: '',
           title: String(raw['title'] ?? raw['Title'] ?? ''),
           description: (raw['description'] ?? raw['Description']) as string | null,
           assignDate: String(raw['assignDate'] ?? raw['AssignDate'] ?? '').slice(0, 10),
@@ -108,6 +149,7 @@ export class HomeworkFormPage implements OnInit {
           submissionType: Number(raw['submissionType'] ?? raw['SubmissionType'] ?? 0),
         };
         this.loading = false;
+        this.loadSubjectsForClass(classId, subjectId);
       },
       error: () => {
         this.loading = false;
@@ -139,13 +181,9 @@ export class HomeworkFormPage implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        void this.toast.error(typeof err?.error === 'string' ? err.error : 'Save failed');
+        void this.toast.errorFrom(err, 'Save failed');
       },
     });
-  }
-
-  subjectLabel(s: SubjectDropdownItem): string {
-    return s.subjectName || s.name || '';
   }
 
   private emptyForm(): CreateHomeworkRequest {

@@ -8,8 +8,8 @@ import {
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
-import { ToastService } from '../../core/services/toast.service';
 import { TenantService } from '../../core/services/tenant.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -48,11 +48,19 @@ export class LoginPage implements OnInit {
 
   ngOnInit(): void {
     this.sessionExpired = this.route.snapshot.queryParamMap.get('sessionExpired') === '1';
-    if (this.auth.isLoggedIn) {
+    if (this.route.snapshot.queryParamMap.get('noActiveRole') === '1') {
+      void this.toast.error(AuthService.NO_ACTIVE_ROLE_MESSAGE, 4500);
+    }
+    if (this.auth.isLoggedIn && this.auth.hasActiveRole) {
       void this.router.navigate(
         [this.auth.mustChangePassword ? '/change-password' : '/tabs/home'],
         { replaceUrl: true },
       );
+      return;
+    }
+    if (this.auth.isLoggedIn && !this.auth.hasActiveRole) {
+      this.auth.clearSessionForNoActiveRole();
+      void this.toast.error(AuthService.NO_ACTIVE_ROLE_MESSAGE, 4500);
     }
   }
 
@@ -71,13 +79,7 @@ export class LoginPage implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        const msg =
-          typeof err?.error === 'string'
-            ? err.error
-            : Array.isArray(err?.error)
-              ? err.error.join(', ')
-              : err?.message || 'Invalid login or password';
-        void this.toast.error(msg, 3500);
+        void this.toast.errorFrom(err, 'Invalid login or password', 4500);
       },
     });
   }

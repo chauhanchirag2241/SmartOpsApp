@@ -8,8 +8,12 @@ import {
   ExamGradeScale,
   ExamGroup,
   ExamListItem,
+  ExamMarksGrid,
   ExamScheduleItem,
+  ExamSubjectProgress,
+  SaveExamMarksRequest,
   SaveExamRequest,
+  SaveExamScheduleRequest,
 } from '../models/exam.model';
 import { ApiService } from './api.service';
 
@@ -70,6 +74,8 @@ export class ExamService {
     return this.api.delete<void>(`exams/${id}`);
   }
 
+  // ── Schedule (same endpoints as SmartOpsUI exam-schedule) ──
+
   /** Shared with SmartOpsUI — used by web and mobile. GET /api/exam-schedules */
   getSchedules(examId?: string, classId?: string): Observable<ExamScheduleItem[]> {
     let params = new HttpParams();
@@ -81,10 +87,43 @@ export class ExamService {
     );
   }
 
+  /** Shared with SmartOpsUI — used by web and mobile. POST /api/exam-schedules */
+  createSchedule(data: SaveExamScheduleRequest): Observable<ExamScheduleItem> {
+    return this.api.post<ExamScheduleItem>('exam-schedules', data);
+  }
+
   /** Shared with SmartOpsUI — used by web and mobile. POST /api/exam-schedules/bulk */
   bulkCreateSchedules(
     data: BulkCreateExamSchedulesRequest,
   ): Observable<BulkCreateExamSchedulesResult> {
     return this.api.post<BulkCreateExamSchedulesResult>('exam-schedules/bulk', data);
+  }
+
+  /** Shared with SmartOpsUI — used by web and mobile. PUT /api/exam-schedules/{id} */
+  updateSchedule(id: string, data: SaveExamScheduleRequest): Observable<ExamScheduleItem> {
+    return this.api.put<ExamScheduleItem>(`exam-schedules/${id}`, data);
+  }
+
+  /** Shared with SmartOpsUI — used by web and mobile. DELETE /api/exam-schedules/{id} */
+  deleteSchedule(id: string): Observable<void> {
+    return this.api.delete<void>(`exam-schedules/${id}`);
+  }
+
+  // ── Marks entry (same endpoints as SmartOpsUI marks-entry) ──
+
+  /** Shared with SmartOpsUI — used by web and mobile. GET /api/exam-marks/grid/{scheduleId} */
+  getMarksGrid(scheduleId: string): Observable<ExamMarksGrid> {
+    return this.api.get<ExamMarksGrid>(`exam-marks/grid/${scheduleId}`);
+  }
+
+  /** Shared with SmartOpsUI — used by web and mobile. GET /api/exam-marks/subject-progress */
+  getSubjectProgress(examId: string, classId: string): Observable<ExamSubjectProgress[]> {
+    const params = new HttpParams().set('examId', examId).set('classId', classId);
+    return this.api.get<ExamSubjectProgress[]>('exam-marks/subject-progress', params);
+  }
+
+  /** Shared with SmartOpsUI — used by web and mobile. POST /api/exam-marks/save */
+  saveMarks(data: SaveExamMarksRequest): Observable<ExamMarksGrid> {
+    return this.api.post<ExamMarksGrid>('exam-marks/save', data);
   }
 }

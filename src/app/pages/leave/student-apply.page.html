@@ -1,33 +1,94 @@
-<app-header title="Student Leave" [showBack]="true" backHref="/home" />
-<ion-content class="ion-padding">
+<app-header title="Apply Leave" [showBack]="true" backHref="/leave/student-mine" />
+
+<ion-content class="so-page staff-apply-page">
   @if (loading || saving) {
-    <ion-spinner name="crescent" />
-  } @else if (!children.length) {
-    <p>No linked students found for your account.</p>
+    <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+  } @else if (!applicant?.studentId) {
+    <div class="page-pad">
+      <section class="form-card">
+        <p class="employee-note" style="border-top: none; padding-top: 0; margin: 0">
+          No student profile linked to your account.
+        </p>
+      </section>
+    </div>
   } @else {
-    <label>Student
-      <select [(ngModel)]="studentId">
-        <option value="">Select student</option>
-        @for (c of children; track c.id) {
-          <option [value]="c.id">{{ c.name }} @if (c.className) { ({{ c.className }}) }</option>
-        }
-      </select>
-    </label>
-    <label>From</label>
-    <so-date-input [(ngModel)]="fromDate" placeholder="From date" ariaLabel="From date" />
-    <label>To</label>
-    <so-date-input [(ngModel)]="toDate" placeholder="To date" ariaLabel="To date" />
-    <label>Type
-      <select [(ngModel)]="leaveType">
-        <option [ngValue]="LeaveType.Casual">Casual</option>
-        <option [ngValue]="LeaveType.Sick">Sick</option>
-        <option [ngValue]="LeaveType.Other">Other</option>
-      </select>
-    </label>
-    <label>Reason <textarea [(ngModel)]="reason" rows="3"></textarea></label>
-    <button type="button" class="primary-btn" [disabled]="!canApply || !studentId" (click)="submit()">
-      <so-icon [name]="sendIcon"></so-icon>
-      Submit for approval
-    </button>
+    <div class="page-pad">
+      <section class="form-card">
+        <div class="card-label">Student</div>
+        <div class="employee-row">
+          <span class="flabel">Student name</span>
+          <strong class="fvalue">{{ studentName }}</strong>
+        </div>
+        <div class="employee-row">
+          <span class="flabel">Class</span>
+          <strong class="fvalue">{{ className }}</strong>
+        </div>
+        <div class="employee-row">
+          <span class="flabel">Class teacher</span>
+          <strong class="fvalue">{{ classTeacherName }}</strong>
+        </div>
+        <p class="employee-note">
+          Leave is approved by your class teacher. If none is assigned, it goes to Principal.
+        </p>
+      </section>
+
+      <section class="form-card">
+        <div class="card-label">Leave details</div>
+
+        <div class="field">
+          <label>Leave type <span class="req">*</span></label>
+          <so-select
+            [options]="leaveTypeOptions"
+            placeholder="Select leave type"
+            searchPlaceholder="Search leave type"
+            ariaLabel="Leave type"
+            [(ngModel)]="leaveTypeValue"
+            name="leaveType"
+            [showSearch]="false"
+            (valueChange)="onLeaveTypeChanged($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label>From <span class="req">*</span></label>
+          <so-date-input
+            [(ngModel)]="fromDate"
+            name="fromDate"
+            placeholder="From date"
+            ariaLabel="From date"
+          />
+        </div>
+
+        <div class="field">
+          <label>To <span class="req">*</span></label>
+          <so-date-input
+            [(ngModel)]="toDate"
+            name="toDate"
+            placeholder="To date"
+            ariaLabel="To date"
+          />
+        </div>
+
+        <p class="total-days">Total days: <span>{{ totalDaysPreview }}</span></p>
+
+        <div class="field field-last">
+          <label>Reason <span class="req">*</span></label>
+          <textarea
+            class="so-filter-select textarea"
+            [(ngModel)]="reason"
+            name="reason"
+            rows="4"
+            placeholder="Reason for leave…"
+          ></textarea>
+        </div>
+      </section>
+
+      <p class="submit-note">Leave will be submitted to your class teacher for approval</p>
+
+      <button type="button" class="primary-btn submit-btn" [disabled]="!canApply" (click)="submit()">
+        <so-icon [name]="sendIcon"></so-icon>
+        Submit for approval
+      </button>
+    </div>
   }
 </ion-content>

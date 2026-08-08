@@ -1,106 +1,160 @@
 <app-header
   title="Homework"
   [showBack]="true"
-  [showFilter]="true"
+  [showFilter]="!isStudent"
   backHref="/tabs/home"
   searchPlaceholder="Search homework..."
 />
 
-<ion-content class="so-page hw-list-page">
+<ion-content class="so-page hw-list-page" [class.student-hw]="isStudent">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <section class="stats-grid">
-    <ion-card class="stat-box assigned">
-      <ion-card-content>
-        <span class="so-hw-icon-tile"><ion-icon name="clipboard-outline"></ion-icon></span>
-        <span class="label">Assigned</span>
-        <strong>{{ stats.totalAssigned }}</strong>
-      </ion-card-content>
-    </ion-card>
-    <ion-card class="stat-box due">
-      <ion-card-content>
-        <span class="so-hw-icon-tile orange"><ion-icon name="time-outline"></ion-icon></span>
-        <span class="label">Due today</span>
-        <strong>{{ stats.dueToday }}</strong>
-      </ion-card-content>
-    </ion-card>
-    <ion-card class="stat-box submissions">
-      <ion-card-content>
-        <span class="so-hw-icon-tile blue"><ion-icon name="checkmark-done-circle-outline"></ion-icon></span>
-        <span class="label">Submissions</span>
-        <strong>{{ stats.totalSubmissions }}</strong>
-      </ion-card-content>
-    </ion-card>
-    <ion-card class="stat-box overdue">
-      <ion-card-content>
-        <span class="so-hw-icon-tile red"><ion-icon name="alert-circle-outline"></ion-icon></span>
-        <span class="label">Overdue</span>
-        <strong>{{ stats.overdue }}</strong>
-      </ion-card-content>
-    </ion-card>
-  </section>
-
-  <div class="hw-filter-chips">
-    <span>{{ classGroupFilterLabel }}</span>
-    <span>{{ sectionFilterLabel }}</span>
-    <span>{{ subjectFilterLabel }}</span>
-    @if (chipFilter !== 'all') {
-      <span>{{ chipFilterLabel }}</span>
-    }
-  </div>
-
-  @if (loading) {
-    <div class="loading-wrap"><ion-spinner></ion-spinner></div>
-  } @else if (!items.length) {
-    <div class="so-empty">
-      <h3>No homework found</h3>
-      <p>Create homework for your class.</p>
-    </div>
-  } @else {
-    <section class="hw-cards">
-      @for (hw of items; track hw.id) {
-        <ion-card
-          class="hw-card"
-          [button]="true"
-          [class.overdue]="hw.status === 'overdue'"
-          (click)="openDetail(hw.id)"
-        >
-          <ion-card-content>
-            <div class="hw-card-top">
-              <div class="hw-copy">
-                <h2>{{ hw.title }}</h2>
-                <p class="meta">
-                  <ion-icon name="school-outline"></ion-icon>
-                  <span>{{ hw.className }} <b>•</b> {{ hw.subjectName }}</span>
-                </p>
-                <p class="meta due" [class.today]="hw.status === 'today'" [class.overdue]="hw.status === 'overdue'">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  <span>Due: {{ hw.dueDate }}</span>
-                </p>
-              </div>
-              <span
-                class="so-hw-icon-tile book-tile"
-                [class.orange]="hw.priority === 1"
-                [class.blue]="hw.priority === 2"
-              >
-                <ion-icon name="book-outline"></ion-icon>
-              </span>
-            </div>
-
-            <div class="so-hw-progress">
-              <span [style.width.%]="progressPct(hw)"></span>
-            </div>
-
-            <div class="hw-footer">
-              <span class="so-hw-status-badge" [class]="hw.status">{{ hw.status }}</span>
-              <strong>{{ hw.submitted }} / {{ hw.total }} Submitted</strong>
-            </div>
-          </ion-card-content>
-        </ion-card>
+  @if (isStudent) {
+    <main class="student-hw-body">
+      @if (studentClassLabel) {
+        <div class="class-chip">
+          <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+          {{ studentClassLabel }}
+        </div>
       }
+
+      <div class="so-toolbar-segment">
+        <so-segment
+          [options]="studentTabOptions"
+          [value]="studentTab"
+          ariaLabel="Homework filters"
+          (valueChange)="onStudentTabChange($event)"
+        />
+      </div>
+
+      @if (loading) {
+        <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+      } @else if (!studentItems.length) {
+        <div class="so-empty">
+          <h3>No homework found</h3>
+          <p>Nothing in this filter yet.</p>
+        </div>
+      } @else {
+        <section class="student-hw-cards">
+          @for (hw of studentItems; track hw.id) {
+            <button type="button" class="student-hw-card" (click)="openDetail(hw.id)">
+              <div class="subject-tag">
+                <span class="dot" aria-hidden="true"></span>
+                {{ hw.subjectName || 'Subject' }}
+              </div>
+              <div class="hw-title">{{ hw.title }}</div>
+              @if (hw.description) {
+                <div class="hw-desc">{{ hw.description }}</div>
+              }
+              <div class="hw-foot">
+                <div class="hw-due">
+                  <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                  Due {{ formatDue(hw.dueDate) }}
+                </div>
+                <span class="stamp" [attr.data-status]="hw.myStatus">{{ stampLabel(hw.myStatus) }}</span>
+              </div>
+            </button>
+          }
+        </section>
+        <ion-infinite-scroll [disabled]="!studentHasMore" (ionInfinite)="onStudentInfinite($event)">
+          <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+      }
+    </main>
+  } @else {
+    <section class="stats-grid">
+      <ion-card class="stat-box assigned">
+        <ion-card-content>
+          <span class="so-hw-icon-tile"><ion-icon name="clipboard-outline"></ion-icon></span>
+          <span class="label">Assigned</span>
+          <strong>{{ stats.totalAssigned }}</strong>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="stat-box due">
+        <ion-card-content>
+          <span class="so-hw-icon-tile orange"><ion-icon name="time-outline"></ion-icon></span>
+          <span class="label">Due today</span>
+          <strong>{{ stats.dueToday }}</strong>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="stat-box submissions">
+        <ion-card-content>
+          <span class="so-hw-icon-tile blue"><ion-icon name="checkmark-done-circle-outline"></ion-icon></span>
+          <span class="label">Submissions</span>
+          <strong>{{ stats.totalSubmissions }}</strong>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="stat-box overdue">
+        <ion-card-content>
+          <span class="so-hw-icon-tile red"><ion-icon name="alert-circle-outline"></ion-icon></span>
+          <span class="label">Overdue</span>
+          <strong>{{ stats.overdue }}</strong>
+        </ion-card-content>
+      </ion-card>
     </section>
+
+    <div class="hw-filter-chips">
+      <span>{{ classGroupFilterLabel }}</span>
+      <span>{{ sectionFilterLabel }}</span>
+      <span>{{ subjectFilterLabel }}</span>
+      @if (chipFilter !== 'all') {
+        <span>{{ chipFilterLabel }}</span>
+      }
+    </div>
+
+    @if (loading) {
+      <div class="loading-wrap"><ion-spinner></ion-spinner></div>
+    } @else if (!items.length) {
+      <div class="so-empty">
+        <h3>No homework found</h3>
+        <p>Create homework for your class.</p>
+      </div>
+    } @else {
+      <section class="hw-cards">
+        @for (hw of items; track hw.id) {
+          <ion-card
+            class="hw-card"
+            [button]="true"
+            [class.overdue]="hw.status === 'overdue'"
+            (click)="openDetail(hw.id)"
+          >
+            <ion-card-content>
+              <div class="hw-card-top">
+                <div class="hw-copy">
+                  <h2>{{ hw.title }}</h2>
+                  <p class="meta">
+                    <ion-icon name="school-outline"></ion-icon>
+                    <span>{{ hw.className }} <b>•</b> {{ hw.subjectName }}</span>
+                  </p>
+                  <p class="meta due" [class.today]="hw.status === 'today'" [class.overdue]="hw.status === 'overdue'">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>Due: {{ hw.dueDate }}</span>
+                  </p>
+                </div>
+                <span
+                  class="so-hw-icon-tile book-tile"
+                  [class.orange]="hw.priority === 1"
+                  [class.blue]="hw.priority === 2"
+                >
+                  <ion-icon name="book-outline"></ion-icon>
+                </span>
+              </div>
+
+              <div class="so-hw-progress">
+                <span [style.width.%]="progressPct(hw)"></span>
+              </div>
+
+              <div class="hw-footer">
+                <span class="so-hw-status-badge" [class]="hw.status">{{ hw.status }}</span>
+                <strong>{{ hw.submitted }} / {{ hw.total }} Submitted</strong>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </section>
+    }
   }
 </ion-content>
 
@@ -112,59 +166,61 @@
   </ion-fab>
 }
 
-<so-filter-popover
-  [isOpen]="filterOpen"
-  [initialBreakpoint]="0.78"
-  (closed)="filterOpen = false"
-  (cleared)="clearFilters()"
-  (applied)="applyFilters()"
->
-  <div class="filter-field">
-    <label>Class group</label>
-    <so-select
-      [options]="classGroupOptions"
-      placeholder="All class groups"
-      ariaLabel="Class group"
-      [(ngModel)]="classGroupFilter"
-      (valueChange)="onClassGroupChange($event)"
-    />
-  </div>
-
-  <div class="filter-field">
-    <label>Sections</label>
-    <so-multi-chips
-      [options]="sectionOptions"
-      [(ngModel)]="sectionFilterIds"
-      [disabled]="!classGroupFilter"
-      allLabel="All"
-      emptyHint="Select a class group first"
-    />
-  </div>
-
-  <div class="filter-field">
-    <label>Subjects</label>
-    <so-multi-chips
-      [options]="subjectOptions"
-      [(ngModel)]="subjectFilterIds"
-      [disabled]="!classGroupFilter"
-      allLabel="All"
-      emptyHint="Select a class group first"
-    />
-  </div>
-
-  <div class="filter-field">
-    <label>Status</label>
-    <div class="filter-chip-group">
-      @for (chip of chipOptions; track chip.value) {
-        <button
-          type="button"
-          class="filter-chip-option"
-          [class.active]="chipFilter === chip.value"
-          (click)="chipFilter = chip.value"
-        >
-          {{ chip.label }}
-        </button>
-      }
+@if (!isStudent) {
+  <so-filter-popover
+    [isOpen]="filterOpen"
+    [initialBreakpoint]="0.78"
+    (closed)="filterOpen = false"
+    (cleared)="clearFilters()"
+    (applied)="applyFilters()"
+  >
+    <div class="filter-field">
+      <label>Class group</label>
+      <so-select
+        [options]="classGroupOptions"
+        placeholder="All class groups"
+        ariaLabel="Class group"
+        [(ngModel)]="classGroupFilter"
+        (valueChange)="onClassGroupChange($event)"
+      />
     </div>
-  </div>
-</so-filter-popover>
+
+    <div class="filter-field">
+      <label>Sections</label>
+      <so-multi-chips
+        [options]="sectionOptions"
+        [(ngModel)]="sectionFilterIds"
+        [disabled]="!classGroupFilter"
+        allLabel="All"
+        emptyHint="Select a class group first"
+      />
+    </div>
+
+    <div class="filter-field">
+      <label>Subjects</label>
+      <so-multi-chips
+        [options]="subjectOptions"
+        [(ngModel)]="subjectFilterIds"
+        [disabled]="!classGroupFilter"
+        allLabel="All"
+        emptyHint="Select a class group first"
+      />
+    </div>
+
+    <div class="filter-field">
+      <label>Status</label>
+      <div class="filter-chip-group">
+        @for (chip of chipOptions; track chip.value) {
+          <button
+            type="button"
+            class="filter-chip-option"
+            [class.active]="chipFilter === chip.value"
+            (click)="chipFilter = chip.value"
+          >
+            {{ chip.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </so-filter-popover>
+}

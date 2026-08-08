@@ -27,8 +27,9 @@ import { AcademicYearContextService } from '../../core/services/academic-year-co
 import { PermissionService } from '../../core/services/permission.service';
 import { StaffAttendanceService } from '../../core/services/staff-attendance.service';
 import { ToastService } from '../../core/services/toast.service';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 import { formatDisplayDate, localDateString } from '../../core/utils/api-mapper.util';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { SoToastTone } from '../../shared/icons/so-icons';
 
 @Component({
@@ -304,15 +305,9 @@ export class StaffAttendancePage implements OnInit {
   }
 
   private errorMessage(err: unknown, fallback: string): string {
-    const e = err as { error?: unknown; status?: number };
+    const e = err as { status?: number };
     if (e?.status === 403) return 'No permission to punch';
-    if (typeof e?.error === 'string' && e.error.trim()) return e.error;
-    if (e?.error && typeof e.error === 'object') {
-      const o = e.error as Record<string, unknown>;
-      const msg = o['message'] ?? o['Message'] ?? o['title'] ?? o['Title'];
-      if (typeof msg === 'string' && msg.trim()) return msg;
-    }
-    return fallback;
+    return getUserFacingApiError(err, fallback);
   }
 
   private showToast(message: string, color?: string): void {

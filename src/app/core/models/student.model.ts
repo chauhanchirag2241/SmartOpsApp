@@ -25,3 +25,12 @@ export interface PagedStudentsResult {
   pageSize: number;
   totalPages: number;
 }
+
+/** Logged-in student home header (class + roll). */
+export interface MyStudentPortalSummary {
+  studentId: string;
+  studentName: string;
+  className?: string | null;
+  section?: string | null;
+  rollNumber?: string | null;
+}

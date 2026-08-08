@@ -18,7 +18,6 @@ import {
   chevronBackOutline,
   chevronForwardOutline,
   closeOutline,
-  airplaneOutline,
   informationCircleOutline,
   peopleOutline,
   personOutline,
@@ -33,6 +32,7 @@ import {
 } from '../../core/services/academic-calendar.service';
 import { BranchContextService } from '../../core/services/branch-context.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { formatDisplayDate } from '../../core/utils/api-mapper.util';
 import { SoToastTone } from '../../shared/icons/so-icons';
@@ -43,7 +43,6 @@ export type DayTone =
   | 'exam'
   | 'weekend'
   | 'present'
-  | 'leave'
   | 'late'
   | 'halfday'
   | 'absent'
@@ -97,12 +96,29 @@ export class CalendarPage implements OnInit {
   dayPickerOpen = false;
   dayPickerLabel = '';
   dayPickerItems: MyCalendarItem[] = [];
+  /** When opening detail from the day list, restore this picker after detail closes. */
+  private dayPickerSnapshot: { label: string; items: MyCalendarItem[] } | null = null;
+  private openingDetailFromPicker = false;
+
+  /** Empty = All types visible. Multi-select kinds when filtering. */
+  selectedKinds = new Set<string>();
+
+  readonly legendFilters: { kind: string; label: string }[] = [
+    { kind: 'all', label: 'All' },
+    { kind: 'present', label: 'Present' },
+    { kind: 'absent', label: 'Absent' },
+    { kind: 'late', label: 'Late' },
+    { kind: 'halfday', label: 'Half Day' },
+    { kind: 'holiday', label: 'Holiday' },
+    { kind: 'weekend', label: 'Weekend' },
+    { kind: 'exam', label: 'Exam' },
+    { kind: 'event', label: 'Event' },
+  ];
 
   readonly weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   constructor() {
     addIcons({
-      airplaneOutline,
       bookOutline,
       businessOutline,
       calendarOutline,
@@ -136,7 +152,35 @@ export class CalendarPage implements OnInit {
   }
 
   get itemsEmpty(): boolean {
-    return this.items.length === 0;
+    return this.visibleItems.length === 0;
+  }
+
+  get allFiltersSelected(): boolean {
+    return this.selectedKinds.size === 0;
+  }
+
+  /** Items after legend multi-select filter (empty selection = all). */
+  private get visibleItems(): MyCalendarItem[] {
+    if (this.selectedKinds.size === 0) return this.items;
+    return this.items.filter((i) => this.selectedKinds.has(this.normalizeKind(i.kind)));
+  }
+
+  isFilterActive(kind: string): boolean {
+    if (kind === 'all') return this.allFiltersSelected;
+    return this.selectedKinds.has(kind);
+  }
+
+  toggleFilter(kind: string): void {
+    if (kind === 'all') {
+      this.selectedKinds = new Set();
+    } else if (this.selectedKinds.has(kind)) {
+      this.selectedKinds.delete(kind);
+      this.selectedKinds = new Set(this.selectedKinds);
+    } else {
+      this.selectedKinds = new Set([...this.selectedKinds, kind]);
+    }
+    this.rebuildCalendarCells();
+    this.cdr.markForCheck();
   }
 
   ngOnInit(): void {
@@ -205,17 +249,43 @@ export class CalendarPage implements OnInit {
   closeDayPicker(): void {
     this.dayPickerOpen = false;
     this.dayPickerItems = [];
+    this.dayPickerSnapshot = null;
+    this.openingDetailFromPicker = false;
+    this.cdr.markForCheck();
+  }
+
+  /** ion-modal didDismiss — avoid wiping snapshot when we temporarily hide picker for detail. */
+  onDayPickerDismissed(): void {
+    this.dayPickerOpen = false;
+    if (this.openingDetailFromPicker || this.detailOpen) {
+      this.openingDetailFromPicker = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.dayPickerItems = [];
+    this.dayPickerSnapshot = null;
     this.cdr.markForCheck();
   }
 
   selectDayPickerItem(item: MyCalendarItem): void {
-    this.closeDayPicker();
+    this.dayPickerSnapshot = {
+      label: this.dayPickerLabel,
+      items: this.dayPickerItems.slice(),
+    };
+    this.openingDetailFromPicker = true;
+    this.dayPickerOpen = false;
     this.openItemDetail(item);
+    this.cdr.markForCheck();
   }
 
   closeDetail(): void {
     this.detailOpen = false;
     this.detailRows = [];
+    if (this.dayPickerSnapshot) {
+      this.dayPickerLabel = this.dayPickerSnapshot.label;
+      this.dayPickerItems = this.dayPickerSnapshot.items;
+      this.dayPickerOpen = true;
+    }
     this.cdr.markForCheck();
   }
 
@@ -229,8 +299,6 @@ export class CalendarPage implements OnInit {
         return 'school-outline';
       case 'present':
         return 'checkmark-circle-outline';
-      case 'leave':
-        return 'airplane-outline';
       case 'late':
       case 'halfday':
         return 'time-outline';
@@ -253,7 +321,7 @@ export class CalendarPage implements OnInit {
       if (item.subjectName?.trim()) {
         rows.push({ icon: 'book-outline', label: 'Subject', value: item.subjectName.trim() });
       }
-    } else if (kind === 'present' || kind === 'leave' || kind === 'late' || kind === 'halfday' || kind === 'absent') {
+    } else if (kind === 'present' || kind === 'late' || kind === 'halfday' || kind === 'absent') {
       rows.push({
         icon: this.kindIcon(kind),
         label: 'Status',
@@ -329,7 +397,7 @@ export class CalendarPage implements OnInit {
   private detailTitleFor(item: MyCalendarItem, kind: string): string {
     if (kind === 'exam') return (item.examName || item.title || 'Exam').trim();
     if (kind === 'weekend') return 'Weekend / Day off';
-    if (kind === 'present' || kind === 'leave' || kind === 'late' || kind === 'halfday' || kind === 'absent') {
+    if (kind === 'present' || kind === 'late' || kind === 'halfday' || kind === 'absent') {
       return item.statusLabel || item.title || this.kindLabel(kind, item);
     }
     return (item.title || this.kindLabel(kind, item)).trim();
@@ -345,8 +413,6 @@ export class CalendarPage implements OnInit {
         return 'Weekend';
       case 'present':
         return 'Present';
-      case 'leave':
-        return 'Leave';
       case 'late':
         return 'Late';
       case 'halfday':
@@ -369,11 +435,7 @@ export class CalendarPage implements OnInit {
           const branchId = this.branchContext.activeBranchId();
           return this.calendarApi.getMyMonth(this.viewYear, this.viewMonth, branchId).pipe(
             catchError((err) => {
-              const msg =
-                typeof err?.error === 'string'
-                  ? err.error
-                  : err?.error?.message || err?.message || 'Failed to load calendar';
-              void this.showToast(msg);
+              void this.showToast(getUserFacingApiError(err, 'Failed to load calendar'));
               return of(null as MyCalendarMonth | null);
             }),
           );
@@ -404,11 +466,20 @@ export class CalendarPage implements OnInit {
     const raw = (r['items'] ?? r['Items'] ?? []) as Array<MyCalendarItem | Record<string, unknown>>;
     return (raw ?? []).map((row) => {
       const x = row as Record<string, unknown>;
+      const kindRaw = String(x['kind'] ?? x['Kind'] ?? 'event').toLowerCase();
+      // Legacy "leave" kind is shown as Absent (approved leave = attendance absent).
+      const kind = kindRaw === 'leave' ? 'absent' : kindRaw;
+      let description = (x['description'] ?? x['Description']) as string | null;
+      let statusLabel = (x['statusLabel'] ?? x['StatusLabel']) as string | null;
+      if (kindRaw === 'leave') {
+        statusLabel = 'Absent';
+        description = description?.trim() || 'On approved leave.';
+      }
       return {
-        kind: String(x['kind'] ?? x['Kind'] ?? 'event').toLowerCase(),
+        kind,
         id: String(x['id'] ?? x['Id'] ?? ''),
         title: String(x['title'] ?? x['Title'] ?? ''),
-        description: (x['description'] ?? x['Description']) as string | null,
+        description,
         startDate: String(x['startDate'] ?? x['StartDate'] ?? ''),
         endDate: String(x['endDate'] ?? x['EndDate'] ?? ''),
         color: (x['color'] ?? x['Color']) as string | null,
@@ -421,7 +492,7 @@ export class CalendarPage implements OnInit {
         roomNo: (x['roomNo'] ?? x['RoomNo']) as string | null,
         invigilatorName: (x['invigilatorName'] ?? x['InvigilatorName']) as string | null,
         examName: (x['examName'] ?? x['ExamName']) as string | null,
-        statusLabel: (x['statusLabel'] ?? x['StatusLabel']) as string | null,
+        statusLabel,
       };
     });
   }
@@ -458,7 +529,7 @@ export class CalendarPage implements OnInit {
     const map = new Map<number, MyCalendarItem[]>();
     for (let d = 1; d <= daysInMonth; d++) map.set(d, []);
 
-    for (const item of this.items) {
+    for (const item of this.visibleItems) {
       const start = this.parseDateOnly(item.startDate);
       const end = this.parseDateOnly(item.endDate) ?? start;
       if (!start || !end) continue;
@@ -475,9 +546,8 @@ export class CalendarPage implements OnInit {
   private toneForItems(items: MyCalendarItem[]): DayTone {
     if (items.length === 0) return 'empty';
     const kinds = new Set(items.map((i) => this.normalizeKind(i.kind)));
-    // Prefer attendance / leave over calendar noise when coloring the day cell.
+    // Prefer attendance over calendar noise when coloring the day cell.
     const priority: DayTone[] = [
-      'leave',
       'late',
       'halfday',
       'present',
@@ -506,7 +576,7 @@ export class CalendarPage implements OnInit {
     if (k === 'exam') return 'exam';
     if (k === 'weekend') return 'weekend';
     if (k === 'present') return 'present';
-    if (k === 'leave') return 'leave';
+    if (k === 'leave') return 'absent';
     if (k === 'late') return 'late';
     if (k === 'halfday' || k === 'half-day' || k === 'half_day') return 'halfday';
     if (k === 'absent') return 'absent';

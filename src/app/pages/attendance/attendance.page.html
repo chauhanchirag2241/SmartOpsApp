@@ -92,9 +92,10 @@
             [class.present]="isStatusActive(s.id, 'present')"
             [class.absent]="isStatusActive(s.id, 'absent')"
             [class.late]="isStatusActive(s.id, 'late')"
-            [class.read-only]="!canEdit"
+            [class.read-only]="!canEdit || isLeaveLocked(s.id)"
+            [class.leave-locked]="isLeaveLocked(s.id)"
             role="button"
-            [attr.tabindex]="canEdit ? 0 : -1"
+            [attr.tabindex]="canEdit && !isLeaveLocked(s.id) ? 0 : -1"
             [attr.aria-label]="'Cycle attendance for ' + s.name"
             (click)="cycleStatus(s.id)"
             (keydown.enter)="cycleStatus(s.id)"
@@ -105,42 +106,47 @@
               <div class="student-copy">
                 <h3>{{ s.name }}</h3>
                 <p>Roll No: {{ s.roll || '—' }}</p>
+                @if (isLeaveLocked(s.id) && notes[s.id]) {
+                  <p class="leave-note">{{ notes[s.id] }}</p>
+                }
               </div>
             </div>
             <div class="student-actions">
-              <div class="status-toggle" [class.read-only]="!canEdit">
+              <div class="status-toggle" [class.read-only]="!canEdit || isLeaveLocked(s.id)">
                 <button
                   type="button"
                   class="st-btn p"
                   [class.active]="isStatusActive(s.id, 'present')"
-                  [disabled]="!canEdit"
+                  [disabled]="!canEdit || isLeaveLocked(s.id)"
                   (click)="onStatusClick($event, s.id, 'present')"
                 >P</button>
                 <button
                   type="button"
                   class="st-btn a"
                   [class.active]="isStatusActive(s.id, 'absent')"
-                  [disabled]="!canEdit"
+                  [disabled]="!canEdit || isLeaveLocked(s.id)"
                   (click)="onStatusClick($event, s.id, 'absent')"
                 >A</button>
                 <button
                   type="button"
                   class="st-btn l"
                   [class.active]="isStatusActive(s.id, 'late')"
-                  [disabled]="!canEdit"
+                  [disabled]="!canEdit || isLeaveLocked(s.id)"
                   (click)="onStatusClick($event, s.id, 'late')"
                 >L</button>
               </div>
-              <button
-                type="button"
-                class="remark-btn"
-                [class.has-note]="!!notes[s.id]"
-                [disabled]="!canEdit"
-                (click)="openRemarks(s.id, $event)"
-                aria-label="Add remark"
-              >
-                <ion-icon name="document-text-outline"></ion-icon>
-              </button>
+              @if (!isLeaveLocked(s.id)) {
+                <button
+                  type="button"
+                  class="remark-btn"
+                  [class.has-note]="!!notes[s.id]"
+                  [disabled]="!canEdit"
+                  (click)="openRemarks(s.id, $event)"
+                  aria-label="Add remark"
+                >
+                  <ion-icon name="document-text-outline"></ion-icon>
+                </button>
+              }
             </div>
           </article>
         }

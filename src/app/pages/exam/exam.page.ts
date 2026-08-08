@@ -13,7 +13,9 @@ import {
 import { addIcons } from 'ionicons';
 import {
   addOutline,
+  calendarOutline,
   checkmarkCircleOutline,
+  chevronForwardOutline,
   createOutline,
   documentTextOutline,
   trashOutline,
@@ -39,6 +41,7 @@ import { ClassDropdownItem, ClassService } from '../../core/services/class.servi
 import { ExamService } from '../../core/services/exam.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { SoDateInputComponent } from '../../shared/components/so-date-input/so-date-input.component';
 import { SoFilterPopoverComponent } from '../../shared/components/so-filter-popover/so-filter-popover.component';
@@ -59,6 +62,27 @@ interface ScheduleSlotDraft {
   startTime: string;
   endTime: string;
   roomNo: string;
+}
+
+interface ScheduleClassBucket {
+  classId: string;
+  className: string;
+  slots: ExamScheduleItem[];
+}
+
+interface ScheduleExamCard {
+  examId: string;
+  name: string;
+  groupName: string;
+  examType: string;
+  statusLabel: string;
+  expanded: boolean;
+  activeClassId: string;
+  classes: ScheduleClassBucket[];
+  dateRangeLabel: string;
+  classCount: number;
+  slotCount: number;
+  exam: ExamListItem;
 }
 
 @Component({
@@ -98,8 +122,10 @@ export class ExamPage implements OnInit, OnDestroy {
   ];
 
   activeTab: 'exams' | 'schedule' = 'exams';
-  /** list | form */
+  /** Exams create/edit form */
   examsMode: 'list' | 'form' = 'list';
+  /** Schedule list (cards) vs schedule create form */
+  scheduleMode: 'list' | 'form' = 'list';
   formMode: 'create' | 'edit' = 'create';
   editingId: string | null = null;
   filterOpen = false;
@@ -134,13 +160,22 @@ export class ExamPage implements OnInit, OnDestroy {
   formClassOptions: SoSelectOption[] = [];
   componentRows: ComponentRowDraft[] = [];
 
-  // Schedule
+  // Schedule list (Document/exams-mobile-cards-v2.html)
+  scheduleCards: ScheduleExamCard[] = [];
+  allSchedules: ExamScheduleItem[] = [];
+  expandedSubjectIds = new Set<string>();
+  /** Exam tab collapse — view-only detail cache */
+  expandedExamIds = new Set<string>();
+  examDetailById = new Map<string, ExamDetail>();
+  examDetailLoadingIds = new Set<string>();
+
+  // Schedule form
   scheduleExamId = '';
+  scheduleExamName = '';
   scheduleClassIds: string[] = [];
   scheduleClassOptions: SoSelectOption[] = [];
   scheduleSubjectOptions: SoSelectOption[] = [];
   scheduleSlots: ScheduleSlotDraft[] = [];
-  existingSchedules: ExamScheduleItem[] = [];
   scheduleLoading = false;
   scheduleSaving = false;
   scheduleError = '';
@@ -162,7 +197,9 @@ export class ExamPage implements OnInit, OnDestroy {
   constructor() {
     addIcons({
       addOutline,
+      calendarOutline,
       checkmarkCircleOutline,
+      chevronForwardOutline,
       createOutline,
       documentTextOutline,
       trashOutline,
@@ -174,7 +211,7 @@ export class ExamPage implements OnInit, OnDestroy {
     this.loadExams();
     this.subs.add(
       this.header.filterClick$.subscribe(() => {
-        if (this.examsMode !== 'list' || this.activeTab !== 'exams') return;
+        if (!this.showListFilter) return;
         this.openFilterSheet();
       }),
     );
@@ -185,21 +222,38 @@ export class ExamPage implements OnInit, OnDestroy {
   }
 
   get headerTitle(): string {
+    if (this.activeTab === 'schedule' && this.scheduleMode === 'form') {
+      return 'Schedule exam';
+    }
     if (this.examsMode === 'form') {
       return this.formMode === 'edit' ? 'Edit exam' : 'Create exam';
     }
     return 'Exam';
   }
 
+  get showSegment(): boolean {
+    return (
+      (this.activeTab === 'exams' && this.examsMode === 'list') ||
+      (this.activeTab === 'schedule' && this.scheduleMode === 'list')
+    );
+  }
+
   get showListFilter(): boolean {
-    return this.examsMode === 'list' && this.activeTab === 'exams';
+    return (
+      (this.activeTab === 'exams' && this.examsMode === 'list') ||
+      (this.activeTab === 'schedule' && this.scheduleMode === 'list')
+    );
+  }
+
+  get isAnyFormOpen(): boolean {
+    return this.examsMode === 'form' || this.scheduleMode === 'form';
   }
 
   /** Homework-style FAB — show whenever user can open Exams (check Add on tap). */
   get showCreateFab(): boolean {
     return (
-      this.examsMode === 'list' &&
       this.activeTab === 'exams' &&
+      this.examsMode === 'list' &&
       !this.showingDeleted &&
       !this.ayContext.isReadOnlyScope() &&
       this.permissions.canView(MenuCodes.Exams)
@@ -312,12 +366,11 @@ export class ExamPage implements OnInit, OnDestroy {
 
   onTabChange(value: string): void {
     this.activeTab = value === 'schedule' ? 'schedule' : 'exams';
+    this.scheduleMode = 'list';
+    this.examsMode = 'list';
     if (this.activeTab === 'schedule') {
-      this.ensureActiveExamsForSchedule();
-      if (this.scheduleExamId) {
-        this.onScheduleExamChange();
-      }
-    } else if (this.examsMode === 'list') {
+      this.loadScheduleBoard();
+    } else {
       this.loadExams();
     }
   }
@@ -326,11 +379,7 @@ export class ExamPage implements OnInit, OnDestroy {
     const done = () => (event.target as HTMLIonRefresherElement).complete();
     if (this.activeTab === 'schedule') {
       this.loadLookups();
-      if (this.scheduleExamId) {
-        this.loadExistingSchedules(done);
-      } else {
-        done();
-      }
+      this.loadScheduleBoard(done);
       return;
     }
     this.loadLookups();
@@ -362,7 +411,11 @@ export class ExamPage implements OnInit, OnDestroy {
     this.filterStatus = this.draftFilterStatus;
     this.filterActive = this.draftFilterActive;
     this.filterOpen = false;
-    this.loadExams();
+    if (this.activeTab === 'schedule') {
+      this.loadScheduleBoard();
+    } else {
+      this.loadExams();
+    }
   }
 
   openCreate(): void {
@@ -380,14 +433,42 @@ export class ExamPage implements OnInit, OnDestroy {
     this.formGroupId = this.filterGroupId || this.groups[0]?.id || '';
     this.refreshFormClassOptions(true);
     this.activeTab = 'exams';
+    this.scheduleMode = 'list';
     this.examsMode = 'form';
   }
 
-  onCardClick(exam: ExamListItem): void {
-    if (this.showingDeleted || exam.isActive === false || !this.canEdit) {
+  toggleExamExpand(exam: ExamListItem, event?: Event): void {
+    event?.stopPropagation();
+    const next = new Set(this.expandedExamIds);
+    if (next.has(exam.id)) {
+      next.delete(exam.id);
+      this.expandedExamIds = next;
       return;
     }
-    this.openEdit(exam);
+    next.add(exam.id);
+    this.expandedExamIds = next;
+    this.ensureExamDetailLoaded(exam.id);
+  }
+
+  isExamExpanded(examId: string): boolean {
+    return this.expandedExamIds.has(examId);
+  }
+
+  isExamDetailLoading(examId: string): boolean {
+    return this.examDetailLoadingIds.has(examId);
+  }
+
+  examDetail(examId: string): ExamDetail | undefined {
+    return this.examDetailById.get(examId);
+  }
+
+  gradeScaleName(gradeScaleId?: string | null): string {
+    if (!gradeScaleId) return '—';
+    return this.gradeScales.find((g) => g.id === gradeScaleId)?.name || '—';
+  }
+
+  componentTotal(detail: ExamDetail): number {
+    return (detail.components ?? []).reduce((sum, c) => sum + (c.maxMarks || 0), 0);
   }
 
   openEdit(exam: ExamListItem, event?: Event): void {
@@ -412,7 +493,7 @@ export class ExamPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        void this.toast.error(typeof err?.error === 'string' ? err.error : 'Failed to load exam');
+        void this.toast.error(getUserFacingApiError(err, 'Failed to load exam'));
       },
     });
   }
@@ -442,7 +523,7 @@ export class ExamPage implements OnInit, OnDestroy {
               },
               error: (err) => {
                 void this.toast.error(
-                  typeof err?.error === 'string' ? err.error : 'Delete failed',
+                  getUserFacingApiError(err, 'Delete failed'),
                 );
               },
             });
@@ -512,38 +593,126 @@ export class ExamPage implements OnInit, OnDestroy {
         this.filterActive = 'active';
         this.upsertExamFromDetail(detail);
         if (this.formMode === 'create') {
-          this.scheduleExamId = detail.id;
-          this.activeTab = 'schedule';
-          this.onScheduleExamChange();
+          this.openScheduleForm(detail.id, detail.name);
         } else {
           this.loadExams();
         }
       },
       error: (err) => {
         this.saving = false;
-        this.formError = typeof err?.error === 'string' ? err.error : 'Failed to save exam';
+        this.formError = getUserFacingApiError(err, 'Failed to save exam');
       },
     });
   }
 
   // ── Schedule ───────────────────────────────────────────────
 
-  onScheduleExamChange(): void {
+  toggleScheduleCard(card: ScheduleExamCard, event?: Event): void {
+    event?.stopPropagation();
+    card.expanded = !card.expanded;
+  }
+
+  setScheduleClassTab(card: ScheduleExamCard, classId: string, event?: Event): void {
+    event?.stopPropagation();
+    card.activeClassId = classId;
+    this.expandedSubjectIds = new Set();
+  }
+
+  toggleSubjectDetail(slotId: string, event?: Event): void {
+    event?.stopPropagation();
+    const next = new Set(this.expandedSubjectIds);
+    if (next.has(slotId)) {
+      next.delete(slotId);
+    } else {
+      next.add(slotId);
+    }
+    this.expandedSubjectIds = next;
+  }
+
+  isSubjectExpanded(slotId: string): boolean {
+    return this.expandedSubjectIds.has(slotId);
+  }
+
+  activeClassSlots(card: ScheduleExamCard): ExamScheduleItem[] {
+    return card.classes.find((c) => c.classId === card.activeClassId)?.slots ?? [];
+  }
+
+  slotStatusKey(slot: ExamScheduleItem): string {
+    const raw = String(slot.status || this.deriveSlotStatus(slot)).toLowerCase();
+    if (raw.includes('complet')) return 'completed';
+    if (raw.includes('ongo') || raw.includes('today')) return 'ongoing';
+    return 'upcoming';
+  }
+
+  slotStatusLabel(slot: ExamScheduleItem): string {
+    const key = this.slotStatusKey(slot);
+    return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+
+  timeRange(slot: ExamScheduleItem): string {
+    if (!slot.startTime && !slot.endTime) return '—';
+    return `${slot.startTime || '?'} – ${slot.endTime || '?'}`;
+  }
+
+  openScheduleFormFromCard(card: ScheduleExamCard, event: Event): void {
+    event.stopPropagation();
+    this.openScheduleForm(card.examId, card.name);
+  }
+
+  openScheduleForm(examId: string, examName?: string): void {
+    if (!this.canSchedule) {
+      void this.toast.error('You do not have permission to schedule exams.');
+      return;
+    }
+    if (this.ayContext.isReadOnlyScope()) {
+      void this.toast.error('Current academic year is read-only.');
+      return;
+    }
+
+    this.activeTab = 'schedule';
+    this.scheduleMode = 'form';
+    this.scheduleError = '';
+    this.scheduleExamId = examId;
+    this.scheduleExamName = examName || this.exams.find((e) => e.id === examId)?.name || '';
+    this.scheduleSlots = [this.emptySlot()];
+
+    const ensureExam = () => {
+      const exam = this.exams.find((e) => e.id === examId);
+      if (!exam) {
+        this.examService.getExam(examId).subscribe({
+          next: (detail) => {
+            this.upsertExamFromDetail(detail);
+            this.setupScheduleFormClasses(examId);
+          },
+          error: () => {
+            this.scheduleError = 'Failed to load exam for scheduling.';
+          },
+        });
+        return;
+      }
+      this.setupScheduleFormClasses(examId);
+    };
+
+    if (this.showingDeleted) {
+      this.examService.getExams({ inactiveOnly: false }).subscribe({
+        next: (rows) => {
+          this.exams = (rows ?? []).map((r) =>
+            this.normalizeExamListItem({ ...r, isActive: true }),
+          );
+          ensureExam();
+        },
+        error: () => ensureExam(),
+      });
+    } else {
+      ensureExam();
+    }
+  }
+
+  closeScheduleForm(): void {
+    this.scheduleMode = 'list';
     this.scheduleError = '';
     this.scheduleSlots = [this.emptySlot()];
-    const exam = this.exams.find((e) => e.id === this.scheduleExamId);
-    const classes = this.normalizeExamClasses(exam?.classes);
-    this.scheduleClassOptions = classes.map((c) => ({
-      label: c.className || c.classId,
-      value: c.classId,
-    }));
-    const valid = new Set(this.scheduleClassOptions.map((o) => o.value));
-    this.scheduleClassIds = this.scheduleClassIds.filter((id) => valid.has(id));
-    if (!this.scheduleClassIds.length && this.scheduleClassOptions.length === 1) {
-      this.scheduleClassIds = [this.scheduleClassOptions[0].value];
-    }
-    this.loadSubjectsForSchedule();
-    this.loadExistingSchedules();
+    this.loadScheduleBoard();
   }
 
   onScheduleClassesChange(): void {
@@ -575,9 +744,7 @@ export class ExamPage implements OnInit, OnDestroy {
       return;
     }
 
-    const validRows = this.scheduleSlots.filter(
-      (s) => s.subjectId && s.examDate,
-    );
+    const validRows = this.scheduleSlots.filter((s) => s.subjectId && s.examDate);
     if (!validRows.length) {
       this.scheduleError = 'Add at least one slot with subject and date.';
       return;
@@ -608,19 +775,55 @@ export class ExamPage implements OnInit, OnDestroy {
 
     this.scheduleSaving = true;
     this.scheduleError = '';
+    // Shared with SmartOpsUI — used by web and mobile. POST /api/exam-schedules/bulk
     this.examService.bulkCreateSchedules({ examId: this.scheduleExamId, slots }).subscribe({
       next: (result) => {
         this.scheduleSaving = false;
         void this.toast.success(`Created ${result.createdCount} schedule slot(s)`);
+        this.scheduleMode = 'list';
         this.scheduleSlots = [this.emptySlot()];
-        this.loadExistingSchedules();
+        this.loadScheduleBoard();
       },
       error: (err) => {
         this.scheduleSaving = false;
         this.scheduleError =
-          typeof err?.error === 'string' ? err.error : 'Failed to create schedule';
+          getUserFacingApiError(err, 'Failed to create schedule');
       },
     });
+  }
+
+  async confirmDeleteSlot(slot: ExamScheduleItem, event: Event): Promise<void> {
+    event.stopPropagation();
+    if (!this.permissions.canDelete(MenuCodes.ExamSchedule) && !this.canSchedule) {
+      void this.toast.error('You do not have permission to delete schedule slots.');
+      return;
+    }
+    const a = await this.alert.create({
+      header: 'Delete schedule slot',
+      message: `Delete ${slot.subjectName} on ${slot.examDate}?`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            // Shared with SmartOpsUI — used by web and mobile. DELETE /api/exam-schedules/{id}
+            this.examService.deleteSchedule(slot.id).subscribe({
+              next: () => {
+                void this.toast.success('Schedule slot deleted');
+                this.loadScheduleBoard();
+              },
+              error: (err) => {
+                void this.toast.error(
+                  getUserFacingApiError(err, 'Delete failed'),
+                );
+              },
+            });
+          },
+        },
+      ],
+    });
+    await a.present();
   }
 
   classesLabel(exam: ExamListItem): string {
@@ -630,6 +833,187 @@ export class ExamPage implements OnInit, OnDestroy {
 
   // ── Private ────────────────────────────────────────────────
 
+  private ensureExamDetailLoaded(examId: string): void {
+    if (this.examDetailById.has(examId) || this.examDetailLoadingIds.has(examId)) {
+      return;
+    }
+    const loading = new Set(this.examDetailLoadingIds);
+    loading.add(examId);
+    this.examDetailLoadingIds = loading;
+
+    // Shared with SmartOpsUI — used by web and mobile. GET /api/exams/{id}
+    this.examService.getExam(examId).subscribe({
+      next: (detail) => {
+        this.examDetailById.set(examId, detail);
+        const done = new Set(this.examDetailLoadingIds);
+        done.delete(examId);
+        this.examDetailLoadingIds = done;
+        // Trigger CD for Map mutation via reassignment.
+        this.examDetailById = new Map(this.examDetailById);
+      },
+      error: () => {
+        const done = new Set(this.examDetailLoadingIds);
+        done.delete(examId);
+        this.examDetailLoadingIds = done;
+        void this.toast.error('Failed to load exam details');
+      },
+    });
+  }
+
+  private setupScheduleFormClasses(examId: string): void {
+    const exam = this.exams.find((e) => e.id === examId);
+    this.scheduleExamName = exam?.name || this.scheduleExamName;
+    const classes = this.normalizeExamClasses(exam?.classes);
+    this.scheduleClassOptions = classes.map((c) => ({
+      label: c.className || c.classId,
+      value: c.classId,
+    }));
+    this.scheduleClassIds = this.scheduleClassOptions.map((o) => o.value);
+    this.loadSubjectsForSchedule();
+  }
+
+  private loadScheduleBoard(done?: () => void): void {
+    this.scheduleLoading = true;
+    // Shared with SmartOpsUI — used by web and mobile.
+    forkJoin({
+      exams: this.examService
+        .getExams({
+          groupId: this.filterGroupId || undefined,
+          classId: this.filterClassId || undefined,
+          inactiveOnly: false,
+        })
+        .pipe(catchError(() => of([] as ExamListItem[]))),
+      schedules: this.examService
+        .getSchedules()
+        .pipe(catchError(() => of([] as ExamScheduleItem[]))),
+    }).subscribe({
+      next: ({ exams, schedules }) => {
+        const normalized = (exams ?? []).map((r) =>
+          this.normalizeExamListItem({ ...r, isActive: true }),
+        );
+        // Keep create/edit list in sync when coming from schedule filters.
+        if (!this.showingDeleted) {
+          this.exams = normalized;
+        }
+        this.allSchedules = schedules ?? [];
+        this.scheduleCards = this.buildScheduleCards(normalized, this.allSchedules);
+        this.scheduleLoading = false;
+        done?.();
+      },
+      error: () => {
+        this.scheduleCards = [];
+        this.scheduleLoading = false;
+        void this.toast.error('Failed to load schedules');
+        done?.();
+      },
+    });
+  }
+
+  private buildScheduleCards(
+    exams: ExamListItem[],
+    schedules: ExamScheduleItem[],
+  ): ScheduleExamCard[] {
+    const prev = new Map(this.scheduleCards.map((c) => [c.examId, c]));
+    let list = exams.filter((e) => e.isActive !== false);
+
+    if (this.filterGroupId) {
+      list = list.filter((e) => e.examGroupId === this.filterGroupId);
+    }
+    if (this.filterClassId) {
+      list = list.filter((e) =>
+        (e.classes ?? []).some((c) => c.classId === this.filterClassId),
+      );
+    }
+
+    const byExam = new Map<string, ExamScheduleItem[]>();
+    for (const s of schedules) {
+      const eid = String(s.examId || '');
+      if (!eid) continue;
+      const arr = byExam.get(eid) ?? [];
+      arr.push(s);
+      byExam.set(eid, arr);
+    }
+
+    return list.map((exam) => {
+      const slots = byExam.get(exam.id) ?? [];
+      const classMap = new Map<string, ScheduleClassBucket>();
+      for (const c of this.normalizeExamClasses(exam.classes)) {
+        if (!c.classId) continue;
+        classMap.set(c.classId, {
+          classId: c.classId,
+          className: c.className || c.classId,
+          slots: [],
+        });
+      }
+      for (const s of slots) {
+        const cid = String(s.classId || '');
+        if (!cid) continue;
+        if (!classMap.has(cid)) {
+          classMap.set(cid, {
+            classId: cid,
+            className: s.className || cid,
+            slots: [],
+          });
+        }
+        classMap.get(cid)!.slots.push(s);
+      }
+
+      const classes = [...classMap.values()].sort((a, b) =>
+        a.className.localeCompare(b.className),
+      );
+      for (const bucket of classes) {
+        bucket.slots.sort((a, b) =>
+          String(a.examDate).localeCompare(String(b.examDate)),
+        );
+      }
+
+      const dates = slots
+        .map((s) => String(s.examDate || '').substring(0, 10))
+        .filter(Boolean)
+        .sort();
+      const dateRangeLabel =
+        dates.length === 0
+          ? 'Not scheduled'
+          : dates.length === 1
+            ? dates[0]
+            : `${dates[0]} – ${dates[dates.length - 1]}`;
+
+      const old = prev.get(exam.id);
+      const activeClassId =
+        old && classes.some((c) => c.classId === old.activeClassId)
+          ? old.activeClassId
+          : (classes[0]?.classId ?? '');
+
+      return {
+        examId: exam.id,
+        name: exam.name,
+        groupName: exam.examGroupName,
+        examType: exam.examType,
+        statusLabel: exam.statusLabel,
+        expanded: old?.expanded ?? false,
+        activeClassId,
+        classes,
+        dateRangeLabel,
+        classCount: classes.length,
+        slotCount: slots.length,
+        exam,
+      };
+    });
+  }
+
+  private deriveSlotStatus(item: ExamScheduleItem): string {
+    if (item.status) return item.status;
+    const date = item.examDate?.substring(0, 10);
+    if (!date) return 'Upcoming';
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+    if (date < todayStr) return 'Completed';
+    if (date === todayStr) return 'Ongoing';
+    return 'Upcoming';
+  }
   private loadLookups(): void {
     this.examService.getGroups().subscribe({
       next: (groups) => {
@@ -674,6 +1058,12 @@ export class ExamPage implements OnInit, OnDestroy {
       .subscribe({
         next: (rows) => {
           this.exams = (rows ?? []).map((r) => this.normalizeExamListItem(r));
+          // Drop detail cache for exams no longer in the list.
+          const ids = new Set(this.exams.map((e) => e.id));
+          for (const id of [...this.examDetailById.keys()]) {
+            if (!ids.has(id)) this.examDetailById.delete(id);
+          }
+          this.examDetailById = new Map(this.examDetailById);
           this.loading = false;
           done?.();
         },
@@ -684,16 +1074,6 @@ export class ExamPage implements OnInit, OnDestroy {
           done?.();
         },
       });
-  }
-
-  private ensureActiveExamsForSchedule(): void {
-    if (this.showingDeleted || !this.exams.length) {
-      this.examService.getExams({ inactiveOnly: false }).subscribe({
-        next: (rows) => {
-          this.exams = (rows ?? []).map((r) => this.normalizeExamListItem({ ...r, isActive: true }));
-        },
-      });
-    }
   }
 
   private refreshFormClassOptions(pruneSelection = false): void {
@@ -823,6 +1203,8 @@ export class ExamPage implements OnInit, OnDestroy {
     } else {
       this.exams = [item, ...this.exams];
     }
+    this.examDetailById.set(detail.id, detail);
+    this.examDetailById = new Map(this.examDetailById);
   }
 
   private loadSubjectsForSchedule(): void {
@@ -931,27 +1313,6 @@ export class ExamPage implements OnInit, OnDestroy {
         classGroupId: String(raw.classGroupId ?? raw['ClassGroupId'] ?? ''),
         classGroupName: String(raw.classGroupName ?? raw['ClassGroupName'] ?? ''),
       };
-    });
-  }
-
-  private loadExistingSchedules(done?: () => void): void {
-    if (!this.scheduleExamId) {
-      this.existingSchedules = [];
-      done?.();
-      return;
-    }
-    this.scheduleLoading = true;
-    this.examService.getSchedules(this.scheduleExamId).subscribe({
-      next: (rows) => {
-        this.existingSchedules = rows ?? [];
-        this.scheduleLoading = false;
-        done?.();
-      },
-      error: () => {
-        this.existingSchedules = [];
-        this.scheduleLoading = false;
-        done?.();
-      },
     });
   }
 }

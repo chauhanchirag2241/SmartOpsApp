@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { ToastController } from '@ionic/angular/standalone';
 import { SoToastIcons, SoToastTone } from '../../shared/icons/so-icons';
+import { getUserFacingApiError } from '../utils/api-error.util';
 
 export interface SoToastOptions {
   message: string;
@@ -48,8 +49,21 @@ export class ToastService {
     return this.show({ message, duration, tone: 'success' });
   }
 
+  /** Plain message toast. Prefer {@link errorFrom} for HTTP / API errors. */
   error(message: string, duration = 2800): Promise<void> {
     return this.show({ message, duration, tone: 'danger' });
+  }
+
+  /**
+   * Shows a user-safe API error (body message when present; otherwise Internal Server Error).
+   * Never shows API URL / Angular "Http failure response for …" text.
+   */
+  errorFrom(
+    err: unknown,
+    fallback = 'Internal Server Error',
+    duration = 2800,
+  ): Promise<void> {
+    return this.error(getUserFacingApiError(err, fallback), duration);
   }
 
   warning(message: string, duration = 2800): Promise<void> {

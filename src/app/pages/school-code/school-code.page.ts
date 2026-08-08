@@ -11,6 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SchoolService } from '../../core/services/school.service';
 import { TenantService } from '../../core/services/tenant.service';
 import { ToastService } from '../../core/services/toast.service';
+import { getUserFacingApiError } from '../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-school-code',
@@ -30,7 +31,11 @@ export class SchoolCodePage implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
-    if (this.auth.isLoggedIn && this.tenant.hasTenant) {
+    if (this.auth.isLoggedIn && !this.auth.hasActiveRole) {
+      this.auth.clearSessionForNoActiveRole();
+      void this.toast.error(AuthService.NO_ACTIVE_ROLE_MESSAGE, 4500);
+    }
+    if (this.auth.isLoggedIn && this.auth.hasActiveRole && this.tenant.hasTenant) {
       void this.router.navigate(
         [this.auth.mustChangePassword ? '/change-password' : '/tabs/home'],
         { replaceUrl: true },
@@ -73,10 +78,10 @@ export class SchoolCodePage implements OnInit {
           this.errorMessage = 'School not found. Check the school code and try again.';
           return;
         }
-        const msg =
-          typeof err?.error === 'string'
-            ? err.error
-            : err?.message || 'Could not find school. Check your connection and try again.';
+        const msg = getUserFacingApiError(
+          err,
+          'Could not find school. Check your connection and try again.',
+        );
         this.errorMessage = msg;
         void this.showToast(msg);
       },

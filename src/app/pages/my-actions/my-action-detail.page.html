@@ -1,24 +1,99 @@
 <app-header [title]="title || 'Action'" [showBack]="true" backHref="/my-actions" />
-<ion-content class="ion-padding">
-  @if (loading) {
-    <ion-spinner name="crescent" />
-  } @else if (itemType === 1) {
-    <pre class="block">{{ leaveSummary }}</pre>
-    <label>Remark <textarea [(ngModel)]="remark" rows="2"></textarea></label>
-    <button type="button" class="danger" (click)="complete('Reject')">
-      <so-icon [name]="rejectIcon"></so-icon>
-      Reject
-    </button>
-    <button type="button" class="primary-btn" (click)="complete('Approve')">
-      <so-icon [name]="approveIcon"></so-icon>
-      Approve
-    </button>
-  } @else if (itemType === 2) {
-    <pre class="block">{{ noticeBody }}</pre>
-    <label>Response <textarea [(ngModel)]="responseText" rows="4"></textarea></label>
-    <button type="button" class="primary-btn" (click)="complete('Respond')">
-      <so-icon [name]="sendIcon"></so-icon>
-      Submit response
-    </button>
+
+<ion-content class="so-page action-detail-page">
+  @if (loading || saving) {
+    <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+  } @else if (isLeave) {
+    <div class="page-pad">
+      <section class="form-card">
+        <div class="card-label">Leave request</div>
+        <div class="employee-row">
+          <span class="flabel">Applicant</span>
+          <strong class="fvalue">{{ leavePerson }}</strong>
+        </div>
+        @if (leaveClass) {
+          <div class="employee-row">
+            <span class="flabel">Class</span>
+            <strong class="fvalue">{{ leaveClass }}</strong>
+          </div>
+        }
+        <div class="employee-row">
+          <span class="flabel">Leave type</span>
+          <strong class="fvalue">{{ leaveType }}</strong>
+        </div>
+        <div class="employee-row">
+          <span class="flabel">Period</span>
+          <strong class="fvalue">{{ leaveDates }}</strong>
+        </div>
+        @if (leaveDays) {
+          <div class="employee-row">
+            <span class="flabel">Days</span>
+            <strong class="fvalue">{{ leaveDays }}</strong>
+          </div>
+        }
+        @if (leaveReason) {
+          <p class="employee-note">{{ leaveReason }}</p>
+        }
+      </section>
+
+      <section class="form-card">
+        <div class="card-label">Your decision</div>
+        <div class="field field-last">
+          <label>Remark</label>
+          <textarea
+            class="so-filter-select textarea"
+            [(ngModel)]="remark"
+            name="remark"
+            rows="3"
+            placeholder="Optional remark…"
+          ></textarea>
+        </div>
+      </section>
+
+      <div class="btn-row">
+        <button type="button" class="danger-btn" (click)="complete('Reject')">
+          <so-icon [name]="rejectIcon"></so-icon>
+          Reject
+        </button>
+        <button type="button" class="primary-btn submit-btn" (click)="complete('Approve')">
+          <so-icon [name]="approveIcon"></so-icon>
+          Approve
+        </button>
+      </div>
+    </div>
+  } @else if (isNotice) {
+    <div class="page-pad">
+      <section class="form-card">
+        <div class="card-label">Notice</div>
+        <p class="notice-body">{{ noticeBody || '—' }}</p>
+      </section>
+
+      <section class="form-card">
+        <div class="card-label">Your response</div>
+        <div class="field field-last">
+          <label>Response <span class="req">*</span></label>
+          <textarea
+            class="so-filter-select textarea"
+            [(ngModel)]="responseText"
+            name="response"
+            rows="4"
+            placeholder="Write your response…"
+          ></textarea>
+        </div>
+      </section>
+
+      <button type="button" class="primary-btn submit-btn" (click)="complete('Respond')">
+        <so-icon [name]="sendIcon"></so-icon>
+        Submit response
+      </button>
+    </div>
+  } @else {
+    <div class="page-pad">
+      <section class="form-card">
+        <p class="employee-note" style="border-top: none; padding-top: 0; margin: 0">
+          This action type is not supported on mobile yet.
+        </p>
+      </section>
+    </div>
   }
 </ion-content>

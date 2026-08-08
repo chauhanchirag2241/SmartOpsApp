@@ -1,0 +1,169 @@
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { addOutline, documentTextOutline, timeOutline } from 'ionicons/icons';
+import { MenuCodes } from '../../core/constants/menu-codes';
+import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
+import { LeaveListItem, LeaveService } from '../../core/services/leave.service';
+import { PermissionService } from '../../core/services/permission.service';
+import { ToastService } from '../../core/services/toast.service';
+import { formatDisplayDate } from '../../core/utils/api-mapper.util';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+
+@Component({
+  selector: 'app-student-leave-mine',
+  templateUrl: './student-leave-mine.page.html',
+  styleUrls: ['./student-leave-mine.page.scss'],
+  imports: [
+    AppHeaderComponent,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonSpinner,
+    IonRefresher,
+    IonRefresherContent,
+  ],
+})
+export class StudentLeaveMinePage {
+  private readonly leave = inject(LeaveService);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
+  private readonly permissions = inject(PermissionService);
+  readonly ayContext = inject(AcademicYearContextService);
+
+  history: LeaveListItem[] = [];
+  loading = false;
+
+  constructor() {
+    addIcons({ addOutline, documentTextOutline, timeOutline });
+  }
+
+  get canApply(): boolean {
+    return !this.ayContext.isReadOnlyScope() && this.permissions.canAdd(MenuCodes.LeaveStudent);
+  }
+
+  ionViewWillEnter(): void {
+    this.loadHistory();
+  }
+
+  onRefresh(event: CustomEvent): void {
+    this.loadHistory(() => (event.target as HTMLIonRefresherElement).complete());
+  }
+
+  openApply(): void {
+    if (!this.canApply) {
+      void this.toast.error('You cannot apply for leave', 2200);
+      return;
+    }
+    void this.router.navigateByUrl('/leave/student-apply');
+  }
+
+  statusClass(item: LeaveListItem): string {
+    const key = this.statusKey(item);
+    if (key === 'approved') return 'status-approved';
+    if (key === 'pending' || key === 'submitted') return 'status-pending';
+    if (key === 'rejected') return 'status-rejected';
+    if (key === 'cancelled') return 'status-cancelled';
+    return 'status-draft';
+  }
+
+  statusText(item: LeaveListItem): string {
+    const key = this.statusKey(item);
+    if (key === 'submitted' || key === 'pending') return 'Pending';
+    if (key === 'approved') return 'Approved';
+    if (key === 'rejected') return 'Rejected';
+    if (key === 'cancelled') return 'Cancelled';
+    if (key === 'draft') return 'Draft';
+    const label = item.statusLabel?.trim() || 'Unknown';
+    return label.toLowerCase() === 'submitted' ? 'Pending' : label;
+  }
+
+  dateRangeLabel(item: LeaveListItem): string {
+    const from = formatDisplayDate(item.fromDate);
+    const to = formatDisplayDate(item.toDate);
+    if (!from) return '—';
+    if (!to || from === to) return from;
+    return `${from} → ${to}`;
+  }
+
+  daysLabel(item: LeaveListItem): string {
+    const days = item.dayCount ?? 0;
+    const half = item.isHalfDay ? ' · Half day' : '';
+    return `${days} day${days === 1 ? '' : 's'}${half}`;
+  }
+
+  approvedLabel(item: LeaveListItem): string | null {
+    const key = this.statusKey(item);
+    if (key !== 'approved' && key !== 'rejected') return null;
+    const name = item.approvedByName?.trim();
+    if (!name) return null;
+    const when = item.approvedOn ? formatDisplayDate(String(item.approvedOn).slice(0, 10)) : '';
+    const verb = key === 'rejected' ? 'Rejected by' : 'Approved by';
+    return when ? `${verb} ${name} · ${when}` : `${verb} ${name}`;
+  }
+
+  private statusKey(item: LeaveListItem): string {
+    const label = String(item.statusLabel ?? item.status ?? '').trim().toLowerCase();
+    if (label === '1' || label === 'submitted') return 'submitted';
+    if (label === '2' || label === 'approved') return 'approved';
+    if (label === '3' || label === 'rejected') return 'rejected';
+    if (label === '4' || label === 'cancelled') return 'cancelled';
+    if (label === '0' || label === 'draft') return 'draft';
+    if (label === 'pending') return 'pending';
+    return label;
+  }
+
+  private loadHistory(done?: () => void): void {
+    this.loading = true;
+    this.leave.getStudentMine().subscribe({
+      next: (history) => {
+        this.history = (history ?? []).map((r) => this.normalizeHistory(r));
+        this.loading = false;
+        done?.();
+      },
+      error: () => {
+        this.loading = false;
+        done?.();
+        void this.toast.error('Could not load leave history', 2200);
+      },
+    });
+  }
+
+  private normalizeHistory(raw: LeaveListItem | Record<string, unknown>): LeaveListItem {
+    const r = raw as Record<string, unknown>;
+    return {
+      id: String(r['id'] ?? r['Id'] ?? ''),
+      fromDate: String(r['fromDate'] ?? r['FromDate'] ?? ''),
+      toDate: String(r['toDate'] ?? r['ToDate'] ?? ''),
+      dayCount: Number(r['dayCount'] ?? r['DayCount'] ?? 0),
+      leaveTypeLabel: (r['leaveTypeLabel'] ?? r['LeaveTypeLabel'] ?? null) as string | null,
+      leaveTypeName: (r['leaveTypeName'] ?? r['LeaveTypeName'] ?? r['leaveTypeLabel'] ?? 'Leave') as string | null,
+      status: (r['status'] ?? r['Status'] ?? '') as string | number,
+      statusLabel: this.normalizeLeaveStatusLabel(
+        (r['statusLabel'] ?? r['StatusLabel'] ?? '') as string,
+        r['status'] ?? r['Status'],
+      ),
+      isHalfDay: Boolean(r['isHalfDay'] ?? r['IsHalfDay'] ?? false),
+      reason: (r['reason'] ?? r['Reason'] ?? null) as string | null,
+      approvedByName: (r['approvedByName'] ?? r['ApprovedByName'] ?? null) as string | null,
+      approvedOn: (r['approvedOn'] ?? r['ApprovedOn'] ?? null) as string | null,
+      createdOn: (r['createdOn'] ?? r['CreatedOn'] ?? undefined) as string | undefined,
+      studentName: (r['studentName'] ?? r['StudentName'] ?? null) as string | null,
+      className: (r['className'] ?? r['ClassName'] ?? null) as string | null,
+    };
+  }
+
+  private normalizeLeaveStatusLabel(label: string, status: unknown): string {
+    const key = String(label || status || '')
+      .trim()
+      .toLowerCase();
+    if (key === '1' || key === 'submitted' || key === 'pending') return 'Pending';
+    if (key === '2' || key === 'approved') return 'Approved';
+    if (key === '3' || key === 'rejected') return 'Rejected';
+    if (key === '4' || key === 'cancelled') return 'Cancelled';
+    if (key === '0' || key === 'draft') return 'Draft';
+    return label?.trim() || String(status ?? '').trim() || 'Unknown';
+  }
+}

@@ -1,0 +1,271 @@
+.salary-detail-page {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: var(--so-content-bottom-gap);
+}
+
+.salary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: calc(var(--so-content-bottom-gap) + 8px);
+}
+
+.section-head {
+  margin-top: 2px;
+}
+
+.section-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+}
+
+.section-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--so-ink-soft);
+
+  &.center {
+    text-align: center;
+    margin-top: 0;
+  }
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.empty-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: var(--so-radius-lg);
+  box-shadow: var(--so-shadow);
+  text-align: center;
+  padding: 28px 18px;
+  color: var(--so-ink-faint);
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--so-primary);
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    color: var(--so-ink);
+    font-size: 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+}
+
+.info-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: 18px;
+  box-shadow: var(--so-shadow);
+  padding: 18px 20px 20px;
+}
+
+.card-label {
+  margin-bottom: 14px;
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.flabel {
+  font-size: 12.5px;
+  color: var(--so-ink-soft);
+}
+
+.fvalue {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--so-ink);
+  text-align: right;
+
+  &.serif {
+    font-size: 14.5px;
+  }
+}
+
+.line-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--so-line);
+  font-size: 13.5px;
+  color: var(--so-ink);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  .amt {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.earn .amt {
+    color: var(--so-success);
+  }
+
+  &.deduct .amt {
+    color: var(--so-error);
+  }
+}
+
+.line-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1.5px dashed var(--so-line);
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--so-ink);
+
+  .amt {
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.earn .amt {
+    color: var(--so-success);
+  }
+
+  &.deduct .amt {
+    color: var(--so-error);
+  }
+}
+
+.netpay-card {
+  position: relative;
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: 20px;
+  box-shadow: var(--so-shadow);
+  padding: 26px 22px 22px;
+  text-align: center;
+  overflow: visible;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    background: var(--so-page-bg);
+    border: 1px solid var(--so-line);
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+
+  &::before {
+    left: -10px;
+  }
+
+  &::after {
+    right: -10px;
+  }
+
+  &.compact {
+    padding: 20px 20px 18px;
+
+    .nval {
+      font-size: 28px;
+    }
+  }
+}
+
+.nlabel {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+}
+
+.nval {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--so-success);
+  font-variant-numeric: tabular-nums;
+}
+
+.nsub {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--so-ink-soft);
+}
+
+.netpay-breakdown {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.b {
+  flex: 1;
+  background: var(--so-primary-tint);
+  border-radius: 12px;
+  padding: 10px 4px;
+  text-align: center;
+
+  .num {
+    font-size: 13.5px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    color: var(--so-ink);
+  }
+
+  &.plus .num {
+    color: var(--so-success);
+  }
+
+  &.minus .num {
+    color: var(--so-error);
+  }
+
+  .lbl {
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--so-ink-soft);
+  }
+}

@@ -99,3 +99,32 @@ export interface HomeworkStudentRow {
   marks?: number | null;
   remark?: string | null;
 }
+
+/** Student portal — own homework + own submission status only. */
+export interface StudentHomeworkItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  classId: string;
+  className: string;
+  subjectId: string;
+  subjectName: string;
+  assignDate: string;
+  dueDate: string;
+  marks?: number | null;
+  submissionType: HomeworkSubmissionType;
+  submissionTypeLabel: string;
+  /** pending | submitted | late | overdue */
+  myStatus: string;
+  submittedOn?: string | null;
+  myMarks?: number | null;
+  remark?: string | null;
+}
+
+export interface PagedStudentHomework {
+  items: StudentHomeworkItem[];
+  totalCount: number;
+  pageIndex: number;
+  pageSize: number;
+  totalPages: number;
+}

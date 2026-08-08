@@ -128,16 +128,11 @@
     background: #c8e6c9;
     color: #1b5e20;
   }
-  /* Rose — distinct from Event indigo and Half Day cyan */
-  &[data-tone='leave'] {
-    background: #f8bbd0;
-    color: #ad1457;
-  }
   &[data-tone='late'] {
     background: #ffe082;
     color: #f57f17;
   }
-  /* Cyan — distinct from Leave rose and Event indigo */
+  /* Cyan — distinct from Event indigo */
   &[data-tone='halfday'] {
     background: #b2ebf2;
     color: #00838f;
@@ -166,13 +161,29 @@
   gap: 8px;
   margin-top: 14px;
 
-  span {
+  .legend-chip {
+    appearance: none;
+    border: 1.5px solid transparent;
     font-size: 11px;
     font-weight: 600;
-    padding: 4px 8px;
+    padding: 5px 10px;
     border-radius: 8px;
     color: #5f6b57;
+    background: #f0f3ec;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
+    &.active {
+      opacity: 1;
+      border-color: currentColor;
+      box-shadow: 0 0 0 1px rgb(0 0 0 / 4%);
+    }
+
+    &[data-tone='all'] {
+      background: #e8f0e0;
+      color: #3d5a1f;
+    }
     &[data-tone='holiday'] {
       background: #e1bee7;
       color: #6a1b9a;
@@ -193,9 +204,9 @@
       background: #c8e6c9;
       color: #1b5e20;
     }
-    &[data-tone='leave'] {
-      background: #f8bbd0;
-      color: #ad1457;
+    &[data-tone='absent'] {
+      background: #ffcdd2;
+      color: #b71c1c;
     }
     &[data-tone='late'] {
       background: #ffe082;

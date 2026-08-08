@@ -1,9 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, airplaneOutline, documentTextOutline, timeOutline } from 'ionicons/icons';
-import { catchError, forkJoin, of } from 'rxjs';
 import { MenuCodes } from '../../core/constants/menu-codes';
 import { AcademicYearContextService } from '../../core/services/academic-year-context.service';
 import { LeaveBalanceDto, LeaveListItem, LeaveService } from '../../core/services/leave.service';
@@ -31,7 +30,7 @@ type LeaveTab = 'balance' | 'history';
     IonRefresherContent,
   ],
 })
-export class LeaveMinePage implements OnInit {
+export class LeaveMinePage {
   private readonly leave = inject(LeaveService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -56,23 +55,18 @@ export class LeaveMinePage implements OnInit {
     return !this.ayContext.isReadOnlyScope() && this.permissions.canAdd(MenuCodes.LeaveStaff);
   }
 
-  ngOnInit(): void {
-    this.load();
-  }
-
-  /** Returning from apply / approvals — refresh deducted balance without pull-to-refresh. */
+  /** First open + return from apply — load only the active tab. */
   ionViewWillEnter(): void {
-    this.load();
+    this.loadActiveTab();
   }
 
   onTabChange(value: string): void {
     this.activeTab = value === 'history' ? 'history' : 'balance';
-    // Balance used/closing must reflect leave applied while on History (and vice versa).
-    this.load();
+    this.loadActiveTab();
   }
 
   onRefresh(event: CustomEvent): void {
-    this.load(() => (event.target as HTMLIonRefresherElement).complete());
+    this.loadActiveTab(() => (event.target as HTMLIonRefresherElement).complete());
   }
 
   openApply(): void {
@@ -94,12 +88,13 @@ export class LeaveMinePage implements OnInit {
 
   statusText(item: LeaveListItem): string {
     const key = this.statusKey(item);
-    if (key === 'submitted') return 'Pending';
+    if (key === 'submitted' || key === 'pending') return 'Pending';
     if (key === 'approved') return 'Approved';
     if (key === 'rejected') return 'Rejected';
     if (key === 'cancelled') return 'Cancelled';
     if (key === 'draft') return 'Draft';
-    return item.statusLabel?.trim() || 'Unknown';
+    const label = item.statusLabel?.trim() || 'Unknown';
+    return label.toLowerCase() === 'submitted' ? 'Pending' : label;
   }
 
   dateRangeLabel(item: LeaveListItem): string {
@@ -146,14 +141,34 @@ export class LeaveMinePage implements OnInit {
     return label;
   }
 
-  private load(done?: () => void): void {
+  private loadActiveTab(done?: () => void): void {
+    if (this.activeTab === 'history') {
+      this.loadHistory(done);
+    } else {
+      this.loadBalance(done);
+    }
+  }
+
+  private loadBalance(done?: () => void): void {
     this.loading = true;
-    forkJoin({
-      balances: this.leave.getBalancesMine().pipe(catchError(() => of([] as LeaveBalanceDto[]))),
-      history: this.leave.getStaffMine().pipe(catchError(() => of([] as LeaveListItem[]))),
-    }).subscribe({
-      next: ({ balances, history }) => {
+    this.leave.getBalancesMine().subscribe({
+      next: (balances) => {
         this.balances = (balances ?? []).map((r) => this.normalizeBalance(r));
+        this.loading = false;
+        done?.();
+      },
+      error: () => {
+        this.loading = false;
+        done?.();
+        void this.toast.error('Could not load leave balance', 2200);
+      },
+    });
+  }
+
+  private loadHistory(done?: () => void): void {
+    this.loading = true;
+    this.leave.getStaffMine().subscribe({
+      next: (history) => {
         this.history = (history ?? []).map((r) => this.normalizeHistory(r));
         this.loading = false;
         done?.();
@@ -161,7 +176,7 @@ export class LeaveMinePage implements OnInit {
       error: () => {
         this.loading = false;
         done?.();
-        void this.toast.error('Could not load leave data', 2200);
+        void this.toast.error('Could not load leave history', 2200);
       },
     });
   }
@@ -194,12 +209,27 @@ export class LeaveMinePage implements OnInit {
       leaveTypeLabel: (r['leaveTypeLabel'] ?? r['LeaveTypeLabel'] ?? null) as string | null,
       leaveTypeName: (r['leaveTypeName'] ?? r['LeaveTypeName'] ?? r['leaveTypeLabel'] ?? 'Leave') as string | null,
       status: (r['status'] ?? r['Status'] ?? '') as string | number,
-      statusLabel: (r['statusLabel'] ?? r['StatusLabel'] ?? '') as string,
+      statusLabel: this.normalizeLeaveStatusLabel(
+        (r['statusLabel'] ?? r['StatusLabel'] ?? '') as string,
+        r['status'] ?? r['Status'],
+      ),
       isHalfDay: Boolean(r['isHalfDay'] ?? r['IsHalfDay'] ?? false),
       reason: (r['reason'] ?? r['Reason'] ?? null) as string | null,
       approvedByName: (r['approvedByName'] ?? r['ApprovedByName'] ?? null) as string | null,
       approvedOn: (r['approvedOn'] ?? r['ApprovedOn'] ?? null) as string | null,
       createdOn: (r['createdOn'] ?? r['CreatedOn'] ?? undefined) as string | undefined,
     };
+  }
+
+  private normalizeLeaveStatusLabel(label: string, status: unknown): string {
+    const key = String(label || status || '')
+      .trim()
+      .toLowerCase();
+    if (key === '1' || key === 'submitted' || key === 'pending') return 'Pending';
+    if (key === '2' || key === 'approved') return 'Approved';
+    if (key === '3' || key === 'rejected') return 'Rejected';
+    if (key === '4' || key === 'cancelled') return 'Cancelled';
+    if (key === '0' || key === 'draft') return 'Draft';
+    return label?.trim() || String(status ?? '').trim() || 'Unknown';
   }
 }

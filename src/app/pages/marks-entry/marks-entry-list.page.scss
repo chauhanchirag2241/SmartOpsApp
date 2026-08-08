@@ -1,0 +1,141 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+app-header {
+  flex-shrink: 0;
+}
+
+ion-content {
+  flex: 1;
+}
+
+.marks-list-page {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: calc(var(--so-content-bottom-gap) + 24px);
+}
+
+.marks-list-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.page-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--so-ink-soft, #5b6b54);
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-card,
+.exam-card {
+  background: var(--so-card-bg, #fff);
+  border: 1px solid var(--so-line, #dfe8d1);
+  border-radius: 16px;
+  box-shadow: var(--so-shadow, 0 4px 14px rgba(31, 42, 26, 0.05));
+}
+
+.empty-card {
+  text-align: center;
+  padding: 28px 18px;
+  color: var(--so-ink-faint, #8a9880);
+
+  ion-icon {
+    font-size: 36px;
+    color: #00897b;
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    color: var(--so-ink, #1f2a1a);
+    font-size: 16px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+}
+
+.exam-card {
+  padding: 14px 16px;
+}
+
+.exam-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.exam-copy h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--so-ink, #1f2a1a);
+}
+
+.meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--so-ink-faint, #8a9880);
+}
+
+.status-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e0f2f1;
+  color: #00695c;
+}
+
+.exam-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  gap: 8px;
+}
+
+.marks {
+  font-size: 12px;
+  color: var(--so-ink-soft, #5b6b54);
+}
+
+.marks-entry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: #eaf3de;
+  color: #3b6d11;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 10px;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}

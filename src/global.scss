@@ -642,7 +642,8 @@ ion-modal.so-search-select-modal::part(content) {
 }
 
 .so-sticky-action-footer {
-  padding: 10px 16px calc(10px + var(--so-sticky-bottom));
+  /* Bottom nav clearance comes from ion-footer margin-bottom (has-bottom-nav). */
+  padding: 10px 16px;
   background: color-mix(in srgb, var(--so-card-bg) 94%, transparent);
   border-top: 1px solid var(--so-line);
   box-shadow: 0 -8px 24px rgb(31 42 26 / 8%);

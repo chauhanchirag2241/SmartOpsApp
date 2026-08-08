@@ -16,6 +16,8 @@ export const MenuCodes = {
   TeacherTimetableReport: 'TEACHER_TIMETABLE_REPORT',
   Exams: 'EXAMS',
   ExamSchedule: 'EXAM_SCHEDULE',
+  ExamMarksEntry: 'EXAM_MARKS_ENTRY',
+  FeeCollection: 'FEE_COLLECTION',
 } as const;
 
 export type MenuCode = (typeof MenuCodes)[keyof typeof MenuCodes];

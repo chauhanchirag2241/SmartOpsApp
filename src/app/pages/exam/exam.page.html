@@ -6,13 +6,13 @@
   searchPlaceholder="Search exams..."
 />
 
-<ion-content class="so-page exam-page" [class.form-mode]="examsMode === 'form'">
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)" [disabled]="examsMode === 'form'">
+<ion-content class="so-page exam-page" [class.form-mode]="isAnyFormOpen">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)" [disabled]="isAnyFormOpen">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <main class="exam-body">
-    @if (examsMode === 'list') {
+    @if (showSegment) {
       <div class="so-toolbar-segment">
         <so-segment
           [options]="tabOptions"
@@ -49,48 +49,136 @@
         <div class="card-list">
           @for (exam of exams; track exam.id) {
             <article
-              class="exam-card"
+              class="exam-card collapsible"
               [class.deleted]="showingDeleted"
-              [class.clickable]="!showingDeleted && canEdit"
-              (click)="onCardClick(exam)"
+              [class.expanded]="isExamExpanded(exam.id)"
             >
-              <div class="exam-card-top">
-                <div class="exam-copy">
-                  <h2>{{ exam.name }}</h2>
-                  <p class="meta">{{ exam.examType }} · {{ exam.examGroupName }}</p>
-                  <p class="meta">{{ classesLabel(exam) }}</p>
+              <div class="exam-card-head" (click)="toggleExamExpand(exam)">
+                <div class="sched-chevron" [class.open]="isExamExpanded(exam.id)">
+                  <ion-icon name="chevron-forward-outline"></ion-icon>
+                </div>
+                <div class="exam-card-title-wrap">
+                  <div class="sched-title-row">
+                    <h2>{{ exam.name }}</h2>
+                    <span class="group-badge">{{ exam.examGroupName || exam.examType }}</span>
+                  </div>
+                  <div class="sched-exam-meta">
+                    <span>{{ exam.examType }}</span>
+                    <span>{{ classesLabel(exam) }}</span>
+                    <span>Max {{ exam.totalMaxMarks }}</span>
+                  </div>
                 </div>
                 <span class="status-badge">{{ exam.statusLabel }}</span>
               </div>
-              <div class="exam-card-footer">
-                <span class="marks">Max {{ exam.totalMaxMarks }} · {{ exam.subjectCount }} subjects</span>
-                @if (!showingDeleted) {
-                  <div class="card-actions">
-                    @if (canEdit) {
-                      <button
-                        type="button"
-                        class="icon-btn"
-                        aria-label="Edit exam"
-                        (click)="openEdit(exam, $event)"
-                      >
-                        <ion-icon name="create-outline"></ion-icon>
-                      </button>
+
+              @if (isExamExpanded(exam.id)) {
+                <div class="exam-card-body">
+                  @if (isExamDetailLoading(exam.id)) {
+                    <div class="loading-wrap compact">
+                      <ion-spinner name="crescent"></ion-spinner>
+                    </div>
+                  } @else if (examDetail(exam.id); as detail) {
+                    <div class="view-grid">
+                      <div class="sg-item">
+                        <div class="l">Exam group</div>
+                        <div class="v">{{ detail.examGroupName || '—' }}</div>
+                      </div>
+                      <div class="sg-item">
+                        <div class="l">Exam type</div>
+                        <div class="v">{{ detail.examType || '—' }}</div>
+                      </div>
+                      <div class="sg-item">
+                        <div class="l">Status</div>
+                        <div class="v">{{ detail.statusLabel || '—' }}</div>
+                      </div>
+                      <div class="sg-item">
+                        <div class="l">Min pass %</div>
+                        <div class="v">{{ detail.minPassPercent }}%</div>
+                      </div>
+                      <div class="sg-item">
+                        <div class="l">Grade scale</div>
+                        <div class="v">{{ gradeScaleName(detail.gradeScaleId) }}</div>
+                      </div>
+                      <div class="sg-item">
+                        <div class="l">Total max</div>
+                        <div class="v">{{ componentTotal(detail) }}</div>
+                      </div>
+                    </div>
+
+                    @if (detail.description) {
+                      <div class="view-block">
+                        <div class="l">Description</div>
+                        <div class="v">{{ detail.description }}</div>
+                      </div>
                     }
-                    @if (canDelete) {
-                      <button
-                        type="button"
-                        class="icon-btn danger"
-                        aria-label="Delete exam"
-                        (click)="confirmDelete(exam, $event)"
-                      >
-                        <ion-icon name="trash-outline"></ion-icon>
-                      </button>
+
+                    <div class="view-block">
+                      <div class="l">Classes</div>
+                      @if (detail.classes.length) {
+                        <div class="view-chips">
+                          @for (cls of detail.classes; track cls.classId) {
+                            <span class="view-chip">{{ cls.className }}</span>
+                          }
+                        </div>
+                      } @else {
+                        <div class="v faint">No classes assigned</div>
+                      }
+                    </div>
+
+                    <div class="view-block">
+                      <div class="l">Mark components</div>
+                      @if (detail.components.length) {
+                        <div class="comp-list">
+                          @for (comp of detail.components; track comp.id || comp.name) {
+                            <div class="comp-row">
+                              <span class="comp-name">{{ comp.name }}</span>
+                              <span class="comp-marks">
+                                Max {{ comp.maxMarks }}
+                                @if (comp.passingMarks !== null && comp.passingMarks !== undefined) {
+                                  · Pass {{ comp.passingMarks }}
+                                }
+                              </span>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="v faint">No components</div>
+                      }
+                    </div>
+
+                    @if (!showingDeleted) {
+                      <div class="view-actions">
+                        @if (canEdit) {
+                          <button
+                            type="button"
+                            class="icon-btn"
+                            aria-label="Edit exam"
+                            (click)="openEdit(exam, $event)"
+                          >
+                            <ion-icon name="create-outline"></ion-icon>
+                          </button>
+                        }
+                        @if (canDelete) {
+                          <button
+                            type="button"
+                            class="icon-btn danger"
+                            aria-label="Delete exam"
+                            (click)="confirmDelete(exam, $event)"
+                          >
+                            <ion-icon name="trash-outline"></ion-icon>
+                          </button>
+                        }
+                      </div>
+                    } @else {
+                      <div class="view-block">
+                        <span class="deleted-tag">Deleted</span>
+                      </div>
                     }
-                  </div>
-                } @else {
-                  <span class="deleted-tag">Deleted</span>
-                }
-              </div>
+                  } @else {
+                    <p class="field-hint">Could not load details.</p>
+                  }
+                </div>
+              }
             </article>
           }
         </div>
@@ -225,133 +313,245 @@
       }
     }
 
-    @if (activeTab === 'schedule' && examsMode === 'list') {
-      <div class="section-head">
-        <h2>Schedule</h2>
-        <p>Pick an exam and build subject slots for selected classes.</p>
+    <!-- Schedule list: Document/exams-mobile-cards-v2.html (header filter only; no Columns/Export) -->
+    @if (activeTab === 'schedule' && scheduleMode === 'list') {
+      <div class="exam-filter-chips">
+        <span>{{ filterGroupLabel }}</span>
+        <span>{{ filterClassLabel }}</span>
       </div>
 
+      @if (scheduleLoading) {
+        <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (!scheduleCards.length) {
+        <div class="empty-card">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <h3>No exams to schedule</h3>
+          <p>Create an exam first, then schedule subject slots here.</p>
+        </div>
+      } @else {
+        <div class="sched-exam-list">
+          @for (card of scheduleCards; track card.examId) {
+            <article class="sched-exam-card" [class.expanded]="card.expanded">
+              <div class="sched-exam-head" (click)="toggleScheduleCard(card)">
+                <div class="sched-chevron" [class.open]="card.expanded">
+                  <ion-icon name="chevron-forward-outline"></ion-icon>
+                </div>
+                <div class="sched-exam-title-wrap">
+                  <div class="sched-title-row">
+                    <h2>{{ card.name }}</h2>
+                    <span class="group-badge">{{ card.groupName || card.examType }}</span>
+                  </div>
+                  <div class="sched-exam-meta">
+                    <span>{{ card.classCount }} class{{ card.classCount === 1 ? '' : 'es' }}</span>
+                    <span>{{ card.slotCount }} schedule{{ card.slotCount === 1 ? '' : 's' }}</span>
+                    <span>{{ card.dateRangeLabel }}</span>
+                  </div>
+                </div>
+                @if (canSchedule) {
+                  <button
+                    type="button"
+                    class="sched-action-btn"
+                    (click)="openScheduleFormFromCard(card, $event)"
+                  >
+                    Schedule
+                  </button>
+                }
+              </div>
+
+              @if (card.expanded) {
+                <div class="sched-exam-body">
+                  @if (card.classes.length > 1) {
+                    <div class="class-tabs" role="tablist">
+                      @for (cls of card.classes; track cls.classId) {
+                        <button
+                          type="button"
+                          class="class-tab"
+                          role="tab"
+                          [class.active]="cls.classId === card.activeClassId"
+                          (click)="setScheduleClassTab(card, cls.classId, $event)"
+                        >
+                          {{ cls.className }}
+                          <span class="cnt">{{ cls.slots.length }}</span>
+                        </button>
+                      }
+                    </div>
+                  } @else if (card.classes.length === 1) {
+                    <div class="class-tabs single">
+                      <span class="class-tab active">
+                        {{ card.classes[0].className }}
+                        <span class="cnt">{{ card.classes[0].slots.length }}</span>
+                      </span>
+                    </div>
+                  }
+
+                  @if (!activeClassSlots(card).length) {
+                    <div class="sched-empty-slots">
+                      <p>No subject slots for this class yet.</p>
+                      @if (canSchedule) {
+                        <button
+                          type="button"
+                          class="link-btn"
+                          (click)="openScheduleFormFromCard(card, $event)"
+                        >
+                          Schedule exam
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <div class="subject-list">
+                      @for (slot of activeClassSlots(card); track slot.id) {
+                        <div class="subj-row">
+                          <div
+                            class="subj-row-head"
+                            (click)="toggleSubjectDetail(slot.id, $event)"
+                          >
+                            <div class="subj-left">
+                              <span class="subj-dot" [class]="slotStatusKey(slot)"></span>
+                              <div class="subj-copy">
+                                <div class="subj-name">{{ slot.subjectName }}</div>
+                                <div class="subj-when">
+                                  {{ slot.examDate }} · {{ timeRange(slot) }}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="subj-right">
+                              <span class="slot-status" [class]="slotStatusKey(slot)">
+                                {{ slotStatusLabel(slot) }}
+                              </span>
+                              <ion-icon
+                                class="mini-chevron"
+                                [class.open]="isSubjectExpanded(slot.id)"
+                                name="chevron-forward-outline"
+                              ></ion-icon>
+                            </div>
+                          </div>
+
+                          @if (isSubjectExpanded(slot.id)) {
+                            <div class="subj-detail">
+                              <div class="sched-grid">
+                                <div class="sg-item">
+                                  <div class="l">Room</div>
+                                  <div class="v">{{ slot.roomNo || '—' }}</div>
+                                </div>
+                                <div class="sg-item">
+                                  <div class="l">Invigilator</div>
+                                  <div class="v">{{ slot.invigilatorName || '—' }}</div>
+                                </div>
+                                <div class="sg-item">
+                                  <div class="l">Max marks</div>
+                                  <div class="v">{{ slot.maxMarks || '—' }}</div>
+                                </div>
+                                <div class="sg-item">
+                                  <div class="l">Status</div>
+                                  <div class="v">{{ slotStatusLabel(slot) }}</div>
+                                </div>
+                              </div>
+                              <div class="sched-actions">
+                                <button
+                                  type="button"
+                                  class="sa-btn del"
+                                  aria-label="Delete slot"
+                                  (click)="confirmDeleteSlot(slot, $event)"
+                                >
+                                  <ion-icon name="trash-outline"></ion-icon>
+                                </button>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    }
+
+    @if (activeTab === 'schedule' && scheduleMode === 'form') {
       @if (scheduleError) {
         <div class="error-banner">{{ scheduleError }}</div>
       }
 
       <div class="filters schedule-form">
-        <label>Exam <span class="req">*</span></label>
-        <so-select
-          [options]="examSelectOptions"
-          placeholder="Select exam"
-          [showSearch]="true"
-          [(ngModel)]="scheduleExamId"
-          name="scheduleExamId"
-          (valueChange)="onScheduleExamChange()"
-        />
+        <section class="form-card">
+          <h3 class="form-card-title">{{ scheduleExamName || 'Exam' }}</h3>
+          <p class="field-hint">Build subject slots for selected classes.</p>
 
-        <label>Classes <span class="req">*</span></label>
-        <so-multi-select
-          [options]="scheduleClassOptions"
-          placeholder="Select classes"
-          [(ngModel)]="scheduleClassIds"
-          name="scheduleClassIds"
-          (valueChange)="onScheduleClassesChange()"
-        />
+          <label>Classes <span class="req">*</span></label>
+          <so-multi-select
+            [options]="scheduleClassOptions"
+            placeholder="Select classes"
+            [(ngModel)]="scheduleClassIds"
+            name="scheduleClassIds"
+            (valueChange)="onScheduleClassesChange()"
+          />
 
-        <div class="components-head">
-          <label>Subject slots</label>
-        </div>
-
-        @for (slot of scheduleSlots; track $index; let i = $index) {
-          <div class="slot-card">
-            <label>Subject</label>
-            <so-select
-              [options]="scheduleSubjectOptions"
-              [placeholder]="scheduleClassIds.length ? 'Select subject' : 'Select classes first'"
-              [showSearch]="true"
-              [(ngModel)]="slot.subjectId"
-              [name]="'slotSubject' + i"
-            />
-
-            <label>Exam date</label>
-            <so-date-input
-              [(ngModel)]="slot.examDate"
-              [name]="'slotDate' + i"
-              placeholder="Exam date"
-            />
-
-            <div class="two-col">
-              <div>
-                <label>Start time</label>
-                <input
-                  class="so-filter-select"
-                  type="time"
-                  [(ngModel)]="slot.startTime"
-                  [name]="'slotStart' + i"
-                />
-              </div>
-              <div>
-                <label>End time</label>
-                <input
-                  class="so-filter-select"
-                  type="time"
-                  [(ngModel)]="slot.endTime"
-                  [name]="'slotEnd' + i"
-                />
-              </div>
-            </div>
-
-            <label>Room / Hall</label>
-            <input
-              class="so-filter-select"
-              [(ngModel)]="slot.roomNo"
-              [name]="'slotRoom' + i"
-              placeholder="e.g. Hall A"
-            />
-
-            <button type="button" class="link-btn danger" (click)="removeScheduleSlot(i)">
-              Remove slot
-            </button>
+          <div class="components-head">
+            <label>Subject slots</label>
           </div>
-        }
 
-        <button type="button" class="add-row-btn" (click)="addScheduleSlot()">
-          <ion-icon name="add-outline"></ion-icon>
-          Add slot
-        </button>
+          @for (slot of scheduleSlots; track $index; let i = $index) {
+            <div class="slot-card">
+              <label>Subject</label>
+              <so-select
+                [options]="scheduleSubjectOptions"
+                [placeholder]="scheduleClassIds.length ? 'Select subject' : 'Select classes first'"
+                [showSearch]="true"
+                [(ngModel)]="slot.subjectId"
+                [name]="'slotSubject' + i"
+              />
 
-        <button
-          type="button"
-          class="save-btn"
-          [disabled]="scheduleSaving || !canSaveScheduleDraft"
-          (click)="saveSchedule()"
-        >
-          @if (scheduleSaving) {
-            <ion-spinner name="crescent"></ion-spinner>
-          } @else {
-            Save schedule
+              <label>Exam date</label>
+              <so-date-input
+                [(ngModel)]="slot.examDate"
+                [name]="'slotDate' + i"
+                placeholder="Exam date"
+              />
+
+              <div class="two-col">
+                <div>
+                  <label>Start time</label>
+                  <input
+                    class="so-filter-select"
+                    type="time"
+                    [(ngModel)]="slot.startTime"
+                    [name]="'slotStart' + i"
+                  />
+                </div>
+                <div>
+                  <label>End time</label>
+                  <input
+                    class="so-filter-select"
+                    type="time"
+                    [(ngModel)]="slot.endTime"
+                    [name]="'slotEnd' + i"
+                  />
+                </div>
+              </div>
+
+              <label>Room / Hall</label>
+              <input
+                class="so-filter-select"
+                [(ngModel)]="slot.roomNo"
+                [name]="'slotRoom' + i"
+                placeholder="e.g. Hall A"
+              />
+
+              <button type="button" class="link-btn danger" (click)="removeScheduleSlot(i)">
+                Remove slot
+              </button>
+            </div>
           }
-        </button>
+
+          <button type="button" class="add-row-btn" (click)="addScheduleSlot()">
+            <ion-icon name="add-outline"></ion-icon>
+            Add slot
+          </button>
+        </section>
       </div>
-
-      @if (scheduleLoading) {
-        <div class="loading-wrap"><ion-spinner name="crescent"></ion-spinner></div>
-      } @else if (existingSchedules.length) {
-        <div class="section-head">
-          <h2>Existing slots</h2>
-        </div>
-        <div class="card-list">
-          @for (slot of existingSchedules; track slot.id) {
-            <article class="exam-card slot-existing">
-              <h2>{{ slot.subjectName }}</h2>
-              <p class="meta">{{ slot.className }} · {{ slot.examDate }}</p>
-              <p class="meta">
-                {{ slot.startTime || '—' }} – {{ slot.endTime || '—' }}
-                @if (slot.roomNo) {
-                  · {{ slot.roomNo }}
-                }
-              </p>
-            </article>
-          }
-        </div>
-      }
     }
   </main>
 </ion-content>
@@ -373,6 +573,24 @@
       } @else {
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         {{ formMode === 'edit' ? 'Update exam' : 'Create exam' }}
+      }
+    </button>
+  </div>
+}
+
+@if (scheduleMode === 'form') {
+  <div class="exam-save-bar">
+    <button
+      type="button"
+      class="save-btn sticky"
+      [disabled]="scheduleSaving || !canSaveScheduleDraft"
+      (click)="saveSchedule()"
+    >
+      @if (scheduleSaving) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Save schedule
       }
     </button>
   </div>
@@ -404,20 +622,22 @@
       name="draftFilterClassId"
     />
   </div>
-  <div class="filter-field">
-    <label>Status</label>
-    <so-select
-      [options]="statusFilterOptions"
-      [(ngModel)]="draftFilterStatus"
-      name="draftFilterStatus"
-    />
-  </div>
-  <div class="filter-field">
-    <label>Active</label>
-    <so-select
-      [options]="activeFilterOptions"
-      [(ngModel)]="draftFilterActive"
-      name="draftFilterActive"
-    />
-  </div>
+  @if (activeTab === 'exams') {
+    <div class="filter-field">
+      <label>Status</label>
+      <so-select
+        [options]="statusFilterOptions"
+        [(ngModel)]="draftFilterStatus"
+        name="draftFilterStatus"
+      />
+    </div>
+    <div class="filter-field">
+      <label>Active</label>
+      <so-select
+        [options]="activeFilterOptions"
+        [(ngModel)]="draftFilterActive"
+        name="draftFilterActive"
+      />
+    </div>
+  }
 </so-filter-popover>

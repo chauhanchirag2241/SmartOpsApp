@@ -1,18 +1,135 @@
-.block { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 14px; }
-label { display: block; margin: 12px 0; }
-textarea { width: 100%; margin-top: 4px; }
-.primary-btn, .danger {
+.action-detail-page {
+  --background: var(--so-page-bg);
+}
+
+.page-pad {
+  padding: 16px 16px var(--so-content-bottom-gap, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.form-card {
+  background: var(--so-card-bg);
+  border: 1px solid var(--so-line);
+  border-radius: 18px;
+  box-shadow: var(--so-shadow);
+  padding: 16px 18px 18px;
+}
+
+.card-label {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--so-primary-dark);
+}
+
+.employee-row {
+  margin-bottom: 12px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.flabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--so-ink-soft);
+  margin-bottom: 2px;
+}
+
+.fvalue {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--so-ink);
+}
+
+.employee-note {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed var(--so-line);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--so-ink-soft);
+}
+
+.notice-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--so-ink);
+  white-space: pre-wrap;
+}
+
+.field {
+  margin-bottom: 16px;
+
+  &.field-last {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    margin: 0 0 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--so-ink);
+  }
+}
+
+.req {
+  color: var(--so-error);
+}
+
+.textarea {
   width: 100%;
-  margin-top: 8px;
-  padding: 12px;
+  min-height: 84px;
+  resize: vertical;
+}
+
+.btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.submit-btn,
+.danger-btn {
+  width: 100%;
+  margin-top: 2px;
+  padding: 14px 12px;
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: 13px;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-weight: 600;
+  gap: 9px;
 }
-.primary-btn { background: var(--ion-color-primary); }
-.danger { background: var(--ion-color-danger); }
+
+.submit-btn {
+  background: var(--so-primary);
+  color: var(--so-on-primary, #fff);
+  box-shadow: 0 10px 20px -10px rgba(99, 153, 34, 0.55);
+}
+
+.danger-btn {
+  background: var(--so-error-bg, #fdecea);
+  color: var(--so-error, #c62828);
+  border: 1px solid color-mix(in srgb, var(--so-error, #c62828) 25%, transparent);
+}

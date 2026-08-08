@@ -13,16 +13,18 @@
         ariaLabel="Class"
         [(ngModel)]="form.classId"
         name="classId"
+        (valueChange)="onClassChange($event)"
       />
 
       <label>Subject <span class="req">*</span></label>
       <so-select
         [options]="subjectOptions"
-        placeholder="Select subject"
+        [placeholder]="subjectPlaceholder"
         searchPlaceholder="Search subject"
         ariaLabel="Subject"
         [(ngModel)]="form.subjectId"
         name="subjectId"
+        [disabled]="!form.classId || subjectsLoading"
       />
 
       <label>Title <span class="req">*</span></label>
